@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
 
 #include "zep/gap_buffer.h"
- 
-TEST(GapBuffer, PushPop)
-{
+
+TEST(GapBuffer, PushPop) {
     GapBuffer<char> buffer(0, 4);
     buffer.push_back('a');
     buffer.push_back('b');
@@ -24,12 +23,11 @@ TEST(GapBuffer, PushPop)
     out = buffer.string(true);
     ASSERT_EQ(out, "|9|");
 
-    // Causes annoying break in debugger when trapping asserts
-    //EXPECT_DEBUG_DEATH(buffer.pop_back(), ".*!empty.*");
+// Causes annoying break in debugger when trapping asserts
+//EXPECT_DEBUG_DEATH(buffer.pop_back(), ".*!empty.*");
 }
 
-TEST(GapBuffer, FrontBack)
-{
+TEST(GapBuffer, FrontBack) {
     GapBuffer<char> buffer;
 
     std::string foo("Hello");
@@ -42,21 +40,21 @@ TEST(GapBuffer, FrontBack)
     ASSERT_EQ(buffer[5], 'a');
 }
 
-TEST(GapBuffer, Assign)
-{
+TEST(GapBuffer, Assign) {
     GapBuffer<char> buffer(0, 4);
 
     std::string foo("Hello");
     buffer.assign(foo.begin(), foo.end());
 
     std::string out = buffer.string(true);
-    ASSERT_TRUE(out == "Hello|4|");
-  
+    ASSERT_TRUE(out
+        == "Hello|4|");
+
     foo = "He";
     buffer.assign(foo.begin(), foo.end());
     out = buffer.string(true);
     ASSERT_TRUE(out == "He|7|");
-    
+
     foo = "";
     buffer.assign(foo.begin(), foo.end());
     out = buffer.string(true);
@@ -67,7 +65,7 @@ TEST(GapBuffer, Assign)
     out = buffer.string(true);
     ASSERT_TRUE(out == "abcdefghijklmnopqrstuvwxyz|9|");
 
-    buffer.assign({ 'r', 'e', 'd' });
+    buffer.assign({'r', 'e', 'd'});
     out = buffer.string(false);
     ASSERT_TRUE(out == "red");
 
@@ -76,8 +74,7 @@ TEST(GapBuffer, Assign)
     ASSERT_TRUE(out == "xxxxxxxxxx");
 }
 
-TEST(GapBuffer, Resize)
-{
+TEST(GapBuffer, Resize) {
     GapBuffer<char> buffer(0, 4);
 
     std::string str("A sentence containing text.");
@@ -87,17 +84,16 @@ TEST(GapBuffer, Resize)
 
     buffer.resize(3);
     ASSERT_EQ(3, buffer.size());
-    
+
     auto out = buffer.string();
     ASSERT_TRUE(out == "A s");
 }
 
-TEST(GapBuffer, Manipulations)
-{
+TEST(GapBuffer, Manipulations) {
     GapBuffer<char> buffer(0, 4);
 
     // Empty buffer
-    ASSERT_TRUE(buffer.size() == 0);
+    ASSERT_TRUE(buffer.empty());
 
     buffer.resize(2);
     ASSERT_TRUE(buffer.size() == 2);

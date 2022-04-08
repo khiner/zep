@@ -1,15 +1,9 @@
-#include <cctype>
-#include <sstream>
-
 #include "zep/keymap.h"
 #include "zep/mode_search.h"
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
-#include "zep/theme.h"
 
-#include "zep/mcommon/animation/timer.h"
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/string/stringutils.h"
+#include "zep/timer.h"
 
 // Note:
 // This is a very basic implementation of the common Vim commands that I use: the bare minimum I can live with.
@@ -63,152 +57,127 @@
 // f[char] find on line
 // /[string] find in file, 'n' find next
 
-namespace Zep
-{
+namespace Zep {
 
-ZepMode_Vim::ZepMode_Vim(ZepEditor& editor)
-    : ZepMode(editor)
-{
-}
+ZepMode_Vim::ZepMode_Vim(ZepEditor &editor) : ZepMode(editor) {}
 
-ZepMode_Vim::~ZepMode_Vim()
-{
-}
+ZepMode_Vim::~ZepMode_Vim() = default;
 
-void ZepMode_Vim::AddOverStrikeMaps()
-{
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "r<.>" }, id_Replace);
-}
-
-void ZepMode_Vim::AddCopyMaps()
-{
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "v" }, id_VisualMode);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "V" }, id_VisualLineMode);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "y" }, id_Yank);
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "Y" }, id_YankLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "yy" }, id_YankLine);
-    
-    // Visual mode
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "aW" }, id_VisualSelectAWORD);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "aw" }, id_VisualSelectAWord);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "iW" }, id_VisualSelectInnerWORD);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "iw" }, id_VisualSelectInnerWord);
-}
-
-void ZepMode_Vim::AddPasteMaps()
-{
-
-}
-
-void ZepMode_Vim::Init()
-{
-    for (int i = 0; i <= 9; i++)
-    {
-        GetEditor().SetRegister('0' + (const char)i, "");
+void ZepMode_Vim::Init() {
+    for (int i = 0; i <= 9; i++) {
+        editor.SetRegister('0' + (const char) i, "");
     }
-    GetEditor().SetRegister('"', "");
+    editor.SetRegister('"', "");
 
     SetupKeyMaps();
 }
 
-void ZepMode_Vim::SetupKeyMaps()
-{
+void ZepMode_Vim::SetupKeyMaps() {
     // Standard choices
     AddGlobalKeyMaps();
     AddNavigationKeyMaps(true);
     AddSearchKeyMaps();
-    AddCopyMaps();
-    AddPasteMaps();
-    AddOverStrikeMaps();
+
+    // Copy
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"v"}, id_VisualMode);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"V"}, id_VisualLineMode);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"y"}, id_Yank);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"Y"}, id_YankLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"yy"}, id_YankLine);
+
+    // Visual mode
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"aW"}, id_VisualSelectAWORD);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"aw"}, id_VisualSelectAWord);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"iW"}, id_VisualSelectInnerWORD);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"iw"}, id_VisualSelectInnerWord);
+
+    // Over-stroke
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"r<.>"}, id_Replace);
 
     // Mode switching
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "<Escape>" }, id_NormalMode);
-    keymap_add({ &m_insertMap }, { "jk" }, id_NormalMode);
-    keymap_add({ &m_insertMap }, { "<Escape>" }, id_NormalMode);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"<Escape>"}, id_NormalMode);
+    keymap_add({&m_insertMap}, {"jk"}, id_NormalMode);
+    keymap_add({&m_insertMap}, {"<Escape>"}, id_NormalMode);
 
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "i" }, id_InsertMode);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "S" }, id_SubstituteLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "s" }, id_Substitute);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "A" }, id_AppendToLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "a" }, id_Append);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "I" }, id_InsertAtFirstChar);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { ":", "/", "?" }, id_ExMode);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"i"}, id_InsertMode);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"S"}, id_SubstituteLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"s"}, id_Substitute);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"A"}, id_AppendToLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"a"}, id_Append);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"I"}, id_InsertAtFirstChar);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {":", "/", "?"}, id_ExMode);
 
     // Copy/paste
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "p" }, id_PasteAfter);
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "P" }, id_PasteBefore);
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "x", "<Del>" }, id_Delete);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"p"}, id_PasteAfter);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"P"}, id_PasteBefore);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"x", "<Del>"}, id_Delete);
 
     // Visual changes
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "d" }, id_VisualDelete);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "c" }, id_VisualChange);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "s" }, id_VisualSubstitute);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"d"}, id_VisualDelete);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"c"}, id_VisualChange);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"s"}, id_VisualSubstitute);
 
     // Line modifications
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "J" }, id_JoinLines);
-    AddKeyMapWithCountRegisters({ &m_visualMap }, { "C" }, id_ChangeLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "o" }, id_OpenLineBelow);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "O" }, id_OpenLineAbove);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"J"}, id_JoinLines);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"C"}, id_ChangeLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"o"}, id_OpenLineBelow);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"O"}, id_OpenLineAbove);
 
     // Word modification/text
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "d<D>w", "dw" }, id_DeleteWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "dW" }, id_DeleteWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "daw" }, id_DeleteAWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "daW" }, id_DeleteAWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "diw" }, id_DeleteInnerWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "diW" }, id_DeleteInnerWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "D", "d$" }, id_DeleteToLineEnd);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "d<D>d", "dd" }, id_DeleteLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "dt<.>" }, id_DeleteToChar);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"d<D>w", "dw"}, id_DeleteWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"dW"}, id_DeleteWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"daw"}, id_DeleteAWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"daW"}, id_DeleteAWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"diw"}, id_DeleteInnerWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"diW"}, id_DeleteInnerWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"D", "d$"}, id_DeleteToLineEnd);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"d<D>d", "dd"}, id_DeleteLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"dt<.>"}, id_DeleteToChar);
 
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "cw" }, id_ChangeWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "cW" }, id_ChangeWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "ciw" }, id_ChangeInnerWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "ciW" }, id_ChangeInnerWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "ci<.>" }, id_ChangeIn);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "caw" }, id_ChangeAWord);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "caW" }, id_ChangeAWORD);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "C", "c$" }, id_ChangeToLineEnd);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "cc" }, id_ChangeLine);
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "ct<.>" }, id_ChangeToChar);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"cw"}, id_ChangeWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"cW"}, id_ChangeWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"ciw"}, id_ChangeInnerWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"ciW"}, id_ChangeInnerWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"ci<.>"}, id_ChangeIn);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"caw"}, id_ChangeAWord);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"caW"}, id_ChangeAWORD);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"C", "c$"}, id_ChangeToLineEnd);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"cc"}, id_ChangeLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"ct<.>"}, id_ChangeToChar);
 
-    AddKeyMapWithCountRegisters({ &m_normalMap }, { "<Return>" }, id_MotionNextFirstChar);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"<Return>"}, id_MotionNextFirstChar);
 
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "<C-r>" }, id_Redo);
-    AddKeyMapWithCountRegisters({ &m_normalMap, &m_visualMap }, { "<C-z>", "u" }, id_Undo);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"<C-r>"}, id_Redo);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"<C-z>", "u"}, id_Undo);
 
-    keymap_add({ &m_normalMap }, { "<Backspace>" }, id_MotionStandardLeft);
-    
+    keymap_add({&m_normalMap}, {"<Backspace>"}, id_MotionStandardLeft);
+
     // No count allowed on backspace in insert mode, or that would interfere with text.
-    keymap_add({ &m_insertMap }, { "<Backspace>" }, id_Backspace);
-    keymap_add({ &m_insertMap }, { "<Del>" }, id_Delete);
+    keymap_add({&m_insertMap}, {"<Backspace>"}, id_Backspace);
+    keymap_add({&m_insertMap}, {"<Del>"}, id_Delete);
 
-    keymap_add({ &m_insertMap }, { "<Return>" }, id_InsertCarriageReturn);
-    keymap_add({ &m_insertMap }, { "<Tab>" }, id_InsertTab);
+    keymap_add({&m_insertMap}, {"<Return>"}, id_InsertCarriageReturn);
+    keymap_add({&m_insertMap}, {"<Tab>"}, id_InsertTab);
 }
 
-void ZepMode_Vim::Begin(ZepWindow* pWindow)
-{
+void ZepMode_Vim::Begin(ZepWindow *pWindow) {
     ZepMode::Begin(pWindow);
 
-    GetEditor().SetCommandText(m_currentCommand);
-    m_currentMode = EditorMode::Normal;
+    editor.SetCommandText(m_currentCommand);
+    currentMode = EditorMode::Normal;
     m_currentCommand.clear();
     m_dotCommand.clear();
 }
 
-void ZepMode_Vim::PreDisplay(ZepWindow& window)
-{
-    // After .25 seconds of not pressing the 'k' escape code after j, 
-    // put the j in.
+void ZepMode_Vim::PreDisplay(ZepWindow &window) {
+    // After .25 seconds of not pressing the 'k' escape code after 'j', put the 'j' in.
     // We can do better than this and fix the keymapper to handle timed key events.
-    // This is an easier fix for now
+    // This is an easier fix for now.
     if (timer_get_elapsed_seconds(m_lastKeyPressTimer) > .25f &&
-        m_currentMode == EditorMode::Insert &&
-        m_currentCommand == "j")
-    {
+        currentMode == EditorMode::Insert &&
+        m_currentCommand == "j") {
         auto cmd = std::make_shared<ZepCommand_Insert>(
-            window.GetBuffer(),
+            *window.buffer,
             window.GetBufferCursor(),
             m_currentCommand);
         AddCommand(cmd);
@@ -218,4 +187,3 @@ void ZepMode_Vim::PreDisplay(ZepWindow& window)
 }
 
 } // namespace Zep
-

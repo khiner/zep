@@ -1,41 +1,35 @@
 #pragma once
+
 #include "syntax.h"
 #include <list>
 #include <string>
 #include <unordered_map>
 
-namespace Zep
-{
+namespace Zep {
 
-class ZepSyntaxAdorn_RainbowBrackets : public ZepSyntaxAdorn
-{
-public:
-    using TParent = ZepSyntaxAdorn;
-    ZepSyntaxAdorn_RainbowBrackets(ZepSyntax& syntax, ZepBuffer& buffer);
-    virtual ~ZepSyntaxAdorn_RainbowBrackets();
+struct ZepSyntaxAdorn_RainbowBrackets : public ZepSyntaxAdorn {
+    ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer);
 
-    void Notify(std::shared_ptr<ZepMessage> payload) override;
-    virtual SyntaxResult GetSyntaxAt(const GlyphIterator& offset, bool& found) const override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const override;
 
-    virtual void Clear(const GlyphIterator& start, const GlyphIterator& end);
-    virtual void Insert(const GlyphIterator& start, const GlyphIterator& end);
-    virtual void Update(const GlyphIterator& start, const GlyphIterator& end);
+    void Clear(const GlyphIterator &start, const GlyphIterator &end);
+    void Insert(const GlyphIterator &start, const GlyphIterator &end);
+    void Update(const GlyphIterator &start, const GlyphIterator &end);
 
 private:
     void RefreshBrackets();
-    enum class BracketType
-    {
+    enum class BracketType {
         Bracket = 0,
         Brace = 1,
         Group = 2,
         Max = 3
     };
 
-    struct Bracket
-    {
-        int32_t indent;
-        BracketType type;
-        bool is_open;
+    struct Bracket {
+        int32_t indent{};
+        BracketType type{};
+        bool is_open = false;
         bool valid = true;
     };
     std::map<long, Bracket> m_brackets;

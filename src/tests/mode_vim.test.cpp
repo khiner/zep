@@ -1,12 +1,10 @@
-#include "config_app.h"
-
 #include "zep/buffer.h"
-#include "zep/display.h"
 #include "zep/editor.h"
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"
+#include "TestDisplay.h"
 
 #include <gtest/gtest.h>
 #include <regex>
@@ -17,25 +15,22 @@
 // line that wraps, and that navigation moves correctly
 
 using namespace Zep;
-class VimTest : public testing::Test
-{
-public:
-    VimTest()
-    {
+struct VimTest : public testing::Test {
+    VimTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
-        spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
-        spMode = std::make_shared<ZepMode_Vim>(*spEditor);
-        spMode->Init();
+        editor = std::make_shared<ZepEditor>(&display, "", ZepEditorFlags::DisableThreads, nullptr);
+        mode = std::make_shared<ZepMode_Vim>(*editor);
+        mode->Init();
 
-        pBuffer = spEditor->InitWithText("Test Buffer", "");
+        pBuffer = editor->InitWithText("Test Buffer", "");
 
-        pTabWindow = spEditor->GetActiveTabWindow();
-        pWindow = spEditor->GetActiveTabWindow()->GetActiveWindow();
-        spMode->Begin(pWindow);
+        pTabWindow = editor->activeTabWindow;
+        pWindow = editor->activeTabWindow->GetActiveWindow();
+        mode->Begin(pWindow);
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
-        spEditor->SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f));
+        editor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
 
         pWindow->SetBufferCursor(pBuffer->Begin());
 
@@ -43,42 +38,29 @@ public:
         //COMMAND_TEST(delete_cw, "one two three", "cwabc", "abc two three");
         //COMMAND_TEST(delete_ciw_on_newline, "one\n\nthree", "jciwtwo", "one\ntwo\nthree");
         /*pBuffer->SetText("one\n\nthree");
-        spEditor->Display(*spDisplay);
-        spMode->AddCommandText("jciwtwo");               
-        assert(pBuffer->GetWorkingBuffer().string() == "abc two three");
+        editor->Display(*display);
+        mode->AddCommandText("jciwtwo");
+        assert(pBuffer->workingBuffer.string() == "abc two three");
         */
     }
 
-    ~VimTest()
-    {
-    }
+    ~VimTest() override = default;
 
-public:
-    std::shared_ptr<ZepEditor> spEditor;
-    ZepBuffer* pBuffer;
-    ZepWindow* pWindow;
-    ZepTabWindow* pTabWindow;
-    std::shared_ptr<ZepMode_Vim> spMode;
+    TestDisplay display{};
+    std::shared_ptr<ZepEditor> editor;
+    ZepBuffer *pBuffer{};
+    ZepWindow *pWindow{};
+    ZepTabWindow *pTabWindow{};
+    std::shared_ptr<ZepMode_Vim> mode;
 };
 
-#define HANDLE_VIM_COMMAND(command)               \
-    for (auto& ch : command)                      \
-    {                                             \
-        if (ch == 0)                              \
-            continue;                             \
-        if (ch == '\n')                           \
-        {                                         \
-            spMode->AddKeyPress(ExtKeys::RETURN); \
-        }                                         \
-        else                                      \
-        {                                         \
-            spMode->AddKeyPress(ch);              \
-        }                                         \
+#define HANDLE_VIM_COMMAND(command) \
+    for (auto& ch : (command)) { \
+        if (ch != 0)  mode->AddKeyPress(ch == '\n'? ImGuiKey_Enter : ch); \
     }
 
 #define CURSOR_TEST(name, source, command, xcoord, ycoord) \
-    TEST_F(VimTest, name)                                  \
-    {                                                      \
+    TEST_F(VimTest, name) {                                \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
         ASSERT_EQ(pWindow->BufferToDisplay().x, xcoord);   \
@@ -86,126 +68,116 @@ public:
     };
 
 #define VISUAL_TEST(name, source, command, start, end) \
-    TEST_F(VimTest, name)                                  \
-    {                                                      \
+    TEST_F(VimTest, name) {                                \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.Index(), start); \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.Index(), end);  \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().first.index, start); \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().second.index, end);  \
     };
 
 // Given a sample text, a keystroke list and a target text, check the test returns the right thing
 #define COMMAND_TEST(name, source, command, target)                     \
-    TEST_F(VimTest, name)                                               \
-    {                                                                   \
+    TEST_F(VimTest, name) {                                             \
         pBuffer->SetText(source);                                       \
-        spMode->AddCommandText(command);                                \
-        ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
+        mode->AddCommandText(command);                                \
+        ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 #define COMMAND_TEST_RET(name, source, command, target)                 \
-    TEST_F(VimTest, name)                                               \
-    {                                                                   \
+    TEST_F(VimTest, name) {                                             \
         pBuffer->SetText(source);                                       \
-        spMode->AddCommandText(command);                                \
-        spMode->AddKeyPress(ExtKeys::RETURN);                           \
-        ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
+        mode->AddCommandText(command);                                \
+        mode->AddKeyPress(ImGuiKey_Enter);                           \
+        ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
-TEST_F(VimTest, CheckDisplaySucceeds)
-{
+TEST_F(VimTest, CheckDisplaySucceeds) {
     pBuffer->SetText("Some text to display\nThis is a test.");
-    spEditor->SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f));
-    ASSERT_NO_FATAL_FAILURE(spEditor->Display());
+    editor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
+    ASSERT_NO_FATAL_FAILURE(editor->Display());
     ASSERT_FALSE(pTabWindow->GetWindows().empty());
 }
 
-TEST_F(VimTest, CheckDisplayWrap)
-{
+TEST_F(VimTest, CheckDisplayWrap) {
     pBuffer->SetText("Some text to display\nThis is a test.");
-    ASSERT_NO_FATAL_FAILURE(spEditor->Display());
+    ASSERT_NO_FATAL_FAILURE(editor->Display());
     ASSERT_FALSE(pTabWindow->GetWindows().empty());
 }
-TEST_F(VimTest, UndoRedo)
-{
-    // The issue here is that setting the text _should_ update the buffer!
+TEST_F(VimTest, UndoRedo) {
+// The issue here is that setting the text _should_ update the buffer!
     pBuffer->SetText("Hello");
-    spMode->AddCommandText("3x");
-    spMode->Undo();
-    spMode->Redo();
-    spMode->Undo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
+    mode->AddCommandText("3x");
+    mode->Undo();
+    mode->Redo();
+    mode->Undo();
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hello");
 
-    spMode->AddCommandText("iYo, jk");
-    spMode->Undo();
-    spMode->Redo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Yo, Hello");
+    mode->AddCommandText("iYo, jk");
+    mode->Undo();
+    mode->Redo();
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Yo, Hello");
 }
 
-TEST_F(VimTest, DELETE)
-{
+TEST_F(VimTest, DELETE) {
     pBuffer->SetText("Hello");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    spMode->AddKeyPress(ExtKeys::DEL);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "llo");
+    mode->AddKeyPress(ImGuiKey_Delete);
+    mode->AddKeyPress(ImGuiKey_Delete);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "llo");
 
-    spMode->AddCommandText("vll");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "");
+    mode->AddCommandText("vll");
+    mode->
+        AddKeyPress(ImGuiKey_Delete);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "");
 
     pBuffer->SetText("H");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    spMode->AddKeyPress(ExtKeys::DEL);
+    mode->AddKeyPress(ImGuiKey_Delete);
+    mode->AddKeyPress(ImGuiKey_Delete);
 }
 
-TEST_F(VimTest, ESCAPE)
-{
+TEST_F(VimTest, ESCAPE) {
     pBuffer->SetText("Hello");
-    spMode->AddCommandText("iHi, ");
-    spMode->AddKeyPress(ExtKeys::ESCAPE);
-    spMode->Undo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
+    mode->AddCommandText("iHi, ");
+    mode->AddKeyPress(ImGuiKey_Escape);
+    mode->Undo();
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hello");
 }
 
-TEST_F(VimTest, RETURN)
-{
+TEST_F(VimTest, RETURN) {
     pBuffer->SetText("Õne\ntwo");
-    spMode->AddKeyPress(ExtKeys::RETURN);
+    mode->AddKeyPress(ImGuiKey_Enter);
     ASSERT_EQ(pWindow->BufferToDisplay().y, 1);
 
-    spMode->AddCommandText("li");
-    spMode->AddKeyPress(ExtKeys::RETURN);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Õne\nt\nwo");
+    mode->AddCommandText("li");
+    mode->AddKeyPress(ImGuiKey_Enter);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Õne\nt\nwo");
 }
 
-TEST_F(VimTest, TAB)
-{
+TEST_F(VimTest, TAB) {
     pBuffer->SetText("HellÕ");
-    spMode->AddCommandText("llllllllli");
-    spMode->AddKeyPress(ExtKeys::TAB);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hell    Õ");
+    mode->AddCommandText("llllllllli");
+    mode->AddKeyPress(ImGuiKey_Tab);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hell    Õ");
 }
 
-TEST_F(VimTest, BACKSPACE)
-{
+TEST_F(VimTest, BACKSPACE) {
     pBuffer->SetText("Hello");
-    spMode->AddCommandText("ll");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
-    ASSERT_EQ(pWindow->GetBufferCursor().Index(), 0);
+    mode->AddCommandText("ll");
+    mode->AddKeyPress(ImGuiKey_Backspace);
+    mode->AddKeyPress(ImGuiKey_Backspace);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hello");
+    ASSERT_EQ(pWindow->GetBufferCursor().index, 0);
 
-    spMode->AddCommandText("lli");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hllo");
+    mode->AddCommandText("lli");
+    mode->AddKeyPress(ImGuiKey_Backspace);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hllo");
 
-    // Check that appending on the line then hitting backspace removes the last char
-    // A bug that showed up at some point
+// Check that appending on the line then hitting backspace removes the last char
+// A bug that showed up at some point
     pBuffer->SetText("AB");
-    spMode->AddKeyPress(ExtKeys::ESCAPE);
-    spMode->AddCommandText("AC");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "AB");
+    mode->AddKeyPress(ImGuiKey_Escape);
+    mode->AddCommandText("AC");
+    mode->AddKeyPress(ImGuiKey_Backspace);
+    ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "AB");
 }
 
 // The various rules of vim keystrokes are hard to consolidate.
@@ -472,22 +444,18 @@ CURSOR_TEST(find_a_char_num, "one2 one2", "2f2", 8, 0);
 CURSOR_TEST(find_a_char_beside, "ooo", "fo;", 2, 0);
 CURSOR_TEST(find_backwards, "foo", "lllllFf", 0, 0);
 
-inline std::string MakeCommandRegex(const std::string& command)
-{
+inline std::string MakeCommandRegex(const std::string &command) {
     return std::string(R"((?:(\d)|(<\S>*)|("\w?)*)()") + command + ")";
 }
 
-TEST(Regex, VimRegex)
-{
+TEST(Regex, VimRegex) {
     auto rx = MakeCommandRegex("y");
     std::regex re(rx);
 
     std::smatch match;
     std::string testString("3y");
-    if (std::regex_match(testString, match, re))
-    {
-        for (auto& m : match)
-        {
+    if (std::regex_match(testString, match, re)) {
+        for (auto &m: match) {
             ZEP_UNUSED(m);
             ZLOG(DBG, "Match: " << m.str());
         }

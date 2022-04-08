@@ -7,40 +7,29 @@
 
 #include <zep/indexer.h>
 
-namespace Zep
-{
+namespace Zep {
 
-class ZepWindow;
-class ZepMode_Search : public ZepMode
-{
-public:
-    ZepMode_Search(ZepEditor& editor, ZepWindow& previousWindow, ZepWindow& window, const ZepPath& startPath);
-    ~ZepMode_Search();
+struct ZepWindow;
+struct ZepMode_Search : public ZepMode {
+    ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, ZepPath startPath);
+    ~ZepMode_Search() override;
 
-    virtual void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
-    virtual void Begin(ZepWindow* pWindow) override;
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual EditorMode DefaultMode() const override { return EditorMode::Normal; }
-    
-    static const char* StaticName()
-    {
-        return "Search";
-    }
-    virtual const char* Name() const override
-    {
-        return StaticName();
-    }
+    void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) override;
+    void Begin(ZepWindow *pWindow) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    EditorMode DefaultMode() const override { return EditorMode::Normal; }
 
-    virtual CursorType GetCursorType() const override;
+    static const char *StaticName() { return "Search"; }
+    const char *Name() const override { return StaticName(); }
+
+    CursorType GetCursorType() const override;
 
 private:
-    void GetSearchPaths(const ZepPath& path, std::vector<std::string>& ignore, std::vector<std::string>& include) const;
     void InitSearchTree();
     void ShowTreeResult();
     void UpdateTree();
 
-    enum class OpenType
-    {
+    enum class OpenType {
         Replace,
         VSplit,
         HSplit,
@@ -51,17 +40,13 @@ private:
 private:
 
     // List of lines in the file result, with last found char
-    struct SearchResult
-    {
+    struct SearchResult {
         uint32_t index = 0;
         uint32_t location = 0;
     };
 
     // A mapping from character distance to a list of lines
-    struct IndexSet
-    {
-        std::multimap<uint32_t, SearchResult> indices;
-    };
+    using IndexSet = std::multimap<uint32_t, SearchResult>;
 
     bool fileSearchActive = false;
     bool treeSearchActive = false;
@@ -71,19 +56,19 @@ private:
     std::future<std::shared_ptr<IndexSet>> m_searchResult;
 
     // All files that can potentially match
-    std::shared_ptr<FileIndexResult> m_spFilePaths;
+    std::shared_ptr<FileIndexResult> m_filePaths;
 
     // A hierarchy of index results.
-    // The 'top' of the tree is the most narrow finding from a set of 'n' characters
+    // The 'top' of the tree is the narrowest finding from a set of 'n' characters
     // index a,b,c -> index b,c -> index c
     std::vector<std::shared_ptr<IndexSet>> m_indexTree;
-   
+
     // What we are searching for 
     std::string m_searchTerm;
     bool m_caseImportant = false;
 
-    ZepWindow& m_launchWindow;
-    ZepWindow& m_window;
+    ZepWindow &m_launchWindow;
+    ZepWindow &m_window;
     ZepPath m_startPath;
 };
 
