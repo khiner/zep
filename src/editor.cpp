@@ -718,17 +718,6 @@ const std::deque<std::shared_ptr<ZepBuffer>> &ZepEditor::GetBuffers() const {
     return m_buffers;
 }
 
-void ZepEditor::InitDataGrid(ZepBuffer &buffer, const NVec2i &dimensions) {
-    std::ostringstream str;
-    for (int column = 0; column < dimensions.y; column++) {
-        for (int row = 0; row < dimensions.x; row++) {
-            str << ".";
-        }
-        str << "\n";
-    }
-    buffer.SetText(str.str());
-}
-
 // Do any special buffer processing
 void ZepEditor::InitBuffer(ZepBuffer &buffer) {
     SetBufferMode(buffer);

@@ -353,7 +353,6 @@ private:
     ZepBuffer *CreateNewBuffer(const ZepPath &path);
 
     void InitBuffer(ZepBuffer &buffer);
-    void InitDataGrid(ZepBuffer &buffer, const NVec2i &dimensions);
 
     // Ensure there is a valid tab window and return it
     ZepTabWindow *EnsureTab();

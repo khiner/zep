@@ -64,7 +64,6 @@ enum class BufferType {
     Normal,
     Search,
     Repl,
-    DataGrid,
     Tree
 };
 
