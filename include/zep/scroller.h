@@ -13,7 +13,7 @@ public:
     Scroller(ZepEditor &editor, Region &parent);
 
     virtual void Display(ZepTheme &theme);
-    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     float vScrollVisiblePercent = 1.0f;
     float vScrollPosition = 0.0f;
@@ -30,7 +30,6 @@ private:
     void DoMove(NVec2f pos);
 
     float ThumbSize() const;
-    float ThumbExtra() const;
     NRectf ThumbRect() const;
 
 private:
@@ -50,7 +49,7 @@ private:
     };
     ScrollState m_scrollState = ScrollState::None;
     NVec2f m_mouseDownPos;
-    float m_mouseDownPercent;
+    float m_mouseDownPercent = 0;
 };
 
 }; // namespace Zep

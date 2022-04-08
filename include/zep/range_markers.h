@@ -43,8 +43,6 @@ enum {
     Indicator = (1 << 6), // Show an indicator on the left side
     Timed = (1 << 7),
     All = Underline | Tooltip | TooltipAtLine | CursorTip | CursorTipAtLine | Indicator | Background,
-    CompileError = Tooltip | CursorTip | Indicator | Background,
-    BackgroundMark = Background
 };
 };
 
@@ -56,9 +54,9 @@ enum class ToolTipPos {
 };
 
 struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
-    RangeMarker(ZepBuffer &buffer);
+    explicit RangeMarker(ZepBuffer &buffer);
 
-    bool ContainsLocation(GlyphIterator loc) const;
+    bool ContainsLocation(const GlyphIterator &loc) const;
     bool IntersectsRange(const ByteRange &i) const;
     virtual ThemeColor GetBackgroundColor(const GlyphIterator &itr = GlyphIterator()) const;
     virtual ThemeColor GetTextColor(const GlyphIterator &itr = GlyphIterator()) const;
@@ -94,7 +92,6 @@ public:
     std::shared_ptr<IWidget> spWidget;
     float duration = 1.0f;
     Zep::timer timer;
-    FlashType flashType = FlashType::Flash;
 
 protected:
     ZepBuffer &m_buffer;
@@ -106,7 +103,6 @@ protected:
     NVec2f m_inlineSize;
 
     Zep::scoped_connection onPreBufferInsert;
-    Zep::scoped_connection onPreBufferDelete;
 
     mutable ThemeColor m_textColor = ThemeColor::Text;
     mutable ThemeColor m_backgroundColor = ThemeColor::Background;

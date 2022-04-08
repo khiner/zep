@@ -1,15 +1,9 @@
-#include <cctype>
-#include <sstream>
-
 #include "zep/keymap.h"
 #include "zep/mode_search.h"
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
-#include "zep/theme.h"
 
 #include "zep/mcommon/animation/timer.h"
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/string/stringutils.h"
 
 // Note:
 // This is a very basic implementation of the common Vim commands that I use: the bare minimum I can live with.
@@ -65,12 +59,9 @@
 
 namespace Zep {
 
-ZepMode_Vim::ZepMode_Vim(ZepEditor &editor)
-    : ZepMode(editor) {
-}
+ZepMode_Vim::ZepMode_Vim(ZepEditor &editor) : ZepMode(editor) {}
 
-ZepMode_Vim::~ZepMode_Vim() {
-}
+ZepMode_Vim::~ZepMode_Vim() = default;
 
 void ZepMode_Vim::AddOverStrikeMaps() {
     AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"r<.>"}, id_Replace);

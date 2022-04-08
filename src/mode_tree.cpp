@@ -1,5 +1,3 @@
-#include <utility>
-
 #include "zep/mode_tree.h"
 
 namespace Zep {
@@ -29,7 +27,6 @@ void ZepMode_Tree::BuildTree() {
         for (uint32_t i = 0; i < indent; i++) strBuffer << " ";
 
         strBuffer << (pNode->HasChildren() ? pNode->IsExpanded() ? "~ " : "+ " : "  ");
-
         strBuffer << pNode->GetName() << std::endl;
 
         if (pNode->IsExpanded()) {
@@ -52,7 +49,6 @@ void ZepMode_Tree::BuildTree() {
 
 void ZepMode_Tree::Begin(ZepWindow *pWindow) {
     ZepMode_Vim::Begin(pWindow);
-
     BuildTree();
 }
 

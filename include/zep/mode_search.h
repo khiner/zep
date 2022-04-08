@@ -12,7 +12,7 @@ namespace Zep {
 class ZepWindow;
 class ZepMode_Search : public ZepMode {
 public:
-    ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, const ZepPath &startPath);
+    ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, ZepPath startPath);
     ~ZepMode_Search() override;
 
     void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
@@ -62,7 +62,7 @@ private:
     std::shared_ptr<FileIndexResult> m_spFilePaths;
 
     // A hierarchy of index results.
-    // The 'top' of the tree is the most narrow finding from a set of 'n' characters
+    // The 'top' of the tree is the narrowest finding from a set of 'n' characters
     // index a,b,c -> index b,c -> index c
     std::vector<std::shared_ptr<IndexSet>> m_indexTree;
 

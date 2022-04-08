@@ -32,9 +32,7 @@ void ZepRegressExCommand::Register(ZepEditor &editor) {
     editor.RegisterExCommand(std::make_shared<ZepRegressExCommand>(editor));
 }
 
-const char *ZepRegressExCommand::ExCommandName() const {
-    return "ZRegress";
-}
+const char *ZepRegressExCommand::ExCommandName() const { return "ZRegress"; }
 
 void ZepRegressExCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
@@ -55,19 +53,13 @@ void ZepRegressExCommand::Notify(const std::shared_ptr<ZepMessage> &message) {
 
 void ZepRegressExCommand::Tick() {
     const int MaxTabWindows = 10;
-    if (!m_enable) {
-        return;
-    }
+    if (!m_enable) return;
 
     auto seconds = timer_get_elapsed_seconds(m_timer);
-    if (seconds < .05f) {
-        return;
-    }
+    if (seconds < .05f) return;
 
     m_windowOperationCount--;
-    if (m_windowOperationCount == 0) {
-        m_enable = false;
-    }
+    if (m_windowOperationCount == 0) m_enable = false;
 
     timer_restart(m_timer);
 

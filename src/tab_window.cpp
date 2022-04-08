@@ -10,8 +10,7 @@
 // A 'window' is like a Vim Tab
 namespace Zep {
 
-ZepTabWindow::ZepTabWindow(ZepEditor &editor)
-    : ZepComponent(editor), m_editor(editor) {
+ZepTabWindow::ZepTabWindow(ZepEditor &editor) : ZepComponent(editor) {
     m_spRootRegion = std::make_shared<Region>();
     m_spRootRegion->flags = RegionFlags::Expanding;
 }
@@ -259,14 +258,12 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
     assert(pWindow);
     if (!pWindow) {
         assert(!"No window?");
-        return;
     }
 
     // Find the window
     auto itrFound = std::find(m_windows.begin(), m_windows.end(), pWindow);
     if (itrFound == m_windows.end()) {
         assert(!"Not found?");
-        return;
     }
 
     // Find its region
@@ -277,7 +274,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
     auto pParentRegion = pRegion->pParent;
 
     // Now erase the region from the parent
-    auto itrFoundRegion = std::find_if(pParentRegion->children.begin(), pParentRegion->children.end(), [pRegion](std::shared_ptr<Region> pCurrent) {
+    auto itrFoundRegion = std::find_if(pParentRegion->children.begin(), pParentRegion->children.end(), [pRegion](const std::shared_ptr<Region> &pCurrent) {
         return pCurrent == pRegion;
     });
     assert(itrFoundRegion != pParentRegion->children.end());
@@ -301,7 +298,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
                 auto pOwnerRegion = pParent->pParent;
                 if (pOwnerRegion) {
                     auto itrFoundChild = std::find_if(pOwnerRegion->children.begin(), pOwnerRegion->children.end(),
-                        [pDeleteRegion](std::shared_ptr<Region> pChild) { return pChild.get() == pDeleteRegion; });
+                        [pDeleteRegion](const std::shared_ptr<Region> &pChild) { return pChild.get() == pDeleteRegion; });
                     if (itrFoundChild != pOwnerRegion->children.end()) {
                         pOwnerRegion->children.erase(itrFoundChild);
                     }
@@ -319,10 +316,6 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
     delete pWindow;
     m_windows.erase(itrFound);
     m_windowRegions.erase(pWindow);
-
-    /*if (pParentRegion)
-        CleanEmptyRegions();
-        */
 
     if (m_windows.empty()) {
         SetActiveWindow(nullptr);
@@ -369,9 +362,7 @@ void ZepTabWindow::SetDisplayRegion(const NRectf &region, bool force) {
 }
 
 void ZepTabWindow::Display() {
-    for (auto &w: m_windows) {
-        w->Display();
-    }
+    for (auto &w: m_windows) w->Display();
 }
 
 } // namespace Zep

@@ -9,12 +9,12 @@ RangeMarker::RangeMarker(ZepBuffer &buffer)
     onPreBufferInsert = buffer.sigPreInsert.connect([=](ZepBuffer &buffer, const GlyphIterator &itrStart, const std::string &str) {
         HandleBufferInsert(buffer, itrStart, str);
     });
-    onPreBufferDelete = buffer.sigPreDelete.connect([=](ZepBuffer &buffer, const GlyphIterator &itrStart, const GlyphIterator itrEnd) {
+    buffer.sigPreDelete.connect([=](ZepBuffer &buffer, const GlyphIterator &itrStart, const GlyphIterator &itrEnd) {
         HandleBufferDelete(buffer, itrStart, itrEnd);
     });
 }
 
-bool RangeMarker::ContainsLocation(GlyphIterator loc) const {
+bool RangeMarker::ContainsLocation(const GlyphIterator &loc) const {
     return m_range.ContainsLocation(loc.Index());
 }
 
@@ -85,9 +85,9 @@ ZepBuffer &RangeMarker::GetBuffer() {
 // - Move up if text is deleted before them.
 // - Remove themselves from the buffer if text is edited _inside_ them.
 // Derived markers can modify this behavior.
-// Its up to marker owners to update this behavior if necessary
+// It's up to marker owners to update this behavior if necessary.
 // Markers do not act inside the undo/redo system.  They live on the buffer but are not stored with it.  They are adornments that 
-// must be managed externally
+// must be managed externally.
 void RangeMarker::HandleBufferInsert(ZepBuffer &buffer, const GlyphIterator &itrStart, const std::string &str) {
     if (!m_enabled) {
         return;

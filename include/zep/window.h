@@ -35,26 +35,15 @@ struct SpanInfo {
     NVec2f lineWidgetHeights;
     ZepFont *pFont = nullptr;
 
-    float FullLineHeightPx() const {
-        return padding.x + padding.y + lineTextSizePx.y;
-    }
-
+    float FullLineHeightPx() const { return padding.x + padding.y + lineTextSizePx.y; }
     // The byte length, not code point length
     // TODO: This is not the way to measure text lengths
-    long ByteLength() const {
-        return lineByteRange.second - lineByteRange.first;
-    }
-
-    bool BufferCursorInside(GlyphIterator offset) const {
-        return offset.Index() >= lineByteRange.first && offset.Index() < lineByteRange.second;
-    }
+    long ByteLength() const { return lineByteRange.second - lineByteRange.first; }
+    bool BufferCursorInside(const GlyphIterator &offset) const { return offset.Index() >= lineByteRange.first && offset.Index() < lineByteRange.second; }
 };
 
 inline bool operator<(const SpanInfo &lhs, const SpanInfo &rhs) {
-    if (lhs.lineByteRange.first != rhs.lineByteRange.first) {
-        return lhs.lineByteRange.first < rhs.lineByteRange.first;
-    }
-    return lhs.lineByteRange.second < rhs.lineByteRange.second;
+    return lhs.lineByteRange.first != rhs.lineByteRange.first ? lhs.lineByteRange.first < rhs.lineByteRange.first : lhs.lineByteRange.second < rhs.lineByteRange.second;
 }
 
 enum class CursorType {
@@ -94,8 +83,7 @@ struct Airline {
 // Clients should return the marker information if appropriate
 struct ToolTipMessage : public ZepMessage {
     ToolTipMessage(ZepBuffer *pBuff, const NVec2f &pos, const GlyphIterator &loc = GlyphIterator())
-        : ZepMessage(Msg::ToolTip, pos), pBuffer(pBuff), location(loc) {
-    }
+        : ZepMessage(Msg::ToolTip, pos), pBuffer(pBuff), location(loc) {}
 
     ZepBuffer *pBuffer;
     GlyphIterator location;
@@ -109,9 +97,9 @@ struct ToolTipMessage : public ZepMessage {
 class ZepWindow : public ZepComponent {
 public:
     ZepWindow(ZepTabWindow &window, ZepBuffer *buffer);
-    virtual ~ZepWindow();
+    ~ZepWindow() override;
 
-    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     // Display
     virtual void SetDisplayRegion(const NRectf &region);
@@ -119,7 +107,7 @@ public:
 
     // Cursor
     virtual GlyphIterator GetBufferCursor();
-    virtual void SetBufferCursor(GlyphIterator location);
+    virtual void SetBufferCursor(const GlyphIterator &location);
     virtual void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
     virtual NVec2i BufferToDisplay();
 
@@ -159,7 +147,7 @@ private:
         Tab,
         Space
     };
-    void GetCharPointer(GlyphIterator loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &specialChar);
+    void GetCharPointer(const GlyphIterator &loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &specialChar);
     const SpanInfo &GetCursorLineInfo(long y);
 
     float ToWindowY(float pos) const;
@@ -178,7 +166,7 @@ private:
     NVec4f GetBlendedColor(ThemeColor color) const;
     void GetCursorInfo(NVec2f &pos, NVec2f &size);
 
-    void PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> spMarker);
+    void PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &spMarker);
 
     void DrawAboveLineWidgets(SpanInfo &lineInfo);
 
@@ -199,15 +187,9 @@ private:
     std::shared_ptr<Region> m_vScrollRegion;    // Vertical scroller
     std::shared_ptr<Region> m_expandingEditRegion;    // Region containing the text sub-box 
     Airline m_airline;
-
-    // Owner tab
-    ZepTabWindow &m_tabWindow;
-
-    // Buffer
+    ZepTabWindow &m_tabWindow; // Owner tab
     ZepBuffer *m_pBuffer = nullptr;
-
-    // Scroll bar, if visible
-    std::shared_ptr<Scroller> m_vScroller;
+    std::shared_ptr<Scroller> m_vScroller; // Scroll bar, if visible
 
     // Wrap ; need horizontal offset for this to be turned on.
     // This will indeed stop lines wrapping though!  You just can't move to the far right and have

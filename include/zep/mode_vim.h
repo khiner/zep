@@ -10,32 +10,27 @@ namespace Zep {
 struct SpanInfo;
 
 enum class VimMotion {
-    LineBegin,
-    LineEnd,
-    NonWhiteSpaceBegin,
-    NonWhiteSpaceEnd
+    LineEnd
 };
 
 class ZepMode_Vim : public ZepMode {
 public:
-    ZepMode_Vim(ZepEditor &editor);
-    virtual ~ZepMode_Vim();
+    explicit ZepMode_Vim(ZepEditor &editor);
+    ~ZepMode_Vim() override;
 
-    static const char *StaticName() {
-        return "Vim";
-    }
+    static const char *StaticName() { return "Vim"; }
 
     // Zep Mode
-    virtual void Init() override;
-    virtual void Begin(ZepWindow *pWindow) override;
-    virtual const char *Name() const override { return StaticName(); }
-    virtual EditorMode DefaultMode() const override { return EditorMode::Normal; }
-    virtual void PreDisplay(ZepWindow &win) override;
+    void Init() override;
+    void Begin(ZepWindow *pWindow) override;
+    const char *Name() const override { return StaticName(); }
+    EditorMode DefaultMode() const override { return EditorMode::Normal; }
+    void PreDisplay(ZepWindow &win) override;
     virtual void SetupKeyMaps();
     virtual void AddOverStrikeMaps();
     virtual void AddCopyMaps();
     virtual void AddPasteMaps();
-    virtual bool UsesRelativeLines() const override { return true; }
+    bool UsesRelativeLines() const override { return true; }
 };
 
 } // namespace Zep

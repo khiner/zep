@@ -31,17 +31,10 @@ public:
         return pNode.get();
     }
 
-    virtual void ClearChildren() {
-        m_children.clear();
-    }
+    virtual void ClearChildren() { m_children.clear(); }
 
-    virtual bool IsExpanded() const {
-        return m_expanded;
-    }
-
-    virtual void Expand(bool expand) {
-        m_expanded = expand;
-    }
+    virtual bool IsExpanded() const { return m_expanded; }
+    virtual void Expand(bool expand) { m_expanded = expand; }
 
     virtual void ExpandAll(bool expand) {
         using fnVisit = std::function<void(ZepTreeNode *pNode, bool ex)>;
@@ -56,9 +49,7 @@ public:
         visitor(this, expand);
     }
 
-    virtual void SetParent(ZepTreeNode *pParent) {
-        m_pParent = pParent;
-    }
+    virtual void SetParent(ZepTreeNode *pParent) { m_pParent = pParent; }
 protected:
     bool m_expanded = false;
     ZepTreeNode *m_pParent = nullptr;
@@ -91,9 +82,7 @@ public:
     ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &replWindow);
     ~ZepMode_Tree() override;
 
-    static const char *StaticName() {
-        return "TREE";
-    }
+    static const char *StaticName() { return "TREE"; }
     void Begin(ZepWindow *pWindow) override;
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
     const char *Name() const override { return StaticName(); }

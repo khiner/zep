@@ -1280,7 +1280,6 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange 
     spMarker->displayType = RangeMarkerDisplayType::Timed | RangeMarkerDisplayType::Background;
     spMarker->markerType = RangeMarkerType::Mark;
     spMarker->duration = seconds;
-    spMarker->flashType = flashType;
     timer_restart(spMarker->timer);
 
     GetEditor().SetFlags(ZSetFlags(GetEditor().GetFlags(), ZepEditorFlags::FastUpdate));

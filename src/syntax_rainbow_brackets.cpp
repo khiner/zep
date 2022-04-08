@@ -1,7 +1,6 @@
 #include "zep/syntax_rainbow_brackets.h"
 #include "zep/theme.h"
 
-#include "zep/mcommon/string/stringutils.h"
 #include "zep/mcommon/logger.h"
 
 // A Simple adornment to add rainbow brackets to the syntax
@@ -75,21 +74,15 @@ void ZepSyntaxAdorn_RainbowBrackets::Clear(const GlyphIterator &start, const Gly
     // Note that we can't iterate here if the buffer has changed
     // TODO: this should happen on a message before delete! not after!
     auto itr = m_brackets.begin();
-    while (itr != m_brackets.end() && itr->first < start.Index()) {
-        itr++;
-    }
-    while (itr != m_brackets.end() && itr->first < end.Index()) {
-        itr = m_brackets.erase(itr);
-    }
+    while (itr != m_brackets.end() && itr->first < start.Index()) itr++;
+    while (itr != m_brackets.end() && itr->first < end.Index()) itr = m_brackets.erase(itr);
 
     // Adjust remaining brackets by the difference
     auto diff = ByteDistance(start, end);
     std::map<long, Bracket> replace;
     for (auto &b: m_brackets) {
-        if (b.first < start.Index())
-            replace[b.first] = b.second;
-        else
-            replace[b.first - diff] = b.second;
+        if (b.first < start.Index()) replace[b.first] = b.second;
+        else replace[b.first - diff] = b.second;
     }
     std::swap(m_brackets, replace);
 
@@ -97,8 +90,8 @@ void ZepSyntaxAdorn_RainbowBrackets::Clear(const GlyphIterator &start, const Gly
 }
 
 void ZepSyntaxAdorn_RainbowBrackets::Update(const GlyphIterator &start, const GlyphIterator &end) {
-    auto itrStart = start;
-    auto itrEnd = end;
+    const auto &itrStart = start;
+    const auto &itrEnd = end;
 
     for (auto itrBracket = itrStart; itrBracket < itrEnd; itrBracket++) {
         if (*itrBracket == '(') {
@@ -133,12 +126,8 @@ void ZepSyntaxAdorn_RainbowBrackets::RefreshBrackets() {
         bracket.indent = indents[int(bracket.type)];
         // Allow one bracket error, before going back to normal
         bracket.valid = (indents[int(bracket.type)] < 0) ? false : true;
-        if (!bracket.valid) {
-            indents[int(bracket.type)] = 0;
-        }
-        if (bracket.is_open) {
-            indents[int(bracket.type)]++;
-        }
+        if (!bracket.valid) indents[int(bracket.type)] = 0;
+        if (bracket.is_open) indents[int(bracket.type)]++;
     }
 
     auto MarkTails = [&](auto type) {

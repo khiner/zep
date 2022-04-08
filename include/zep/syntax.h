@@ -15,13 +15,6 @@ namespace Zep {
 
 enum class ThemeColor;
 
-struct CommentEntry {
-    bool isStart;
-    bool isMultiLine;
-    uint32_t location;
-    uint32_t entries;
-};
-
 namespace ZepSyntaxFlags {
 enum {
     CaseInsensitive = (1 << 0),
@@ -44,21 +37,18 @@ struct SyntaxResult : SyntaxData {
 class ZepSyntaxAdorn;
 class ZepSyntax : public ZepComponent {
 public:
-    ZepSyntax(ZepBuffer &buffer,
-              const std::unordered_set<std::string> &keywords = std::unordered_set<std::string>{},
-              const std::unordered_set<std::string> &identifiers = std::unordered_set<std::string>{},
-              uint32_t flags = 0);
-    virtual ~ZepSyntax();
+    explicit ZepSyntax(ZepBuffer &buffer,
+                       std::unordered_set<std::string> keywords = std::unordered_set<std::string>{},
+                       std::unordered_set<std::string> identifiers = std::unordered_set<std::string>{},
+                       uint32_t flags = 0);
+    ~ZepSyntax() override;
 
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &index) const;
     virtual void UpdateSyntax();
     virtual void Interrupt();
     virtual void Wait() const;
 
-    virtual long GetProcessedChar() const {
-        return m_processedChar;
-    }
-    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     const NVec4f &ToBackgroundColor(const SyntaxResult &res) const;
     const NVec4f &ToForegroundColor(const SyntaxResult &res) const;
@@ -66,11 +56,10 @@ public:
     virtual void IgnoreLineHighlight() { m_flags |= ZepSyntaxFlags::IgnoreLineHighlight; }
 
 private:
-    virtual void QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation);
+    virtual void QueueUpdateSyntax(const GlyphIterator &startLocation, const GlyphIterator &endLocation);
 
 protected:
     ZepBuffer &m_buffer;
-    std::vector<CommentEntry> m_commentEntries;
     std::vector<SyntaxData> m_syntax;
     std::future<void> m_syntaxResult;
     std::atomic<long> m_processedChar = {0};
@@ -82,21 +71,15 @@ protected:
     std::atomic<bool> m_stop;
     std::vector<std::shared_ptr<ZepSyntaxAdorn>> m_adornments;
     uint32_t m_flags;
-
-    ByteRange m_activeLineRange = {0, 0};
 };
 
 class ZepSyntaxAdorn : public ZepComponent {
 public:
-    ZepSyntaxAdorn(ZepSyntax &syntax, ZepBuffer &buffer)
-        : ZepComponent(syntax.GetEditor()), m_buffer(buffer), m_syntax(syntax) {
-    }
-
+    ZepSyntaxAdorn(ZepSyntax &syntax, ZepBuffer &buffer) : ZepComponent(syntax.GetEditor()), m_buffer(buffer) {}
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const = 0;
 
 protected:
     ZepBuffer &m_buffer;
-    ZepSyntax &m_syntax;
 };
 
 } // namespace Zep

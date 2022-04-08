@@ -99,7 +99,7 @@ struct CommandResult {
 
 class CommandContext {
 public:
-    CommandContext(const std::string &commandIn, ZepMode &md, EditorMode editorMode);
+    CommandContext(std::string commandIn, ZepMode &md, EditorMode editorMode);
 
     void GetCommandRegisters();
     void UpdateRegisters();
@@ -189,7 +189,7 @@ protected:
     void AddGlobalKeyMaps();
     void AddNavigationKeyMaps(bool allowInVisualMode = true);
     void AddSearchKeyMaps();
-    void AddKeyMapWithCountRegisters(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &id);
+    static void AddKeyMapWithCountRegisters(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &id);
 
     virtual void ClampCursorForMode();
     virtual bool HandleExCommand(std::string strCommand);

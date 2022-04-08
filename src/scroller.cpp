@@ -18,7 +18,6 @@ Scroller::Scroller(ZepEditor &editor, Region &parent)
     m_topButtonRegion->flags = RegionFlags::Fixed;
     m_bottomButtonRegion->flags = RegionFlags::Fixed;
     m_mainRegion->flags = RegionFlags::Expanding;
-
     m_region->layoutType = RegionLayoutType::VBox;
 
     const float scrollButtonMargin = 3.0f * editor.GetDisplay().GetPixelScale().x;
@@ -38,13 +37,7 @@ Scroller::Scroller(ZepEditor &editor, Region &parent)
 }
 
 void Scroller::CheckState() {
-    if (m_scrollState == ScrollState::None) {
-        return;
-    }
-
-    if (timer_get_elapsed_seconds(m_start_delay_timer) < 0.5f) {
-        return;
-    }
+    if (m_scrollState == ScrollState::None || timer_get_elapsed_seconds(m_start_delay_timer) < 0.5f) return;
 
     switch (m_scrollState) {
         default:
@@ -93,7 +86,6 @@ void Scroller::PageDown() {
 void Scroller::DoMove(NVec2f pos) {
     if (m_scrollState == ScrollState::Drag) {
         float dist = pos.y - m_mouseDownPos.y;
-
         float totalMove = m_mainRegion->rect.Height() - ThumbSize();
         float percentPerPixel = (1.0f - vScrollVisiblePercent) / totalMove;
         vScrollPosition = m_mouseDownPercent + (percentPerPixel * dist);
@@ -107,14 +99,11 @@ float Scroller::ThumbSize() const {
     return std::max(10.0f, m_mainRegion->rect.Height() * vScrollVisiblePercent);
 }
 
-float Scroller::ThumbExtra() const {
-    return std::max(0.0f, ThumbSize() - (m_mainRegion->rect.Height() * vScrollVisiblePercent));
-}
-
 NRectf Scroller::ThumbRect() const {
-    auto thumbSize = ThumbSize();
-    return NRectf(NVec2f(m_mainRegion->rect.topLeftPx.x, m_mainRegion->rect.topLeftPx.y + m_mainRegion->rect.Height() * vScrollPosition),
-        NVec2f(m_mainRegion->rect.bottomRightPx.x, m_mainRegion->rect.topLeftPx.y + m_mainRegion->rect.Height() * vScrollPosition + thumbSize));
+    return {
+        NVec2f(m_mainRegion->rect.topLeftPx.x, m_mainRegion->rect.topLeftPx.y + m_mainRegion->rect.Height() * vScrollPosition),
+        NVec2f(m_mainRegion->rect.bottomRightPx.x, m_mainRegion->rect.topLeftPx.y + m_mainRegion->rect.Height() * vScrollPosition + ThumbSize())
+    };
 }
 
 void Scroller::Notify(const std::shared_ptr<ZepMessage> &message) {
@@ -165,7 +154,6 @@ void Scroller::Notify(const std::shared_ptr<ZepMessage> &message) {
 
 void Scroller::Display(ZepTheme &theme) {
     auto &display = GetEditor().GetDisplay();
-
     display.SetClipRect(m_region->rect);
 
     auto mousePos = GetEditor().GetMousePos();
@@ -175,22 +163,13 @@ void Scroller::Display(ZepTheme &theme) {
     // Scroller background
     display.DrawRectFilled(m_region->rect, theme.GetColor(ThemeColor::WidgetBackground));
 
-    bool onTop = m_topButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag;
-    bool onBottom = m_bottomButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag;
-
-    if (m_scrollState == ScrollState::ScrollUp) {
-        onTop = true;
-    }
-    if (m_scrollState == ScrollState::ScrollDown) {
-        onBottom = true;
-    }
+    bool onTop = (m_topButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag) || m_scrollState == ScrollState::ScrollUp;
+    bool onBottom = (m_bottomButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag) || m_scrollState == ScrollState::ScrollDown;
 
     display.DrawRectFilled(m_topButtonRegion->rect, onTop ? activeColor : inactiveColor);
     display.DrawRectFilled(m_bottomButtonRegion->rect, onBottom ? activeColor : inactiveColor);
 
     auto thumbRect = ThumbRect();
-
-    // Thumb
     display.DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || m_scrollState == ScrollState::Drag ? activeColor : inactiveColor);
 }
 

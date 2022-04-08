@@ -75,7 +75,7 @@ enum class ThemeType {
 class ZepTheme {
 public:
     ZepTheme();
-    virtual ~ZepTheme() {}
+    virtual ~ZepTheme() = default;
 
     virtual const NVec4f &GetColor(ThemeColor themeColor) const;
     virtual NVec4f GetComplement(const NVec4f &col, const NVec4f &adjust = NVec4f(0.0f)) const;

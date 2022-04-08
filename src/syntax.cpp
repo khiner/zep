@@ -3,20 +3,16 @@
 #include "zep/syntax_rainbow_brackets.h"
 #include "zep/theme.h"
 
-#include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Zep {
 
-ZepSyntax::ZepSyntax(
-    ZepBuffer &buffer,
-    const std::unordered_set<std::string> &keywords,
-    const std::unordered_set<std::string> &identifiers,
-    uint32_t flags)
-    : ZepComponent(buffer.GetEditor()), m_buffer(buffer), m_keywords(keywords), m_identifiers(identifiers), m_stop(false), m_flags(flags) {
+ZepSyntax::ZepSyntax(ZepBuffer &buffer, std::unordered_set<std::string> keywords, std::unordered_set<std::string> identifiers, uint32_t flags)
+    : ZepComponent(buffer.GetEditor()), m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_stop(false), m_flags(flags) {
     m_syntax.resize(m_buffer.GetWorkingBuffer().size());
     m_adornments.push_back(std::make_shared<ZepSyntaxAdorn_RainbowBrackets>(*this, m_buffer));
 }
@@ -30,9 +26,7 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
 
     Wait();
 
-    if (m_processedChar < offset.Index() || (long) m_syntax.size() <= offset.Index()) {
-        return result;
-    }
+    if (m_processedChar < offset.Index() || (long) m_syntax.size() <= offset.Index()) return result;
 
     result.background = m_syntax[offset.Index()].background;
     result.foreground = m_syntax[offset.Index()].foreground;
@@ -50,22 +44,16 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
     return result;
 }
 
-void ZepSyntax::Wait() const {
-    if (m_syntaxResult.valid()) {
-        m_syntaxResult.wait();
-    }
-}
+void ZepSyntax::Wait() const { if (m_syntaxResult.valid()) m_syntaxResult.wait(); }
 
 void ZepSyntax::Interrupt() {
     // Stop the thread, wait for it
     m_stop = true;
-    if (m_syntaxResult.valid()) {
-        m_syntaxResult.get();
-    }
+    if (m_syntaxResult.valid()) m_syntaxResult.get();
     m_stop = false;
 }
 
-void ZepSyntax::QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator endLocation) {
+void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const GlyphIterator &endLocation) {
     assert(startLocation.Valid());
     assert(endLocation >= startLocation);
     // Record the max location the syntax is valid up to.  This will
@@ -129,27 +117,17 @@ void ZepSyntax::UpdateSyntax() {
 
     // Walk backwards to previous delimiter
     while (itrCurrent > buffer.begin()) {
-        if (std::find(delim.begin(), delim.end(), *itrCurrent) == delim.end()) {
-            itrCurrent--;
-        } else {
-            break;
-        }
+        if (std::find(delim.begin(), delim.end(), *itrCurrent) == delim.end()) itrCurrent--;
+        else break;
     }
 
     // Back to the previous line
-    while (itrCurrent > buffer.begin() && *itrCurrent != '\n') {
-        itrCurrent--;
-    }
+    while (itrCurrent > buffer.begin() && *itrCurrent != '\n') itrCurrent--;
     itrEnd = buffer.find_first_of(itrEnd, buffer.end(), lineEnd.begin(), lineEnd.end());
 
     // Mark a region of the syntax buffer with the correct marker
-    auto mark = [&](GapBuffer<uint8_t>::const_iterator itrA, GapBuffer<uint8_t>::const_iterator itrB, ThemeColor type, ThemeColor background) {
+    auto mark = [&](const GapBuffer<uint8_t>::const_iterator &itrA, const GapBuffer<uint8_t>::const_iterator &itrB, ThemeColor type, ThemeColor background) {
         std::fill(m_syntax.begin() + (itrA - buffer.begin()), m_syntax.begin() + (itrB - buffer.begin()), SyntaxData{type, background});
-    };
-
-    auto markSingle = [&](GapBuffer<uint8_t>::const_iterator itrA, ThemeColor type, ThemeColor background) {
-        (m_syntax.begin() + (itrA - buffer.begin()))->foreground = type;
-        (m_syntax.begin() + (itrA - buffer.begin()))->background = background;
     };
 
     // Update start location
@@ -157,14 +135,11 @@ void ZepSyntax::UpdateSyntax() {
 
     // Walk the buffer updating information about syntax coloring
     while (itrCurrent != itrEnd) {
-        if (m_stop == true) {
-            return;
-        }
+        if (m_stop == true) return;
 
         // Find a token, skipping delim <itrFirst, itrLast>
         auto itrFirst = buffer.find_first_not_of(itrCurrent, buffer.end(), delim.begin(), delim.end());
-        if (itrFirst == buffer.end())
-            break;
+        if (itrFirst == buffer.end()) break;
 
         auto itrLast = buffer.find_first_of(itrFirst, buffer.end(), delim.begin(), delim.end());
 
@@ -173,9 +148,7 @@ void ZepSyntax::UpdateSyntax() {
 
         // Mark whitespace
         for (auto &itr = itrCurrent; itr < itrFirst; itr++) {
-            if (*itr == ' ') {
-                mark(itr, itr + 1, ThemeColor::Whitespace, ThemeColor::None);
-            } else if (*itr == '\t') {
+            if (*itr == ' ' || *itr == '\t') {
                 mark(itr, itr + 1, ThemeColor::Whitespace, ThemeColor::None);
             }
         }
@@ -188,14 +161,12 @@ void ZepSyntax::UpdateSyntax() {
 
         if (m_keywords.find(token) != m_keywords.end()) {
             mark(itrFirst, itrLast, ThemeColor::Keyword, ThemeColor::None);
-        } else if (m_identifiers.find(token) != m_identifiers.end()) {
+        } else if (m_identifiers.find(token) != m_identifiers.end() || ((m_flags & ZepSyntaxFlags::LispLike) && token[0] == ':')) {
             mark(itrFirst, itrLast, ThemeColor::Identifier, ThemeColor::None);
         } else if (token.find_first_not_of("0123456789") == std::string::npos) {
             mark(itrFirst, itrLast, ThemeColor::Number, ThemeColor::None);
         } else if (token.find_first_not_of("{}()[]") == std::string::npos) {
             mark(itrFirst, itrLast, ThemeColor::Parenthesis, ThemeColor::None);
-        } else if ((m_flags & ZepSyntaxFlags::LispLike) && token[0] == ':') {
-            mark(itrFirst, itrLast, ThemeColor::Identifier, ThemeColor::None);
         } else {
             mark(itrFirst, itrLast, ThemeColor::Normal, ThemeColor::None);
         }
@@ -218,9 +189,7 @@ void ZepSyntax::UpdateSyntax() {
                     if (itrString < (buffer.end() - 1)) {
                         auto itrNext = itrString + 1;
                         // Ignore quoted
-                        if (*itrString == '\\' && *itrNext == ch) {
-                            itrString++;
-                        }
+                        if (*itrString == '\\' && *itrNext == ch) itrString++;
                     }
 
                     itrString++;
@@ -255,26 +224,18 @@ void ZepSyntax::UpdateSyntax() {
         itrCurrent = itrLast;
     }
 
-    // If we got here, we sucessfully completed
+    // If we got here, we successfully completed
     // Reset the target to the beginning
     m_targetChar = long(0);
     m_processedChar = long(buffer.size() - 1);
 }
 
 const NVec4f &ZepSyntax::ToBackgroundColor(const SyntaxResult &res) const {
-    if (res.background == ThemeColor::Custom) {
-        return res.customBackgroundColor;
-    } else {
-        return m_buffer.GetTheme().GetColor(res.background);
-    }
+    return res.background == ThemeColor::Custom ? res.customBackgroundColor : m_buffer.GetTheme().GetColor(res.background);
 }
 
 const NVec4f &ZepSyntax::ToForegroundColor(const SyntaxResult &res) const {
-    if (res.foreground == ThemeColor::Custom) {
-        return res.customForegroundColor;
-    } else {
-        return m_buffer.GetTheme().GetColor(res.foreground);
-    }
+    return res.foreground == ThemeColor::Custom ? res.customForegroundColor : m_buffer.GetTheme().GetColor(res.foreground);
 }
 
 } // namespace Zep

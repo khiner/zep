@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "zep/mode_search.h"
 #include "zep/filesystem.h"
 #include "zep/tab_window.h"
@@ -10,8 +12,8 @@
 
 namespace Zep {
 
-ZepMode_Search::ZepMode_Search(ZepEditor &editor, ZepWindow &launchWindow, ZepWindow &window, const ZepPath &path)
-    : ZepMode(editor), m_launchWindow(launchWindow), m_window(window), m_startPath(path) {
+ZepMode_Search::ZepMode_Search(ZepEditor &editor, ZepWindow &launchWindow, ZepWindow &window, ZepPath path)
+    : ZepMode(editor), m_launchWindow(launchWindow), m_window(window), m_startPath(std::move(path)) {
 }
 
 ZepMode_Search::~ZepMode_Search() {
@@ -204,7 +206,7 @@ void ZepMode_Search::UpdateTree() {
 
     assert(!m_indexTree.empty());
 
-    uint32_t treeDepth = uint32_t(m_indexTree.size() - 1);
+    auto treeDepth = uint32_t(m_indexTree.size() - 1);
     if (m_searchTerm.size() < treeDepth) {
         while (m_searchTerm.size() < treeDepth) {
             m_indexTree.pop_back();
@@ -216,14 +218,14 @@ void ZepMode_Search::UpdateTree() {
         char startChar = m_searchTerm[m_indexTree.size() - 1];
 
         // Search for a match at the next level of the search tree
-        m_searchResult = GetEditor().GetThreadPool().enqueue([&](std::shared_ptr<IndexSet> spStartSet, const char startChar) {
+        m_searchResult = GetEditor().GetThreadPool().enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
                 auto spResult = std::make_shared<IndexSet>();
                 for (auto &searchPair: spStartSet->indices) {
                     auto index = searchPair.second.index;
                     auto loc = searchPair.second.location;
                     auto dist = searchPair.first;
 
-                    size_t pos = 0;
+                    size_t pos;
                     if (m_caseImportant) {
                         auto str = m_spFilePaths->paths[index].string();
                         pos = str.find_first_of(startChar, loc);

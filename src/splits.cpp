@@ -4,11 +4,7 @@ namespace Zep {
 
 // Given a region layout, return the size that we want to use for the stack inside it if fixed.
 float SizeForLayout(RegionLayoutType layout, const NVec2f &v) {
-    if (layout == RegionLayoutType::HBox) {
-        return v.x;
-    } else {
-        return v.y;
-    }
+    return layout == RegionLayoutType::HBox ? v.x : v.y;
 }
 
 void LayoutRegion(Region &region) {

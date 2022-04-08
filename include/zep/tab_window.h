@@ -20,33 +20,28 @@ enum class WindowMotion {
 // Editor operations such as select and change are local to a displayed pane
 class ZepTabWindow : public ZepComponent {
 public:
-    ZepTabWindow(ZepEditor &editor);
-    virtual ~ZepTabWindow();
+    explicit ZepTabWindow(ZepEditor &editor);
+    ~ZepTabWindow() override;
 
-    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     ZepWindow *DoMotion(WindowMotion motion);
     ZepWindow *AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent = nullptr, RegionLayoutType layoutType = RegionLayoutType::HBox);
     void RemoveWindow(ZepWindow *pWindow);
     //void WalkRegions();
     void SetActiveWindow(ZepWindow *pBuffer);
-    ZepWindow *GetActiveWindow() const {
-        return m_pActiveWindow;
-    }
+    ZepWindow *GetActiveWindow() const { return m_pActiveWindow; }
     void CloseActiveWindow();
 
     using tWindows = std::vector<ZepWindow *>;
     using tWindowRegions = std::map<ZepWindow *, std::shared_ptr<Region>>;
-    const tWindows &GetWindows() const {
-        return m_windows;
-    }
+    const tWindows &GetWindows() const { return m_windows; }
 
     void SetDisplayRegion(const NRectf &region, bool force = false);
 
     void Display();
 
 private:
-    ZepEditor &m_editor;    // Editor that owns this window
     NRectf m_lastRegionRect;
 
     tWindows m_windows;

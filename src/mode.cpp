@@ -9,8 +9,8 @@
 #include "zep/tab_window.h"
 
 namespace Zep {
-CommandContext::CommandContext(const std::string &commandIn, ZepMode &md, EditorMode editorMode)
-    : owner(md), fullCommand(commandIn), buffer(md.GetCurrentWindow()->GetBuffer()), bufferCursor(md.GetCurrentWindow()->GetBufferCursor()), tempReg("", false), currentMode(editorMode) {
+CommandContext::CommandContext(std::string commandIn, ZepMode &md, EditorMode editorMode)
+    : owner(md), fullCommand(std::move(commandIn)), buffer(md.GetCurrentWindow()->GetBuffer()), bufferCursor(md.GetCurrentWindow()->GetBufferCursor()), tempReg("", false), currentMode(editorMode) {
     registers.push('"');
     pRegister = &tempReg;
 
@@ -18,9 +18,7 @@ CommandContext::CommandContext(const std::string &commandIn, ZepMode &md, Editor
     auto extraMaps = md.GetEditor().GetGlobalKeyMaps(md);
     for (auto &extra: extraMaps) {
         keymap_find(*extra, fullCommand, keymap);
-        if (keymap.foundMapping.id != 0) {
-            break;
-        }
+        if (keymap.foundMapping.id != 0) break;
     }
 
     if (keymap.foundMapping.id == 0) {
@@ -35,8 +33,7 @@ CommandContext::CommandContext(const std::string &commandIn, ZepMode &md, Editor
 
 void CommandContext::UpdateRegisters() {
     // Store in a register
-    if (registers.empty())
-        return;
+    if (registers.empty()) return;
 
     if (op == CommandOperation::Delete || op == CommandOperation::DeleteLines) {
         beginRange.Clamp();
@@ -118,23 +115,18 @@ ZepMode::ZepMode(ZepEditor &editor)
     : ZepComponent(editor) {
 }
 
-ZepMode::~ZepMode() {
-}
+ZepMode::~ZepMode() = default;
 
 ZepWindow *ZepMode::GetCurrentWindow() const {
-    // Mode begin should always set this and we should always have a valid window associated with the mode
+    // Mode begin should always set this, and we should always have a valid window associated with the mode
     assert(m_pCurrentWindow != nullptr);
     return m_pCurrentWindow;
 }
 
-EditorMode ZepMode::GetEditorMode() const {
-    return m_currentMode;
-}
+EditorMode ZepMode::GetEditorMode() const { return m_currentMode; }
 
 void ZepMode::AddCommandText(std::string strText) {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
+    if (m_pCurrentWindow == nullptr) return;
 
     for (auto &ch: strText) {
         AddKeyPress(ch);
@@ -142,9 +134,7 @@ void ZepMode::AddCommandText(std::string strText) {
 }
 
 void ZepMode::ClampCursorForMode() {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
+    if (m_pCurrentWindow == nullptr) return;
 
     // Normal mode cursor is never on a CR/0
     // This stops an edit, such as an undo from leaving the cursor on the CR.
@@ -154,17 +144,13 @@ void ZepMode::ClampCursorForMode() {
 }
 
 void ZepMode::SwitchMode(EditorMode currentMode) {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
+    if (m_pCurrentWindow == nullptr) return;
 
     // Don't switch to invalid mode
-    if (currentMode == EditorMode::None)
-        return;
+    if (currentMode == EditorMode::None) return;
 
     // Don't switch to the same thing again
-    if (currentMode == m_currentMode)
-        return;
+    if (currentMode == m_currentMode) return;
 
     auto pWindow = GetCurrentWindow();
     auto &buffer = pWindow->GetBuffer();
@@ -231,9 +217,7 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
             // Add the S- modifier for shift enabled special keys
             // We want to avoid adding S- to capitalized (and already shifted)
             // keys
-            if (key < ' ') {
-                str << "S-";
-            }
+            if (key < ' ') str << "S-";
         }
         closeBracket = true;
     } else if (modifierKeys & ModifierKey::Shift) {
@@ -246,7 +230,7 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
     std::string mapped;
 
 #define COMPARE_STR(a, b) \
-    if (key == b)         \
+    if (key == (b))         \
         mapped = #a;
 
     COMPARE_STR(Return, ExtKeys::RETURN)
@@ -286,18 +270,14 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
         str << std::string((const char *) &key);
     }
 
-    if (closeBracket) {
-        str << ">";
-    }
+    if (closeBracket) str << ">";
 
     return str.str();
 }
 
 // Handle a key press, convert it to an input command and context, and return it.
 void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
+    if (m_pCurrentWindow == nullptr) return;
 
     // Temporarily accept up to 255; this is not fully allowing UTF8 input yet (though display and management of buffers with
     // utf8 is just fine)
@@ -306,7 +286,6 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
     // Keys in this range converted to UTF8.  I need to figure out how to generically receive UTF8 here, but this
     // temporary fix enables �-sign and other specials to display and work correctly
     if (key >= 127 && key <= 255) {
-
         key = (0x00C2 | ((key & 0xFF) << 8));
     }
 
@@ -325,13 +304,11 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
 }
 
 void ZepMode::HandleMappedInput(const std::string &input) {
-    if (input.empty()) {
-        return;
-    }
+    if (input.empty()) return;
 
     // Special case, dot command (do last edit again)
     // Dot command is complicated, this is my second attempt at implementing it and is less
-    // complex.  The approach is to store relevent key strokes for the last edit operation,
+    // complex.  The approach is to store relevant keystrokes for the last edit operation,
     // and replay them when the user uses the dot.
     if (m_currentMode == EditorMode::Normal && input[input.size() - 1] == '.') {
         // Save and restore the last command while doing it.
@@ -342,14 +319,13 @@ void ZepMode::HandleMappedInput(const std::string &input) {
         m_dotCommand = lastCommand;
 
         SwitchMode(EditorMode::Normal);
-
         return;
     }
 
     // The current command is our currently typed multi-key operation
     m_currentCommand += input;
 
-    // Reset the timer for the last edit, for time-sensitive key strokes
+    // Reset the timer for the last edit, for time-sensitive keystrokes
     GetEditor().ResetLastEditTimer();
 
     // Reset the cursor to keep it visible during typing, and not flashing
@@ -378,10 +354,7 @@ void ZepMode::HandleMappedInput(const std::string &input) {
 
     // A lambda to check for a pending mode switch after the command
     auto enteringMode = [=](auto mode) {
-        if (m_currentMode != spContext->commandResult.modeSwitch && spContext->commandResult.modeSwitch == mode) {
-            return true;
-        }
-        return false;
+        return m_currentMode != spContext->commandResult.modeSwitch && spContext->commandResult.modeSwitch == mode;
     };
 
     // Escape Nukes the current command - we handle it in the keyboard mappings after that
@@ -457,15 +430,11 @@ void ZepMode::HandleMappedInput(const std::string &input) {
 }
 
 void ZepMode::AddCommand(std::shared_ptr<ZepCommand> spCmd) {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
+    if (m_pCurrentWindow == nullptr) return;
 
-    if (GetCurrentWindow()->GetBuffer().HasFileFlags(FileFlags::Locked)) {
-        // Ignore commands on buffers because we are view only,
-        // and all commands currently modify the buffer!
-        return;
-    }
+    // Ignore commands on buffers because we are view only,
+    // and all commands currently modify the buffer!
+    if (GetCurrentWindow()->GetBuffer().HasFileFlags(FileFlags::Locked)) return;
 
     spCmd->Redo();
     m_undoStack.push(spCmd);
@@ -480,12 +449,7 @@ void ZepMode::AddCommand(std::shared_ptr<ZepCommand> spCmd) {
 }
 
 void ZepMode::Redo() {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
-
-    if (m_redoStack.empty())
-        return;
+    if (m_pCurrentWindow == nullptr || m_redoStack.empty()) return;
 
     if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(m_redoStack.top()) != nullptr) {
         m_undoStack.push(m_redoStack.top());
@@ -503,19 +467,12 @@ void ZepMode::Redo() {
         m_undoStack.push(spCommand);
         m_redoStack.pop();
 
-        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) {
-            break;
-        }
+        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) break;
     };
 }
 
 void ZepMode::Undo() {
-    if (m_pCurrentWindow == nullptr) {
-        return;
-    }
-
-    if (m_undoStack.empty())
-        return;
+    if (m_pCurrentWindow == nullptr || m_undoStack.empty()) return;
 
     if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(m_undoStack.top()) != nullptr) {
         m_redoStack.push(m_undoStack.top());
@@ -533,9 +490,7 @@ void ZepMode::Undo() {
         m_redoStack.push(spCommand);
         m_undoStack.pop();
 
-        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) {
-            break;
-        }
+        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) break;
     };
 }
 
@@ -553,7 +508,7 @@ GlyphRange ZepMode::GetInclusiveVisualRange() const {
         endOffset.Move(-1);
     }
 
-    return GlyphRange(startOffset, endOffset);
+    return {startOffset, endOffset};
 }
 
 const std::string &ZepMode::GetLastCommand() const {
@@ -565,23 +520,20 @@ bool ZepMode::GetCommand(CommandContext &context) {
     auto &buffer = GetCurrentWindow()->GetBuffer();
 
     if (m_currentMode == EditorMode::Ex) {
-        // TODO: Is it possible extend our key mapping to better process ex commands?  Or are these
-        // too specialized?
+        // TODO: Is it possible extend our key mapping to better process ex commands?  Or are these too specialized?
         if (HandleExCommand(context.fullCommand)) {
             // buffer.GetMode()->Begin(GetCurrentWindow());
             SwitchMode(DefaultMode());
             ResetCommand();
             return true;
         }
-        GetEditor().SetCommandText(m_currentCommand);
 
+        GetEditor().SetCommandText(m_currentCommand);
         return false;
     }
 
     // The keymapper is waiting for more input
-    if (context.keymap.needMoreChars) {
-        return false;
-    }
+    if (context.keymap.needMoreChars) return false;
 
     // This flag is for non-modal editors which like to break insertions into undo groups.
     // Vim, for example, doesn't do that; an insert mode operation is a single 'group'
@@ -598,9 +550,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     }
 
     // Inherited modes can handle extra commands this way
-    if (HandleSpecialCommand(context)) {
-        return true;
-    }
+    if (HandleSpecialCommand(context)) return true;
 
     if (mappedCommand == id_NormalMode) {
         // TODO: I think this should be a 'command' which would get replayed with dot;
@@ -657,11 +607,9 @@ bool ZepMode::GetCommand(CommandContext &context) {
 
             // Search the paths, starting near and widening
             for (auto &p: searchPaths) {
-                if (p.empty())
-                    continue;
+                if (p.empty()) continue;
 
                 bool found = false;
-
                 // Look for the priority folder locations
                 std::vector<ZepPath> searchFolders{path.parent_path()};
                 for (auto &priorityFolder: priorityFolders) {
@@ -696,8 +644,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                         }
                         return true;
                     });
-                    if (found)
-                        return true;
+                    if (found) return true;
                 }
             }
         }
@@ -882,8 +829,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             // In Vim, 0G means go to end!  1G is the first line...
             long count = context.keymap.TotalCount() - 1;
             count = std::min(context.buffer.GetLineCount() - 1, count);
-            if (count < 0)
-                count = context.buffer.GetLineCount() - 1;
+            if (count < 0) count = context.buffer.GetLineCount() - 1;
 
             ByteRange range;
             if (context.buffer.GetLineOffsets(count, range)) {
@@ -937,7 +883,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         GetCurrentWindow()->SetBufferCursor(context.buffer.Begin());
         return true;
     } else if (mappedCommand == id_JoinLines) {
-        // Special case, join on empy line, just pull out the newline
+        // Special case, join on empty line, just pull out the newline
         if (context.bufferCursor.Char() == '\n') {
             context.beginRange = context.bufferCursor;
             context.endRange = context.bufferCursor.PeekByteOffset(1);
@@ -1258,7 +1204,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                         GlyphIterator lineStart = context.buffer.GetLinePos(range.first, LineLocation::LineBegin);
                         auto offsetStart = (range.first.Index() - lineStart.Index());
 
-                        // If change in a pair of delimeters that are on seperate lines, then
+                        // If change in a pair of delimiters that are on separate lines, then
                         // we remove everything and replace with 2 CRs and an indent based on the start bracket
                         // Since Zep doesn't auto indent, this is the best we can do for now.
                         context.replaceRangeMode = ReplaceRangeMode::Replace;
@@ -1342,7 +1288,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             }
             std::string openClose = opening + closing;
 
-            // Track open/close braket pairs
+            // Track open/close bracket pairs
             int closingCount = 1;
 
             for (;;) {
@@ -1369,14 +1315,10 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 }
 
                 if (dir == Direction::Forward) {
-                    if (end_loc == context.buffer.End()) {
-                        break;
-                    }
+                    if (end_loc == context.buffer.End()) break;
                     end_loc++;
                 } else {
-                    if (end_loc == context.buffer.Begin()) {
-                        break;
-                    }
+                    if (end_loc == context.buffer.Begin()) break;
                     end_loc--;
                 }
             }
@@ -1439,7 +1381,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         }
     } else if (m_currentMode == EditorMode::Insert) {
         // If not a single char, then we are trying to input a special, which isn't allowed
-        // TOOD: Cleaner detection of this?
+        // TODO: Cleaner detection of this?
         // Special case for 'j + another character' which is an insert
         if (true) // context.keymap.commandWithoutGroups.size() == 1 || ((context.keymap.commandWithoutGroups.size() == 2) && context.keymap.commandWithoutGroups[0] == 'j'))
         {
@@ -1560,7 +1502,7 @@ bool ZepMode::GetOperationRange(const std::string &op, EditorMode currentMode, G
         beginRange = range.first;
         endRange = range.second;
     } else if (op == "cursor") {
-        auto cursorItr = bufferCursor;
+        const auto &cursorItr = bufferCursor;
         beginRange = cursorItr;
         endRange = cursorItr.PeekLineClamped(1);
     }
@@ -1571,11 +1513,9 @@ void ZepMode::UpdateVisualSelection() {
     // Visual mode update - after a command
     if (m_currentMode == EditorMode::Visual) {
         // Update the visual range
-        if (m_lineWise) {
-            m_visualEnd = GetCurrentWindow()->GetBuffer().GetLinePos(GetCurrentWindow()->GetBufferCursor(), LineLocation::LineCRBegin);
-        } else {
-            m_visualEnd = GetCurrentWindow()->GetBufferCursor();
-        }
+        m_visualEnd = m_lineWise ?
+                      GetCurrentWindow()->GetBuffer().GetLinePos(GetCurrentWindow()->GetBufferCursor(), LineLocation::LineCRBegin) :
+                      GetCurrentWindow()->GetBufferCursor();
 
         auto range = GetInclusiveVisualRange();
         GetCurrentWindow()->GetBuffer().SetSelection(range);
@@ -1583,8 +1523,7 @@ void ZepMode::UpdateVisualSelection() {
 }
 
 bool ZepMode::HandleExCommand(std::string strCommand) {
-    if (strCommand.empty())
-        return false;
+    if (strCommand.empty()) return false;
 
     auto eraseExtKey = [](std::string &str) {
         auto pos = str.find_last_of('<');
@@ -1597,8 +1536,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         eraseExtKey(strCommand);
 
         // Remove the previous character
-        if (!strCommand.empty())
-            strCommand.pop_back();
+        if (!strCommand.empty()) strCommand.pop_back();
 
         if (strCommand.empty()) {
             GetCurrentWindow()->SetBufferCursor(m_exCommandStartLocation);
@@ -1620,20 +1558,14 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         auto &buffer = GetCurrentWindow()->GetBuffer();
         auto bufferCursor = GetCurrentWindow()->GetBufferCursor();
 
-        if (strCommand[0] == '/' || strCommand[0] == '?') {
-            // Just exit Ex mode when finished the search
-            return true;
-        }
+        // Just exit Ex mode when finished the search
+        if (strCommand[0] == '/' || strCommand[0] == '?') return true;
 
         // Remove the return
         eraseExtKey(strCommand);
-        if (strCommand == "") {
-            return false;
-        }
+        if (strCommand.empty()) return false;
 
-        if (GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::HandleCommand, strCommand))) {
-            return true;
-        }
+        if (GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::HandleCommand, strCommand))) return true;
 
         auto pCommand = GetEditor().FindExCommand(strCommand.substr(1));
         if (pCommand) {
@@ -1768,8 +1700,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 if (strTok.size() > 2) {
                     try {
                         time = std::stof(strTok[2]);
-                    }
-                    catch (std::exception &) {
+                    } catch (std::exception &) {
                     }
                 }
                 buffer.BeginFlash(time, flashType, GlyphRange(buffer.Begin(), buffer.End()));
@@ -1841,16 +1772,12 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         } else if (strCommand == ":ZShowInput") {
             GetEditor().GetConfig().showNormalModeKeyStrokes = !GetEditor().GetConfig().showNormalModeKeyStrokes;
         } else if (strCommand == ":ZThemeToggle") {
-            // An easy test command to check per-buffer themeing
+            // An easy test command to check per-buffer theming
             // Just gets the current theme on the buffer and makes a new
             // one that is opposite
             auto theme = GetCurrentWindow()->GetBuffer().GetTheme();
             auto spNewTheme = std::make_shared<ZepTheme>();
-            if (theme.GetThemeType() == ThemeType::Dark) {
-                spNewTheme->SetThemeType(ThemeType::Light);
-            } else {
-                spNewTheme->SetThemeType(ThemeType::Dark);
-            }
+            spNewTheme->SetThemeType(theme.GetThemeType() == ThemeType::Dark ? ThemeType::Light : ThemeType::Dark);
             GetCurrentWindow()->GetBuffer().SetTheme(spNewTheme);
         } else if (strCommand == ":ls") {
             std::ostringstream str;
@@ -1860,23 +1787,9 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 if (!editor_buffer->GetName().empty()) {
                     std::string displayText = editor_buffer->GetName();
                     displayText = string_replace(displayText, "\n", "^J");
-                    if (editor_buffer->IsHidden()) {
-                        str << "h";
-                    } else {
-                        str << " ";
-                    }
-
-                    if (&GetCurrentWindow()->GetBuffer() == editor_buffer.get()) {
-                        str << "*";
-                    } else {
-                        str << " ";
-                    }
-
-                    if (editor_buffer->HasFileFlags(FileFlags::Dirty)) {
-                        str << "+";
-                    } else {
-                        str << " ";
-                    }
+                    str << (editor_buffer->IsHidden() ? "h" : " ");
+                    str << (&GetCurrentWindow()->GetBuffer() == editor_buffer.get() ? "*" : " ");
+                    str << (editor_buffer->HasFileFlags(FileFlags::Dirty) ? "+" : " ");
                     str << index++ << " : " << displayText << '\n';
                 }
             }
@@ -1918,9 +1831,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 static const uint32_t MaxMarkers = 1000;
                 while (numMarkers < MaxMarkers) {
                     auto found = buffer.Find(start, (uint8_t *) &searchString[0], (uint8_t *) &searchString[searchString.length()]);
-                    if (!found.Valid()) {
-                        break;
-                    }
+                    if (!found.Valid()) break;
 
                     start = found + 1;
 
@@ -1939,10 +1850,8 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
 
             // Find the one on or in front of the cursor, in either direction.
             auto startLocation = m_exCommandStartLocation;
-            if (dir == Direction::Forward)
-                startLocation--;
-            else
-                startLocation++;
+            if (dir == Direction::Forward) startLocation--;
+            else startLocation++;
 
             auto pMark = buffer.FindNextMarker(startLocation, dir, RangeMarkerType::Search);
             if (pMark) {
