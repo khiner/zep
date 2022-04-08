@@ -1,5 +1,4 @@
 ignore:
-    - "m3rdparty/.*"
-    - "main.cpp"
-    - "src/qt/.*"
-    - "src/imgui/.*"
+  - "m3rdparty/.*"
+  - "main.cpp"
+  - "src/imgui/.*"

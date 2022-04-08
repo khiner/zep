@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.2)
 message(STATUS "CMakeLists: Zep")
 
 # Global Options
-option(BUILD_QT "Make Qt Library" OFF)
 option(BUILD_IMGUI "Make Imgui Library" OFF)
 option(BUILD_DEMOS "Make the demo app" ON)
 option(BUILD_TESTS "Make the tests" ON)
@@ -24,33 +23,33 @@ set(CMAKE_DEBUG_POSTFIX "-debug")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "-reldbg")
 
 if (BUILD_DEMOS OR BUILD_EXTENSIONS)
-if (WIN32)
-set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
-endif()
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
-endif()
+    if (WIN32)
+        set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
+    endif ()
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+endif ()
 
 project(Zep
     LANGUAGES CXX C
     VERSION 0.5.0
-)
+    )
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # Can I remove these now?
 if (ZEP_FEATURE_CPP_FILE_SYSTEM)
-add_definitions(-DZEP_FEATURE_CPP_FILE_SYSTEM)
-endif()
+    add_definitions(-DZEP_FEATURE_CPP_FILE_SYSTEM)
+endif ()
 
 if (BUILD_DEMOS)
-SET(BUILD_EXTENSIONS ON)
-endif()
+    SET(BUILD_EXTENSIONS ON)
+endif ()
 
 # config_app.h checks
 # This makes a config_shared.h file which can be included for system settings
 #  Must be after setting up the platforms
-set (ZEP_ROOT ${CMAKE_CURRENT_LIST_DIR})
-set (M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
+set(ZEP_ROOT ${CMAKE_CURRENT_LIST_DIR})
+set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
 
 configure_file(${ZEP_ROOT}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
 
@@ -75,7 +74,7 @@ install(EXPORT zep-targets
     FILE zep-targets.cmake
     NAMESPACE Zep::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
-)
+    )
 
 include(CMakePackageConfigHelpers)
 
@@ -93,8 +92,8 @@ write_basic_package_version_file(
 
 install(
     FILES
-        ${CMAKE_BINARY_DIR}/cmake/zep-config.cmake
-        ${CMAKE_BINARY_DIR}/cmake/zep-config-version.cmake
+    ${CMAKE_BINARY_DIR}/cmake/zep-config.cmake
+    ${CMAKE_BINARY_DIR}/cmake/zep-config-version.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
 )
 
