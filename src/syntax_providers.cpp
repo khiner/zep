@@ -95,85 +95,6 @@ static std::unordered_set<std::string> c_identifiers = {
     "ispunct", "isspace", "isupper", "kbhit", "log10", "log2", "log", "memcmp", "modf", "pow", "putchar", "putenv", "puts", "rand", "remove", "rename", "sinh", "sqrt", "srand", "strcat", "strcmp", "strerror", "time",
     "tolower", "toupper"
 };
-static std::unordered_set<std::string> sql_keywords = {
-    "ADD", "EXCEPT", "PERCENT", "ALL", "EXEC", "PLAN", "ALTER", "EXECUTE", "PRECISION", "AND", "EXISTS", "PRIMARY", "ANY", "EXIT", "PRINT", "AS", "FETCH", "PROC", "ASC", "FILE", "PROCEDURE",
-    "AUTHORIZATION", "FILLFACTOR", "PUBLIC", "BACKUP", "FOR", "RAISERROR", "BEGIN", "FOREIGN", "READ", "BETWEEN", "FREETEXT", "READTEXT", "BREAK", "FREETEXTTABLE", "RECONFIGURE",
-    "BROWSE", "FROM", "REFERENCES", "BULK", "FULL", "REPLICATION", "BY", "FUNCTION", "RESTORE", "CASCADE", "GOTO", "RESTRICT", "CASE", "GRANT", "RETURN", "CHECK", "GROUP", "REVOKE",
-    "CHECKPOINT", "HAVING", "RIGHT", "CLOSE", "HOLDLOCK", "ROLLBACK", "CLUSTERED", "IDENTITY", "ROWCOUNT", "COALESCE", "IDENTITY_INSERT", "ROWGUIDCOL", "COLLATE", "IDENTITYCOL", "RULE",
-    "COLUMN", "IF", "SAVE", "COMMIT", "IN", "SCHEMA", "COMPUTE", "INDEX", "SELECT", "CONSTRAINT", "INNER", "SESSION_USER", "CONTAINS", "INSERT", "SET", "CONTAINSTABLE", "INTERSECT", "SETUSER",
-    "CONTINUE", "INTO", "SHUTDOWN", "CONVERT", "IS", "SOME", "CREATE", "JOIN", "STATISTICS", "CROSS", "KEY", "SYSTEM_USER", "CURRENT", "KILL", "TABLE", "CURRENT_DATE", "LEFT", "TEXTSIZE",
-    "CURRENT_TIME", "LIKE", "THEN", "CURRENT_TIMESTAMP", "LINENO", "TO", "CURRENT_USER", "LOAD", "TOP", "CURSOR", "NATIONAL", "TRAN", "DATABASE", "NOCHECK", "TRANSACTION",
-    "DBCC", "NONCLUSTERED", "TRIGGER", "DEALLOCATE", "NOT", "TRUNCATE", "DECLARE", "NULL", "TSEQUAL", "DEFAULT", "NULLIF", "UNION", "DELETE", "OF", "UNIQUE", "DENY", "OFF", "UPDATE",
-    "DESC", "OFFSETS", "UPDATETEXT", "DISK", "ON", "USE", "DISTINCT", "OPEN", "USER", "DISTRIBUTED", "OPENDATASOURCE", "VALUES", "DOUBLE", "OPENQUERY", "VARYING", "DROP", "OPENROWSET", "VIEW",
-    "DUMMY", "OPENXML", "WAITFOR", "DUMP", "OPTION", "WHEN", "ELSE", "OR", "WHERE", "END", "ORDER", "WHILE", "ERRLVL", "OUTER", "WITH", "ESCAPE", "OVER", "WRITETEXT"
-};
-
-static std::unordered_set<std::string> cmake_keywords = {
-    "option", "add_compile_options", "cmake_minimum_required", "project", "message", "add_dependencies", "add_test", "find_package", "include_directories", "configure_file", "target_link_libraries", "source_group",
-    "set", "set_property", "include", "add_executable", "add_library", "if", "elseif", "endif", "find", "glob"
-};
-
-static std::unordered_set<std::string> cmake_identifiers = {};
-
-static std::unordered_set<std::string> lua_keywords = {
-    "and", "break", "do", "", "else", "elseif", "end", "false", "for", "function", "if", "in", "", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"
-};
-
-static std::unordered_set<std::string> lua_identifiers = {
-    "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "loadfile", "load", "loadstring", "next", "pairs", "pcall", "print", "rawequal", "rawlen", "rawget", "rawset",
-    "select", "setmetatable", "tonumber", "tostring", "type", "xpcall", "_G", "_VERSION", "arshift", "band", "bnot", "bor", "bxor", "btest", "extract", "lrotate", "lshift", "replace",
-    "rrotate", "rshift", "create", "resume", "running", "status", "wrap", "yield", "isyieldable", "debug", "getuservalue", "gethook", "getinfo", "getlocal", "getregistry", "getmetatable",
-    "getupvalue", "upvaluejoin", "upvalueid", "setuservalue", "sethook", "setlocal", "setmetatable", "setupvalue", "traceback", "close", "flush", "input", "lines", "open", "output", "popen",
-    "read", "tmpfile", "type", "write", "close", "flush", "lines", "read", "seek", "setvbuf", "write", "__gc", "__tostring", "abs", "acos", "asin", "atan", "ceil", "cos", "deg", "exp", "tointeger",
-    "floor", "fmod", "ult", "log", "max", "min", "modf", "rad", "random", "randomseed", "sin", "sqrt", "string", "tan", "type", "atan2", "cosh", "sinh", "tanh",
-    "pow", "frexp", "ldexp", "log10", "pi", "huge", "maxinteger", "mininteger", "loadlib", "searchpath", "seeall", "preload", "cpath", "path", "searchers", "loaded", "module", "require", "clock",
-    "date", "difftime", "execute", "exit", "getenv", "remove", "rename", "setlocale", "time", "tmpname", "byte", "char", "dump", "find", "format", "gmatch", "gsub", "len", "lower", "match", "rep",
-    "reverse", "sub", "upper", "pack", "packsize", "unpack", "concat", "maxn", "insert", "pack", "unpack", "remove", "move", "sort", "offset", "codepoint", "char", "len", "codes", "charpattern",
-    "coroutine", "table", "io", "os", "string", "uint8_t", "bit32", "math", "debug", "package"
-};
-
-static std::unordered_set<std::string> lisp_keywords = {
-    "+", "-", "eval"
-};
-
-static std::unordered_set<std::string> lisp_identifiers = {
-    "cdr", "car"
-};
-
-static std::unordered_set<std::string> janet_keywords = {
-    "if", "do", "fn", "while", "def", "var", "quote", "quasiquote", "unquote", "splice", "set", "break"
-};
-
-static std::unordered_set<std::string> janet_identifiers = {
-    "%", "*", "+", "-", "/", "<", "<=", "=", ">", ">=", "abstract?", "accumulate", "accumulate2", "all", "all-bindings", "all-dynamics", "apply", "array", "array/concat", "array/ensure", "array/fill", "array/insert",
-    "array/new", "array/new-filled", "array/peek", "array/pop", "array/push", "array/remove", "array/slice", "array?", "asm", "assert", "bad-compile", "bad-parse", "band", "blshift", "bnot", "boolean?", "bor", "brshift",
-    "brushift", "buffer", "buffer/bit", "buffer/bit-clear", "buffer/bit-set", "buffer/bit-toggle", "buffer/blit", "buffer/clear", "buffer/fill", "buffer/format", "buffer/new", "buffer/new-filled", "buffer/popn",
-    "buffer/push-byte", "buffer/push-string", "buffer/push-word", "buffer/slice", "buffer?", "bxor", "bytes?", "cfunction?", "cli-main", "comp", "compile", "complement", "count", "debug", "debug/arg-stack",
-    "debug/break", "debug/fbreak", "debug/lineage", "debug/stack", "debug/stacktrace", "debug/step", "debug/unbreak", "debug/unfbreak", "debugger-env", "dec", "deep-not=", "deep=", "default-peg-grammar", "defglobal",
-    "describe", "dictionary?", "disasm", "distinct", "doc*", "doc-format", "dofile", "drop", "drop-until", "drop-while", "dyn", "eflush", "empty?", "env-lookup", "eprin", "eprinf", "eprint", "eprintf", "error", "eval",
-    "eval-string", "even?", "every?", "extreme", "false?", "fiber/can-resume?", "fiber/current", "fiber/getenv", "fiber/maxstack", "fiber/new", "fiber/root", "fiber/setenv", "fiber/setmaxstack", "fiber/status", "fiber?",
-    "file/close", "file/flush", "file/open", "file/popen", "file/read", "file/seek", "file/temp", "file/write", "filter", "find", "find-index", "first", "flatten", "flatten-into", "flush", "freeze", "frequencies",
-    "function?", "gccollect", "gcinterval", "gcsetinterval", "gensym", "get", "get-in", "getline", "hash", "idempotent?", "identity", "import*", "in", "inc", "indexed?", "int/s64", "int/u64", "int?", "interleave",
-    "interpose", "invert", "janet/build", "janet/config-bits", "janet/version", "juxt*", "keep", "keys", "keyword", "keyword?", "kvs", "last", "length", "load-image", "load-image-dict", "macex", "macex1", "make-env",
-    "make-image", "make-image-dict", "map", "mapcat", "marshal", "math/-inf", "math/abs", "math/acos", "math/acosh", "math/asin", "math/asinh", "math/atan", "math/atan2", "math/atanh", "math/cbrt", "math/ceil",
-    "math/cos", "math/cosh", "math/e", "math/erf", "math/erfc", "math/exp", "math/exp2", "math/expm1", "math/floor", "math/gamma", "math/hypot", "math/inf", "math/log", "math/log10", "math/log1p", "math/log2",
-    "math/next", "math/pi", "math/pow", "math/random", "math/rng", "math/rng-buffer", "math/rng-int", "math/rng-uniform", "math/round", "math/seedrandom", "math/sin", "math/sinh", "math/sqrt", "math/tan", "math/tanh",
-    "math/trunc", "max", "mean", "merge", "merge-into", "min", "mod", "module/add-paths", "module/cache", "module/expand-path", "module/find", "module/loaders", "module/loading", "module/paths", "nan?", "nat?", "native",
-    "neg?", "net/chunk", "net/close", "net/connect", "net/read", "net/server", "net/write", "next", "nil?", "not", "not=", "number?", "odd?", "one?", "os/arch", "os/cd", "os/chmod", "os/clock", "os/cryptorand", "os/cwd",
-    "os/date", "os/dir", "os/environ", "os/execute", "os/exit", "os/getenv", "os/link", "os/lstat", "os/mkdir", "os/mktime", "os/perm-int", "os/perm-string", "os/readlink", "os/realpath", "os/rename", "os/rm",
-    "os/rmdir", "os/setenv", "os/shell", "os/sleep", "os/stat", "os/symlink", "os/time", "os/touch", "os/umask", "os/which", "pairs", "parse", "parser/byte", "parser/clone", "parser/consume", "parser/eof",
-    "parser/error", "parser/flush", "parser/has-more", "parser/insert", "parser/new", "parser/produce", "parser/state", "parser/status", "parser/where", "partial", "partition", "peg/compile", "peg/match", "pos?",
-    "postwalk", "pp", "prewalk", "prin", "prinf", "print", "printf", "product", "propagate", "put", "put-in", "quit", "range", "reduce", "reduce2", "repl", "require", "resume", "return", "reverse", "root-env",
-    "run-context", "scan-number", "setdyn", "signal", "slice", "slurp", "some", "sort", "sort-by", "sorted", "sorted-by", "spit", "stderr", "stdin", "stdout", "string", "string/ascii-lower", "string/ascii-upper",
-    "string/bytes", "string/check-set", "string/find", "string/find-all", "string/format", "string/from-bytes", "string/has-prefix?", "string/has-suffix?", "string/join", "string/repeat", "string/replace",
-    "string/replace-all", "string/reverse", "string/slice", "string/split", "string/trim", "string/triml", "string/trimr", "string?", "struct", "struct?", "sum", "symbol", "symbol?", "table", "table/clone",
-    "table/getproto", "table/new", "table/rawget", "table/setproto", "table/to-struct", "table?", "take", "take-until", "take-while", "tarray/buffer", "tarray/copy-bytes", "tarray/length", "tarray/new",
-    "tarray/properties", "tarray/slice", "tarray/swap-bytes", "thread/close", "thread/current", "thread/new", "thread/receive", "thread/send", "trace", "true?", "truthy?", "tuple", "tuple/brackets", "tuple/setmap",
-    "tuple/slice", "tuple/sourcemap", "tuple/type", "tuple?", "type", "unmarshal", "untrace", "update", "update-in", "values", "varglobal", "walk", "yield", "zero?", "zipcoll",
-    "%=", "*=", "++", "+=", "--", "-=", "->", "->>", "-?>", "-?>>", "/=", "and", "as->", "as?->", "case", "chr", "comment", "comptime", "cond", "coro", "def-", "default", "defer", "defmacro", "defmacro-", "defn",
-    "defn-", "doc", "each", "eachk", "eachp", "edefer", "for", "generate", "if-let", "if-not", "if-with", "import", "juxt", "label", "let", "loop", "match", "or", "prompt", "protect", "seq", "short-fn", "try", "unless",
-    "use", "var-", "varfn", "when", "when-let", "when-with", "with", "with-dyns", "with-syms", "with-vars"
-};
 
 static std::unordered_set<std::string> tree_keywords = {};
 static std::unordered_set<std::string> tree_identifiers = {};
@@ -191,22 +112,6 @@ void RegisterSyntaxProviders(ZepEditor &editor) {
 
     editor.RegisterSyntaxFactory({".cpp", ".cxx", ".h", ".c"}, SyntaxProvider{"cpp", tSyntaxFactory([](ZepBuffer *pBuffer) {
         return std::make_shared<ZepSyntax>(*pBuffer, cpp_keywords, cpp_identifiers);
-    })});
-
-    editor.RegisterSyntaxFactory({".lisp", ".lsp"}, SyntaxProvider{"lisp", tSyntaxFactory([](ZepBuffer *pBuffer) {
-        return std::make_shared<ZepSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
-    })});
-
-    editor.RegisterSyntaxFactory({".janet"}, SyntaxProvider{"janet", tSyntaxFactory([](ZepBuffer *pBuffer) {
-        return std::make_shared<ZepSyntax>(*pBuffer, janet_keywords, janet_identifiers, ZepSyntaxFlags::LispLike);
-    })});
-
-    editor.RegisterSyntaxFactory({".scm", ".scheme", ".sps", ".sls", ".sld", ".ss", ".sch"}, SyntaxProvider{"lisp", tSyntaxFactory([](ZepBuffer *pBuffer) {
-        return std::make_shared<ZepSyntax>(*pBuffer, lisp_keywords, lisp_identifiers, ZepSyntaxFlags::LispLike);
-    })});
-
-    editor.RegisterSyntaxFactory({".cmake", "CMakeLists.txt"}, SyntaxProvider{"cmake", tSyntaxFactory([](ZepBuffer *pBuffer) {
-        return std::make_shared<ZepSyntax>(*pBuffer, cmake_keywords, cmake_identifiers, ZepSyntaxFlags::CaseInsensitive);
     })});
 
     editor.RegisterSyntaxFactory(
