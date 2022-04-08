@@ -8,22 +8,19 @@
 #include <string>
 #include <vector>
 
-namespace Zep
-{
+namespace Zep {
 
-ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer& buffer,
-    const std::unordered_set<std::string>& keywords,
-    const std::unordered_set<std::string>& identifiers,
-    uint32_t flags)
-    : ZepSyntax(buffer, keywords, identifiers, flags)
-{
+ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer,
+                               const std::unordered_set<std::string> &keywords,
+                               const std::unordered_set<std::string> &identifiers,
+                               uint32_t flags)
+    : ZepSyntax(buffer, keywords, identifiers, flags) {
     // Don't need default
     m_adornments.clear();
 }
 
-void ZepSyntax_Tree::UpdateSyntax()
-{
-    auto& buffer = m_buffer.GetWorkingBuffer();
+void ZepSyntax_Tree::UpdateSyntax() {
+    auto &buffer = m_buffer.GetWorkingBuffer();
     auto itrCurrent = buffer.begin();
     auto itrEnd = buffer.end();
 
@@ -32,7 +29,7 @@ void ZepSyntax_Tree::UpdateSyntax()
 
     // Mark a region of the syntax buffer with the correct marker
     auto mark = [&](GapBuffer<uint8_t>::const_iterator itrA, GapBuffer<uint8_t>::const_iterator itrB, ThemeColor type, ThemeColor background) {
-        std::fill(m_syntax.begin() + (itrA - buffer.begin()), m_syntax.begin() + (itrB - buffer.begin()), SyntaxData{ type, background });
+        std::fill(m_syntax.begin() + (itrA - buffer.begin()), m_syntax.begin() + (itrB - buffer.begin()), SyntaxData{type, background});
     };
 
     auto markSingle = [&](GapBuffer<uint8_t>::const_iterator itrA, ThemeColor type, ThemeColor background) {
@@ -41,24 +38,20 @@ void ZepSyntax_Tree::UpdateSyntax()
     };
 
     // Walk backwards to previous delimiter
-    while (itrCurrent != itrEnd)
-    {
-        if (m_stop == true)
-        {
+    while (itrCurrent != itrEnd) {
+        if (m_stop == true) {
             return;
         }
 
         // Update start location
         m_processedChar = long(itrCurrent - buffer.begin());
 
-        if (*itrCurrent == '~' || *itrCurrent == '+')
-        {
+        if (*itrCurrent == '~' || *itrCurrent == '+') {
             mark(itrCurrent, itrCurrent + 1, ThemeColor::CursorNormal, ThemeColor::None);
             itrCurrent++;
             auto itrNext = itrCurrent;
             while (itrNext != itrEnd &&
-                *itrNext != '\n')
-            {
+                *itrNext != '\n') {
                 itrNext++;
             }
             mark(itrCurrent, itrNext, ThemeColor::Comment, ThemeColor::None);

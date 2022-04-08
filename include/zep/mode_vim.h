@@ -5,36 +5,32 @@
 
 class Timer;
 
-namespace Zep
-{
+namespace Zep {
 
 struct SpanInfo;
 
-enum class VimMotion
-{
+enum class VimMotion {
     LineBegin,
     LineEnd,
     NonWhiteSpaceBegin,
     NonWhiteSpaceEnd
 };
 
-class ZepMode_Vim : public ZepMode
-{
+class ZepMode_Vim : public ZepMode {
 public:
-    ZepMode_Vim(ZepEditor& editor);
+    ZepMode_Vim(ZepEditor &editor);
     virtual ~ZepMode_Vim();
 
-    static const char* StaticName()
-    {
+    static const char *StaticName() {
         return "Vim";
     }
 
     // Zep Mode
     virtual void Init() override;
-    virtual void Begin(ZepWindow* pWindow) override;
-    virtual const char* Name() const override { return StaticName(); }
+    virtual void Begin(ZepWindow *pWindow) override;
+    virtual const char *Name() const override { return StaticName(); }
     virtual EditorMode DefaultMode() const override { return EditorMode::Normal; }
-    virtual void PreDisplay(ZepWindow& win) override;
+    virtual void PreDisplay(ZepWindow &win) override;
     virtual void SetupKeyMaps();
     virtual void AddOverStrikeMaps();
     virtual void AddCopyMaps();

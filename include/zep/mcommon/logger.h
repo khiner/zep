@@ -8,6 +8,7 @@
  */
 
 #pragma once
+
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -23,11 +24,9 @@ __declspec(dllimport) void __stdcall OutputDebugStringA(_In_opt_ const char* psz
 
 #undef ERROR
 
-namespace Zep
-{
+namespace Zep {
 
-enum class ZLT
-{
+enum class ZLT {
     NONE,
     DBG,
     INFO,
@@ -35,33 +34,26 @@ enum class ZLT
     ERROR
 };
 
-struct ZLogger
-{
+struct ZLogger {
     bool headers = false;
     ZLT level = ZLT::WARNING;
 };
 
 extern ZLogger logger;
 
-class ZLog
-{
+class ZLog {
 public:
-    ZLog()
-    {
+    ZLog() {
     }
-    ZLog(ZLT type)
-    {
+    ZLog(ZLT type) {
         msglevel = type;
-        if (logger.headers && msglevel >= logger.level)
-        {
+        if (logger.headers && msglevel >= logger.level) {
             operator<<("[" + getLabel(type) + "] ");
         }
         out << "(T:" << std::this_thread::get_id() << ") ";
     }
-    ~ZLog()
-    {
-        if (opened)
-        {
+    ~ZLog() {
+        if (opened) {
             out << std::endl;
 #ifdef WIN32
             OutputDebugStringA(out.str().c_str());
@@ -71,9 +63,8 @@ public:
         }
         opened = false;
     }
-    template <class T>
-    ZLog& operator<<(const T& msg)
-    {
+    template<class T>
+    ZLog &operator<<(const T &msg) {
         if (disabled || msglevel < logger.level)
             return *this;
         out << msg;
@@ -85,25 +76,18 @@ public:
 private:
     bool opened = false;
     ZLT msglevel = ZLT::DBG;
-    inline std::string getLabel(ZLT type)
-    {
+    inline std::string getLabel(ZLT type) {
         std::string label;
-        switch (type)
-        {
-        case ZLT::DBG:
-                label = "DEBUG";
+        switch (type) {
+            case ZLT::DBG:label = "DEBUG";
                 break;
-        case ZLT::INFO:
-                label = "INFO ";
+            case ZLT::INFO:label = "INFO ";
                 break;
-        case ZLT::WARNING:
-                label = "WARN ";
+            case ZLT::WARNING:label = "WARN ";
                 break;
-        case ZLT::ERROR:
-                label = "ERROR";
+            case ZLT::ERROR:label = "ERROR";
                 break;
-        case ZLT::NONE:
-                label = "NONE";
+            case ZLT::NONE:label = "NONE";
                 break;
         }
         return label;

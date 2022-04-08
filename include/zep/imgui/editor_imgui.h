@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 
 #include "zep/imgui/display_imgui.h"
@@ -10,8 +11,7 @@
 #include "zep/tab_window.h"
 #include "zep/window.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // These key defines from usb_hid_keys.h; standard USB keycodes.
 // Defined here to stop collisions.
@@ -46,194 +46,144 @@ namespace Zep
 
 class ZepDisplay_ImGui;
 class ZepTabWindow;
-class ZepEditor_ImGui : public ZepEditor
-{
+class ZepEditor_ImGui : public ZepEditor {
 public:
-    ZepEditor_ImGui(const ZepPath& root, const NVec2f& pixelScale, uint32_t flags = 0, IZepFileSystem* pFileSystem = nullptr)
-        : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem)
-    {
+    ZepEditor_ImGui(const ZepPath &root, const NVec2f &pixelScale, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr)
+        : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem) {
     }
 
-    void HandleInput()
-    {
-        auto& io = ImGui::GetIO();
+    void HandleInput() {
+        auto &io = ImGui::GetIO();
 
         bool handled = false;
 
         uint32_t mod = 0;
 
         static std::map<int, int> MapUSBKeys =
-        {
-            { ZEP_KEY_F1, ExtKeys::F1},
-            { ZEP_KEY_F2, ExtKeys::F2},
-            { ZEP_KEY_F3, ExtKeys::F3},
-            { ZEP_KEY_F4, ExtKeys::F4},
-            { ZEP_KEY_F5, ExtKeys::F5},
-            { ZEP_KEY_F6, ExtKeys::F6},
-            { ZEP_KEY_F7, ExtKeys::F7},
-            { ZEP_KEY_F8, ExtKeys::F8},
-            { ZEP_KEY_F9, ExtKeys::F9},
-            { ZEP_KEY_F10, ExtKeys::F10},
-            { ZEP_KEY_F11, ExtKeys::F11},
-            { ZEP_KEY_F12, ExtKeys::F12}
-        };
-        if (io.MouseDelta.x != 0 || io.MouseDelta.y != 0)
-        {
+            {
+                {ZEP_KEY_F1,  ExtKeys::F1},
+                {ZEP_KEY_F2,  ExtKeys::F2},
+                {ZEP_KEY_F3,  ExtKeys::F3},
+                {ZEP_KEY_F4,  ExtKeys::F4},
+                {ZEP_KEY_F5,  ExtKeys::F5},
+                {ZEP_KEY_F6,  ExtKeys::F6},
+                {ZEP_KEY_F7,  ExtKeys::F7},
+                {ZEP_KEY_F8,  ExtKeys::F8},
+                {ZEP_KEY_F9,  ExtKeys::F9},
+                {ZEP_KEY_F10, ExtKeys::F10},
+                {ZEP_KEY_F11, ExtKeys::F11},
+                {ZEP_KEY_F12, ExtKeys::F12}
+            };
+        if (io.MouseDelta.x != 0 || io.MouseDelta.y != 0) {
             OnMouseMove(toNVec2f(io.MousePos));
         }
 
-        if (io.MouseClicked[0])
-        {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left))
-            {
+        if (io.MouseClicked[0]) {
+            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
                 // Hide the mouse click from imgui if we handled it
                 io.MouseClicked[0] = false;
             }
         }
 
-        if (io.MouseClicked[1])
-        {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right))
-            {
+        if (io.MouseClicked[1]) {
+            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
                 // Hide the mouse click from imgui if we handled it
                 io.MouseClicked[0] = false;
             }
         }
 
-        if (io.MouseReleased[0])
-        {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left))
-            {
+        if (io.MouseReleased[0]) {
+            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
                 // Hide the mouse click from imgui if we handled it
                 io.MouseClicked[0] = false;
             }
         }
 
-        if (io.MouseReleased[1])
-        {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right))
-            {
+        if (io.MouseReleased[1]) {
+            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
                 // Hide the mouse click from imgui if we handled it
                 io.MouseClicked[0] = false;
             }
         }
 
-        if (io.KeyCtrl)
-        {
+        if (io.KeyCtrl) {
             mod |= ModifierKey::Ctrl;
         }
-        if (io.KeyShift)
-        {
+        if (io.KeyShift) {
             mod |= ModifierKey::Shift;
         }
 
         auto pWindow = GetActiveTabWindow()->GetActiveWindow();
-        const auto& buffer = pWindow->GetBuffer();
+        const auto &buffer = pWindow->GetBuffer();
 
         // Check USB Keys
-        for (auto& usbKey : MapUSBKeys)
-        {
-            if (ImGui::IsKeyPressed(usbKey.first))
-            {
+        for (auto &usbKey: MapUSBKeys) {
+            if (ImGui::IsKeyPressed(usbKey.first)) {
                 buffer.GetMode()->AddKeyPress(usbKey.second, mod);
                 return;
             }
         }
 
-        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
-        {
+        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::TAB, mod);
             return;
         }
-        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
-        {
+        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::ESCAPE, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::RETURN, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::DEL, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Home)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Home))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::HOME, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_End)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_End))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::END, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::BACKSPACE, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::RIGHT, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::LEFT, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::UP, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::DOWN, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::PAGEDOWN, mod);
             return;
-        }
-        else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp)))
-        {
+        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp))) {
             buffer.GetMode()->AddKeyPress(ExtKeys::PAGEUP, mod);
             return;
-        }
-        else if (io.KeyCtrl)
-        {
+        } else if (io.KeyCtrl) {
             // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
             // without modifying the ImGui base code, we have special handling here for CTRL.
             // For the Win32 case, we use VK_A (ASCII) is handled below
 #if defined(_SDL_H) || defined(ZEP_USE_SDL)
-            if (ImGui::IsKeyPressed(ZEP_KEY_1))
-            {
+            if (ImGui::IsKeyPressed(ZEP_KEY_1)) {
                 SetGlobalMode(ZepMode_Standard::StaticName());
                 handled = true;
-            }
-            else if (ImGui::IsKeyPressed(ZEP_KEY_2))
-            {
+            } else if (ImGui::IsKeyPressed(ZEP_KEY_2)) {
                 SetGlobalMode(ZepMode_Vim::StaticName());
                 handled = true;
-            }
-            else
-            {
-                for (int ch = ZEP_KEY_A; ch <= ZEP_KEY_Z; ch++)
-                {
-                    if (ImGui::IsKeyPressed(ch))
-                    {
+            } else {
+                for (int ch = ZEP_KEY_A; ch <= ZEP_KEY_Z; ch++) {
+                    if (ImGui::IsKeyPressed(ch)) {
                         buffer.GetMode()->AddKeyPress((ch - ZEP_KEY_A) + 'a', mod);
                         handled = true;
                     }
                 }
 
-                if (ImGui::IsKeyPressed(ZEP_KEY_SPACE))
-                {
+                if (ImGui::IsKeyPressed(ZEP_KEY_SPACE)) {
                     buffer.GetMode()->AddKeyPress(' ', mod);
                     handled = true;
                 }
@@ -269,10 +219,8 @@ public:
 #endif
         }
 
-        if (!handled)
-        {
-            for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++)
-            {
+        if (!handled) {
+            for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++) {
                 // Ignore '\r' - sometimes ImGui generates it!
                 if (io.InputQueueCharacters[n] == '\r')
                     continue;

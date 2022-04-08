@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <functional>
 #include <vector>
+
 /**
 * Basic std::function callback example. Templated on a function signature
 * that takes in a uint32_t and returns void.
@@ -34,8 +35,7 @@ enum my_events_t
 };
 */
 
-struct cb_event_t 
-{
+struct cb_event_t {
     std::function<void(uint32_t)> cb;
     my_events_t ev;
 };

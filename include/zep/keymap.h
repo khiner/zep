@@ -10,8 +10,7 @@
 
 #include "mcommon/string/stringutils.h"
 
-namespace Zep
-{
+namespace Zep {
 
 class ZepMode;
 
@@ -169,8 +168,7 @@ DECLARE_COMMANDID(InsertTab)
 
 // Insert Mode
 DECLARE_COMMANDID(Backspace)
-struct CommandNode
-{
+struct CommandNode {
     // <D> = digits
     // <R> = register
     // <.> = any char
@@ -179,14 +177,12 @@ struct CommandNode
     std::unordered_map<std::string, std::shared_ptr<CommandNode>> children;
 };
 
-struct KeyMap
-{
+struct KeyMap {
     bool ignoreFinalDigit = false;
     std::shared_ptr<CommandNode> spRoot = std::make_shared<CommandNode>();
 };
 
-struct KeyMapResult
-{
+struct KeyMapResult {
     std::vector<int> captureNumbers;
     std::vector<char> captureChars;
     std::vector<char> captureRegisters;
@@ -196,35 +192,30 @@ struct KeyMapResult
     StringId foundMapping;
     std::string searchPath;
 
-    int TotalCount() const
-    {
-        if (captureNumbers.empty())
-        {
+    int TotalCount() const {
+        if (captureNumbers.empty()) {
             return 1;
         }
         return std::accumulate(captureNumbers.begin(), captureNumbers.end(), 0);
     }
-    
+
     // Return the first register for commands that only want 1
-    char RegisterName() const
-    {
-        if (captureRegisters.empty())
-        {
+    char RegisterName() const {
+        if (captureRegisters.empty()) {
             return 0;
         }
         return captureRegisters[0];
     }
 };
 
-enum class KeyMapAdd
-{
+enum class KeyMapAdd {
     New,
     Replace
 };
 
-bool keymap_add(const std::vector<KeyMap*>& maps, const std::vector<std::string>& strCommand, const StringId& commandId, KeyMapAdd opt = KeyMapAdd::Replace);
-bool keymap_add(KeyMap& map, const std::string& strCommand, const StringId& commandId, KeyMapAdd opt = KeyMapAdd::Replace);
-void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult& result);
-void keymap_dump(const KeyMap& map, std::ostringstream& str);
+bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &strCommand, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
+bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
+void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult &result);
+void keymap_dump(const KeyMap &map, std::ostringstream &str);
 
 } // namespace Zep

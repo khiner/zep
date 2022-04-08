@@ -2,21 +2,19 @@
 
 #include "zep/mcommon/animation/timer.h"
 
-namespace Zep
-{
+namespace Zep {
 
 class ZepEditor;
-class ZepRegressExCommand : public ZepExCommand
-{
+class ZepRegressExCommand : public ZepExCommand {
 public:
-    ZepRegressExCommand(ZepEditor& editor);
-    
-    static void Register(ZepEditor& editor);
-   
+    ZepRegressExCommand(ZepEditor &editor);
+
+    static void Register(ZepEditor &editor);
+
     virtual void Tick();
-    virtual void Run(const std::vector<std::string>& tokens) override;
+    virtual void Run(const std::vector<std::string> &tokens) override;
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual const char* ExCommandName() const override;
+    virtual const char *ExCommandName() const override;
 
 private:
     timer m_timer;

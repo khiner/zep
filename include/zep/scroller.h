@@ -4,17 +4,15 @@
 #include "editor.h"
 #include "zep/mcommon/animation/timer.h"
 
-namespace Zep
-{
+namespace Zep {
 class ZepTheme;
 class ZepEditor;
 
-class Scroller : public ZepComponent
-{
+class Scroller : public ZepComponent {
 public:
-    Scroller(ZepEditor& editor, Region& parent);
+    Scroller(ZepEditor &editor, Region &parent);
 
-    virtual void Display(ZepTheme& theme);
+    virtual void Display(ZepTheme &theme);
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
 
     float vScrollVisiblePercent = 1.0f;
@@ -42,8 +40,7 @@ private:
     std::shared_ptr<Region> m_mainRegion;
     timer m_start_delay_timer;
     timer m_reclick_timer;
-    enum class ScrollState
-    {
+    enum class ScrollState {
         None,
         ScrollDown,
         ScrollUp,

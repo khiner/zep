@@ -8,16 +8,13 @@
 #include <gtest/gtest.h>
 
 using namespace Zep;
-class SyntaxTest : public testing::Test
-{
+class SyntaxTest : public testing::Test {
 public:
-    SyntaxTest()
-    {
+    SyntaxTest() {
         spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
     }
 
-    ~SyntaxTest()
-    {
+    ~SyntaxTest() {
     }
 
 public:
@@ -35,8 +32,7 @@ public:
 
 #define CPP_SYNTAX_TEST(name, source, offset, color) SYNTAX_TEST(name, "test.cpp", source, offset, color)
 
-CPP_SYNTAX_TEST(cpp_keyword,    "int i;", 0, Keyword);
+CPP_SYNTAX_TEST(cpp_keyword, "int i;", 0, Keyword);
 CPP_SYNTAX_TEST(cpp_identifier, "a = std::min(a,b);", 4, Identifier);
-CPP_SYNTAX_TEST(cpp_string,     "a = \"hello\";", 4, String);
-CPP_SYNTAX_TEST(cpp_number,     "a = 1234;", 4, Number);
-
+CPP_SYNTAX_TEST(cpp_string, "a = \"hello\";", 4, String);
+CPP_SYNTAX_TEST(cpp_number, "a = 1234;", 4, Number);

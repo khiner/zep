@@ -17,11 +17,9 @@
 // line that wraps, and that navigation moves correctly
 
 using namespace Zep;
-class VimTest : public testing::Test
-{
+class VimTest : public testing::Test {
 public:
-    VimTest()
-    {
+    VimTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
         spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
@@ -49,15 +47,14 @@ public:
         */
     }
 
-    ~VimTest()
-    {
+    ~VimTest() {
     }
 
 public:
     std::shared_ptr<ZepEditor> spEditor;
-    ZepBuffer* pBuffer;
-    ZepWindow* pWindow;
-    ZepTabWindow* pTabWindow;
+    ZepBuffer *pBuffer;
+    ZepWindow *pWindow;
+    ZepTabWindow *pTabWindow;
     std::shared_ptr<ZepMode_Vim> spMode;
 };
 
@@ -112,100 +109,224 @@ public:
         ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
     };
 
-TEST_F(VimTest, CheckDisplaySucceeds)
+TEST_F(VimTest, CheckDisplaySucceeds
+)
 {
-    pBuffer->SetText("Some text to display\nThis is a test.");
-    spEditor->SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f));
-    ASSERT_NO_FATAL_FAILURE(spEditor->Display());
-    ASSERT_FALSE(pTabWindow->GetWindows().empty());
+pBuffer->SetText("Some text to display\nThis is a test.");
+spEditor->
+SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f)
+);
+ASSERT_NO_FATAL_FAILURE(spEditor
+->
+Display()
+);
+ASSERT_FALSE(pTabWindow
+->
+GetWindows()
+.
+empty()
+);
 }
 
-TEST_F(VimTest, CheckDisplayWrap)
+TEST_F(VimTest, CheckDisplayWrap
+)
 {
-    pBuffer->SetText("Some text to display\nThis is a test.");
-    ASSERT_NO_FATAL_FAILURE(spEditor->Display());
-    ASSERT_FALSE(pTabWindow->GetWindows().empty());
+pBuffer->SetText("Some text to display\nThis is a test.");
+ASSERT_NO_FATAL_FAILURE(spEditor
+->
+Display()
+);
+ASSERT_FALSE(pTabWindow
+->
+GetWindows()
+.
+empty()
+);
 }
-TEST_F(VimTest, UndoRedo)
+TEST_F(VimTest, UndoRedo
+)
 {
-    // The issue here is that setting the text _should_ update the buffer!
-    pBuffer->SetText("Hello");
-    spMode->AddCommandText("3x");
-    spMode->Undo();
-    spMode->Redo();
-    spMode->Undo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
+// The issue here is that setting the text _should_ update the buffer!
+pBuffer->SetText("Hello");
+spMode->AddCommandText("3x");
+spMode->
+Undo();
+spMode->
+Redo();
+spMode->
+Undo();
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Hello");
 
-    spMode->AddCommandText("iYo, jk");
-    spMode->Undo();
-    spMode->Redo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Yo, Hello");
-}
-
-TEST_F(VimTest, DELETE)
-{
-    pBuffer->SetText("Hello");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    spMode->AddKeyPress(ExtKeys::DEL);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "llo");
-
-    spMode->AddCommandText("vll");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "");
-
-    pBuffer->SetText("H");
-    spMode->AddKeyPress(ExtKeys::DEL);
-    spMode->AddKeyPress(ExtKeys::DEL);
-}
-
-TEST_F(VimTest, ESCAPE)
-{
-    pBuffer->SetText("Hello");
-    spMode->AddCommandText("iHi, ");
-    spMode->AddKeyPress(ExtKeys::ESCAPE);
-    spMode->Undo();
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
-}
-
-TEST_F(VimTest, RETURN)
-{
-    pBuffer->SetText("Õne\ntwo");
-    spMode->AddKeyPress(ExtKeys::RETURN);
-    ASSERT_EQ(pWindow->BufferToDisplay().y, 1);
-
-    spMode->AddCommandText("li");
-    spMode->AddKeyPress(ExtKeys::RETURN);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Õne\nt\nwo");
+spMode->AddCommandText("iYo, jk");
+spMode->
+Undo();
+spMode->
+Redo();
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Yo, Hello");
 }
 
-TEST_F(VimTest, TAB)
+TEST_F(VimTest, DELETE
+)
 {
-    pBuffer->SetText("HellÕ");
-    spMode->AddCommandText("llllllllli");
-    spMode->AddKeyPress(ExtKeys::TAB);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hell    Õ");
+pBuffer->SetText("Hello");
+spMode->
+AddKeyPress(ExtKeys::DEL);
+spMode->
+AddKeyPress(ExtKeys::DEL);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"llo");
+
+spMode->AddCommandText("vll");
+spMode->
+AddKeyPress(ExtKeys::DEL);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"");
+
+pBuffer->SetText("H");
+spMode->
+AddKeyPress(ExtKeys::DEL);
+spMode->
+AddKeyPress(ExtKeys::DEL);
 }
 
-TEST_F(VimTest, BACKSPACE)
+TEST_F(VimTest, ESCAPE
+)
 {
-    pBuffer->SetText("Hello");
-    spMode->AddCommandText("ll");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hello");
-    ASSERT_EQ(pWindow->GetBufferCursor().Index(), 0);
+pBuffer->SetText("Hello");
+spMode->AddCommandText("iHi, ");
+spMode->
+AddKeyPress(ExtKeys::ESCAPE);
+spMode->
+Undo();
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Hello");
+}
 
-    spMode->AddCommandText("lli");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "Hllo");
+TEST_F(VimTest, RETURN
+)
+{
+pBuffer->SetText("Õne\ntwo");
+spMode->
+AddKeyPress(ExtKeys::RETURN);
+ASSERT_EQ(pWindow
+->
+BufferToDisplay()
+.y, 1);
 
-    // Check that appending on the line then hitting backspace removes the last char
-    // A bug that showed up at some point
-    pBuffer->SetText("AB");
-    spMode->AddKeyPress(ExtKeys::ESCAPE);
-    spMode->AddCommandText("AC");
-    spMode->AddKeyPress(ExtKeys::BACKSPACE);
-    ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), "AB");
+spMode->AddCommandText("li");
+spMode->
+AddKeyPress(ExtKeys::RETURN);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Õne\nt\nwo");
+}
+
+TEST_F(VimTest, TAB
+)
+{
+pBuffer->SetText("HellÕ");
+spMode->AddCommandText("llllllllli");
+spMode->
+AddKeyPress(ExtKeys::TAB);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Hell    Õ");
+}
+
+TEST_F(VimTest, BACKSPACE
+)
+{
+pBuffer->SetText("Hello");
+spMode->AddCommandText("ll");
+spMode->
+AddKeyPress(ExtKeys::BACKSPACE);
+spMode->
+AddKeyPress(ExtKeys::BACKSPACE);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Hello");
+ASSERT_EQ(pWindow
+->
+GetBufferCursor()
+.
+Index(),
+0);
+
+spMode->AddCommandText("lli");
+spMode->
+AddKeyPress(ExtKeys::BACKSPACE);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"Hllo");
+
+// Check that appending on the line then hitting backspace removes the last char
+// A bug that showed up at some point
+pBuffer->SetText("AB");
+spMode->
+AddKeyPress(ExtKeys::ESCAPE);
+spMode->AddCommandText("AC");
+spMode->
+AddKeyPress(ExtKeys::BACKSPACE);
+ASSERT_STREQ(pBuffer
+->
+GetWorkingBuffer()
+.
+string()
+.
+c_str(),
+"AB");
 }
 
 // The various rules of vim keystrokes are hard to consolidate.
@@ -472,24 +593,28 @@ CURSOR_TEST(find_a_char_num, "one2 one2", "2f2", 8, 0);
 CURSOR_TEST(find_a_char_beside, "ooo", "fo;", 2, 0);
 CURSOR_TEST(find_backwards, "foo", "lllllFf", 0, 0);
 
-inline std::string MakeCommandRegex(const std::string& command)
-{
+inline std::string MakeCommandRegex(const std::string &command) {
     return std::string(R"((?:(\d)|(<\S>*)|("\w?)*)()") + command + ")";
 }
 
-TEST(Regex, VimRegex)
+TEST(Regex, VimRegex
+)
 {
-    auto rx = MakeCommandRegex("y");
-    std::regex re(rx);
+auto rx = MakeCommandRegex("y");
+std::regex re(rx);
 
-    std::smatch match;
-    std::string testString("3y");
-    if (std::regex_match(testString, match, re))
-    {
-        for (auto& m : match)
-        {
-            ZEP_UNUSED(m);
-            ZLOG(DBG, "Match: " << m.str());
-        }
-    }
+std::smatch match;
+std::string testString("3y");
+if (
+std::regex_match(testString, match, re
+))
+{
+for (
+auto &m
+: match)
+{
+ZEP_UNUSED(m);
+ZLOG(DBG, "Match: " << m.str());
+}
+}
 }

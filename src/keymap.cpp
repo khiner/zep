@@ -6,12 +6,10 @@
 
 #include "zep/mcommon/logger.h"
 
-namespace Zep
-{
+namespace Zep {
 
 // Keyboard mapping strings such as <PageDown> get converted here
-ExtKeys::Key MapStringToExKey(const std::string& str)
-{
+ExtKeys::Key MapStringToExKey(const std::string &str) {
 #define COMPARE(a, b)              \
     if (string_tolower(str) == #a) \
         return b;
@@ -46,25 +44,21 @@ ExtKeys::Key MapStringToExKey(const std::string& str)
 }
 
 // Keyboard mapping strings such as <PageDown> get converted here
-std::string keymap_string(const std::string& str)
-{
+std::string keymap_string(const std::string &str) {
     return str;
 }
 
 // Splitting the input into groups of <> or ch
-std::string NextToken(std::string::const_iterator& itrChar, std::string::const_iterator itrEnd)
-{
+std::string NextToken(std::string::const_iterator &itrChar, std::string::const_iterator itrEnd) {
     std::ostringstream str;
 
     // Find a group
-    if (*itrChar == '<')
-    {
+    if (*itrChar == '<') {
         itrChar++;
         auto itrStart = itrChar;
 
         // Walk the group, ensuring we consistently output (C-)(S-)foo
-        while (itrChar != itrEnd && *itrChar != '>')
-        {
+        while (itrChar != itrEnd && *itrChar != '>') {
             itrChar++;
         }
 
@@ -79,9 +73,7 @@ std::string NextToken(std::string::const_iterator& itrChar, std::string::const_i
             itrChar++;
 
         str << "<" << strGroup << ">";
-    }
-    else
-    {
+    } else {
         str << *itrChar++;
     }
 
@@ -102,13 +94,10 @@ static bool starts_with(const std::string& str, const std::string& prefix)
 */
 
 // Add a collection of commands to a collection of mappings
-bool keymap_add(const std::vector<KeyMap*>& maps, const std::vector<std::string>& commands, const StringId& commandId, KeyMapAdd option)
-{
+bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &commandId, KeyMapAdd option) {
     bool ret = true;
-    for (auto& map : maps)
-    {
-        for (auto& cmd : commands)
-        {
+    for (auto &map: maps) {
+        for (auto &cmd: commands) {
             if (!keymap_add(*map, cmd, commandId, option))
                 ret = false;
         }
@@ -116,32 +105,26 @@ bool keymap_add(const std::vector<KeyMap*>& maps, const std::vector<std::string>
     return ret;
 }
 
-bool keymap_add(KeyMap& map, const std::string& strCommand, const StringId& commandId, KeyMapAdd option)
-{
+bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &commandId, KeyMapAdd option) {
     auto spCurrent = map.spRoot;
 
     std::ostringstream str;
     auto itrChar = strCommand.begin();
-    while (itrChar != strCommand.end())
-    {
+    while (itrChar != strCommand.end()) {
         auto search = NextToken(itrChar, strCommand.end());
 
         auto itrRoot = spCurrent->children.find(search);
-        if (itrRoot == spCurrent->children.end())
-        {
+        if (itrRoot == spCurrent->children.end()) {
             auto spNode = std::make_shared<CommandNode>();
             spNode->token = search;
             spCurrent->children[search] = spNode;
             spCurrent = spNode;
-        }
-        else
-        {
+        } else {
             spCurrent = itrRoot->second;
         }
     }
 
-    if (spCurrent->commandId != 0 && option == KeyMapAdd::New)
-    {
+    if (spCurrent->commandId != 0 && option == KeyMapAdd::New) {
         assert(!"Adding twice?");
         return false;
     }
@@ -150,12 +133,10 @@ bool keymap_add(KeyMap& map, const std::string& strCommand, const StringId& comm
     return true;
 }
 
-void keymap_dump(const KeyMap& map, std::ostringstream& str)
-{
+void keymap_dump(const KeyMap &map, std::ostringstream &str) {
     std::function<void(std::shared_ptr<CommandNode>, int)> fnDump;
     fnDump = [&](std::shared_ptr<CommandNode> node, int depth) {
-        for (int i = 0; i < depth; i++)
-        {
+        for (int i = 0; i < depth; i++) {
             str << " ";
         }
         str << node->token;
@@ -163,8 +144,7 @@ void keymap_dump(const KeyMap& map, std::ostringstream& str)
             str << " : " << node->commandId.ToString();
         str << std::endl;
 
-        for (auto& child : node->children)
-        {
+        for (auto &child: node->children) {
             fnDump(child.second, depth + 2);
         }
     };
@@ -172,10 +152,8 @@ void keymap_dump(const KeyMap& map, std::ostringstream& str)
 }
 
 // std::isdigit asserts on unicode characters!
-bool isDigit(const char ch)
-{
-    if (ch >= '0' && ch <= '9')
-    {
+bool isDigit(const char ch) {
+    if (ch >= '0' && ch <= '9') {
         return true;
     }
     return false;
@@ -185,29 +163,23 @@ bool isDigit(const char ch)
 // Input to this function:
 // <C-x>fgh
 // i.e. Keyboard mappings are fed in as <> strings.
-void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult& findResult)
-{
-    auto consumeDigits = [](std::shared_ptr<CommandNode>& spNode, std::string::const_iterator& itrChar, std::string::const_iterator itrEnd, std::vector<int>& result, std::ostringstream& str) {
-        if (spNode->token == "<D>")
-        {
+void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult &findResult) {
+    auto consumeDigits = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<int> &result, std::ostringstream &str) {
+        if (spNode->token == "<D>") {
             // Walk along grabbing digits
             auto itrStart = itrChar;
-            while (itrChar != itrEnd && isDigit(*itrChar))
-            {
+            while (itrChar != itrEnd && isDigit(*itrChar)) {
                 itrChar++;
             }
 
-            if (itrStart != itrChar)
-            {
+            if (itrStart != itrChar) {
                 auto token = std::string(itrStart, itrChar);
-                try
-                {
+                try {
                     // Grab the data, but continue to search for the next token
                     result.push_back(std::stoi(token));
                     str << "(D:" << token << ")";
                 }
-                catch (std::exception& ex)
-                {
+                catch (std::exception &ex) {
                     ZEP_UNUSED(ex);
                     ZLOG(DBG, ex.what());
                 }
@@ -217,12 +189,10 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
         return false;
     };
 
-    auto consumeChar = [](std::shared_ptr<CommandNode>& spNode, std::string::const_iterator& itrChar, std::string::const_iterator itrEnd, std::vector<char>& chars, std::ostringstream& str) {
-        if (spNode->token == "<.>")
-        {
+    auto consumeChar = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &chars, std::ostringstream &str) {
+        if (spNode->token == "<.>") {
             // Special match groups
-            if (itrChar != itrEnd)
-            {
+            if (itrChar != itrEnd) {
                 chars.push_back(*itrChar);
                 str << "(." << *itrChar << ")";
                 itrChar++;
@@ -232,15 +202,12 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
         return false;
     };
 
-    auto consumeRegister = [](std::shared_ptr<CommandNode>& spNode, std::string::const_iterator& itrChar, std::string::const_iterator itrEnd, std::vector<char>& registers, std::ostringstream& str) {
-        if (spNode->token == "<R>")
-        {
+    auto consumeRegister = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &registers, std::ostringstream &str) {
+        if (spNode->token == "<R>") {
             // Grab register
-            if (itrChar != itrEnd && *itrChar == '"')
-            {
+            if (itrChar != itrEnd && *itrChar == '"') {
                 itrChar++;
-                if (itrChar != itrEnd)
-                {
+                if (itrChar != itrEnd) {
                     registers.push_back(*itrChar);
                     str << "(\"" << *itrChar << ")";
                     itrChar++;
@@ -251,17 +218,15 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
         return false;
     };
 
-    struct Captures
-    {
+    struct Captures {
         std::vector<int> captureNumbers;
         std::vector<char> captureChars;
         std::vector<char> captureRegisters;
     };
 
-    std::function<bool(std::shared_ptr<CommandNode>, std::string::const_iterator, std::string::const_iterator, const Captures& captures, KeyMapResult&)> fnSearch;
-    fnSearch = [&](std::shared_ptr<CommandNode> spNode, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures& captures, KeyMapResult& result) {
-        for (auto& child : spNode->children)
-        {
+    std::function<bool(std::shared_ptr<CommandNode>, std::string::const_iterator, std::string::const_iterator, const Captures &captures, KeyMapResult &)> fnSearch;
+    fnSearch = [&](std::shared_ptr<CommandNode> spNode, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures &captures, KeyMapResult &result) {
+        for (auto &child: spNode->children) {
             auto spChildNode = child.second;
             std::string::const_iterator itr = itrChar;
 
@@ -271,40 +236,30 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
             std::string token;
 
             // Consume wildcards
-            if (consumeDigits(spChildNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures))
-            {
+            if (consumeDigits(spChildNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures)) {
                 token = spChildNode->token;
-            }
-            else if (consumeRegister(spChildNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures))
-            {
+            } else if (consumeRegister(spChildNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures)) {
                 token = spChildNode->token;
-            }
-            else if (consumeChar(spChildNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures))
-            {
+            } else if (consumeChar(spChildNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures)) {
                 token = spChildNode->token;
-            }
-            else
-            {
+            } else {
                 // Grab full <C-> tokens
                 token = string_slurp_if(itr, itrEnd, '<', '>');
-                if (token.empty() && itr != itrEnd)
-                {
+                if (token.empty() && itr != itrEnd) {
                     // ... or next char
                     token = std::string(itr, itr + 1);
                     string_eat_char(itr, itrEnd);
                 }
             }
 
-            if (token.empty() && child.second->commandId == StringId() && !spChildNode->children.empty())
-            {
+            if (token.empty() && child.second->commandId == StringId() && !spChildNode->children.empty()) {
                 result.searchPath += "(...)";
                 result.needMoreChars = true;
                 continue;
             }
 
             // We found a matching token or wildcard token at this level
-            if (child.first == token)
-            {
+            if (child.first == token) {
                 // Remember what we found
                 result.searchPath += strCaptures.str() + "(" + token + ")";
 
@@ -317,22 +272,16 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
                 nodeCaptures.captureRegisters.insert(nodeCaptures.captureRegisters.end(), captures.captureRegisters.begin(), captures.captureRegisters.end());
 
                 // This node doesn't have a mapping, so look harder
-                if (result.foundMapping == StringId())
-                {
+                if (result.foundMapping == StringId()) {
                     // There are more children, and we haven't got any more characters, keep asking for more
-                    if (!spChildNode->children.empty() && itr == itrEnd)
-                    {
+                    if (!spChildNode->children.empty() && itr == itrEnd) {
                         result.needMoreChars = true;
-                    }
-                    else
-                    {
+                    } else {
                         // Walk down to the next level
                         if (fnSearch(spChildNode, itr, itrEnd, nodeCaptures, result))
                             return true;
                     }
-                }
-                else
-                {
+                } else {
                     // This is the find result, note it and record the capture groups for the find
                     result.searchPath += " : " + spChildNode->commandId.ToString();
                     result.captureChars = nodeCaptures.captureChars;
@@ -353,32 +302,24 @@ void keymap_find(const KeyMap& map, const std::string& strCommand, KeyMapResult&
 
     Captures captures;
     bool found = fnSearch(map.spRoot, strCommand.begin(), strCommand.end(), captures, findResult);
-    if (!found)
-    {
-        if (findResult.needMoreChars)
-        {
+    if (!found) {
+        if (findResult.needMoreChars) {
             findResult.searchPath += "(...)";
-        }
-        else
-        {
+        } else {
             // Special case where the user typed a j followed by _not_ a k.
             // Return it as an insert command
             if (strCommand.size() == 2 &&
-                strCommand[0] == 'j')
-            {
+                strCommand[0] == 'j') {
                 findResult.needMoreChars = false;
                 findResult.commandWithoutGroups = strCommand;
                 findResult.searchPath += "(j.)";
-            }
-            else
-            {
+            } else {
                 findResult.searchPath += "(Unknown)";
 
                 // Didn't find anything, return sanitized text for possible input
                 auto itr = strCommand.begin();
                 auto token = string_slurp_if(itr, strCommand.end(), '<', '>');
-                if (token.empty())
-                {
+                if (token.empty()) {
                     token = strCommand;
                 }
                 findResult.commandWithoutGroups = token;
