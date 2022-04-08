@@ -5,27 +5,15 @@ namespace Zep {
 
 GlyphIterator::GlyphIterator(const ZepBuffer *buffer, unsigned long offset)
     : m_pBuffer(buffer) {
-    if (buffer) {
-        m_index = offset;
-    }
+    if (buffer) m_index = offset;
 }
 
-GlyphIterator::GlyphIterator(const GlyphIterator &itr)
-    : m_pBuffer(itr.m_pBuffer), m_index(itr.m_index) {
-}
+GlyphIterator::GlyphIterator(const GlyphIterator &itr) = default;
 
-long GlyphIterator::Index() const {
-    return m_index;
-}
+long GlyphIterator::Index() const { return m_index; }
 
 bool GlyphIterator::Valid() const {
-    if (!m_pBuffer) {
-        return false;
-    }
-
-    if (m_index < 0 || m_index >= m_pBuffer->GetWorkingBuffer().size()) {
-        return false;
-    }
+    if (!m_pBuffer || m_index < 0 || m_index >= m_pBuffer->GetWorkingBuffer().size()) return false;
 
     // We should never have a valid buffer index but be outside the start of a 
     // utf8 glyph
@@ -33,53 +21,22 @@ bool GlyphIterator::Valid() const {
     return true;
 }
 
-bool GlyphIterator::operator<(const GlyphIterator &rhs) const {
-    return m_index < rhs.m_index;
-}
+bool GlyphIterator::operator<(const GlyphIterator &rhs) const { return m_index < rhs.m_index; }
+bool GlyphIterator::operator<=(const GlyphIterator &rhs) const { return m_index <= rhs.m_index; }
+bool GlyphIterator::operator>(const GlyphIterator &rhs) const { return m_index > rhs.m_index; }
+bool GlyphIterator::operator>=(const GlyphIterator &rhs) const { return m_index >= rhs.m_index; }
+bool GlyphIterator::operator==(const GlyphIterator &rhs) const { return m_index == rhs.m_index; }
+bool GlyphIterator::operator!=(const GlyphIterator &rhs) const { return m_index != rhs.m_index; }
 
-bool GlyphIterator::operator<=(const GlyphIterator &rhs) const {
-    return m_index <= rhs.m_index;
-}
-bool GlyphIterator::operator>(const GlyphIterator &rhs) const {
-    return m_index > rhs.m_index;
-}
+GlyphIterator &GlyphIterator::operator=(const GlyphIterator &rhs) = default;
 
-bool GlyphIterator::operator>=(const GlyphIterator &rhs) const {
-    return m_index >= rhs.m_index;
-}
+uint8_t GlyphIterator::Char() const { return !m_pBuffer ? 0 : m_pBuffer->GetWorkingBuffer()[m_index]; }
 
-bool GlyphIterator::operator==(const GlyphIterator &rhs) const {
-    return m_index == rhs.m_index;
-}
-
-bool GlyphIterator::operator!=(const GlyphIterator &rhs) const {
-    return m_index != rhs.m_index;
-}
-
-GlyphIterator &GlyphIterator::operator=(const GlyphIterator &rhs) {
-    m_pBuffer = rhs.m_pBuffer;
-    m_index = rhs.m_index;
-    return *this;
-}
-
-uint8_t GlyphIterator::Char() const {
-    if (!m_pBuffer) {
-        return 0;
-    }
-    return m_pBuffer->GetWorkingBuffer()[m_index];
-}
-
-uint8_t GlyphIterator::operator*() const {
-    if (!m_pBuffer) {
-        return 0;
-    }
-    return m_pBuffer->GetWorkingBuffer()[m_index];
-}
+uint8_t GlyphIterator::operator*() const { return !m_pBuffer ? 0 : m_pBuffer->GetWorkingBuffer()[m_index]; }
 
 GlyphIterator &GlyphIterator::MoveClamped(long count, LineLocation clamp) {
-    if (!m_pBuffer) {
-        return *this;
-    }
+    if (!m_pBuffer) return *this;
+
     auto &gapBuffer = m_pBuffer->GetWorkingBuffer();
 
     if (count >= 0) {
@@ -103,11 +60,9 @@ GlyphIterator &GlyphIterator::MoveClamped(long count, LineLocation clamp) {
 }
 
 GlyphIterator &GlyphIterator::Move(long count) {
-    if (!m_pBuffer) {
-        return *this;
-    }
-    auto &gapBuffer = m_pBuffer->GetWorkingBuffer();
+    if (!m_pBuffer) return *this;
 
+    auto &gapBuffer = m_pBuffer->GetWorkingBuffer();
     if (count >= 0) {
         for (long c = 0; c < count; c++) {
             m_index += utf8_codepoint_length(gapBuffer[m_index]);
@@ -129,9 +84,7 @@ GlyphIterator GlyphIterator::Clamped() const {
 
 GlyphIterator &GlyphIterator::Clamp() {
     // Invalid thing is still invalid
-    if (!m_pBuffer) {
-        return *this;
-    }
+    if (!m_pBuffer) return *this;
 
     // Clamp to the 0 on the end of the buffer 
     // Since indices are usually exclusive, this allows selection of everything but the 0
@@ -161,13 +114,13 @@ GlyphIterator GlyphIterator::PeekByteOffset(long count) const {
     return GlyphIterator(m_pBuffer, m_index + count);
 }
 
-GlyphIterator GlyphIterator::operator--(int) {
+const GlyphIterator GlyphIterator::operator--(int) {
     GlyphIterator ret(*this);
     Move(-1);
     return ret;
 }
 
-GlyphIterator GlyphIterator::operator++(int) {
+const GlyphIterator GlyphIterator::operator++(int) {
     GlyphIterator ret(*this);
     Move(1);
     return ret;
@@ -193,28 +146,10 @@ void GlyphIterator::operator-=(long count) {
     Move(-count);
 }
 
+GlyphRange::GlyphRange(const GlyphIterator &a, const GlyphIterator &b) : first(a), second(b) {}
+GlyphRange::GlyphRange(const ZepBuffer *pBuffer, ByteRange range) : first(pBuffer, range.first), second(pBuffer, range.second) {}
+GlyphRange::GlyphRange() = default;
 
-GlyphRange::GlyphRange(GlyphIterator a, GlyphIterator b)
-    : first(a), second(b) {
-}
-
-GlyphRange::GlyphRange(const ZepBuffer *pBuffer, ByteRange range)
-    : first(pBuffer, range.first), second(pBuffer, range.second) {
-}
-
-GlyphRange::GlyphRange() {
-}
-
-bool GlyphRange::ContainsLocation(long loc) const {
-    return loc >= first.Index() && loc < second.Index();
-}
-
-bool GlyphRange::ContainsLocation(GlyphIterator loc) const {
-    return loc >= first && loc < second;
-}
-
-bool GlyphRange::ContainsInclusiveLocation(GlyphIterator loc) const {
-    return loc >= first && loc <= second;
-}
+bool GlyphRange::ContainsInclusiveLocation(const GlyphIterator &loc) const { return loc >= first && loc <= second; }
 
 } // namespace Zep

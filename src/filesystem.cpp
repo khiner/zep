@@ -1,10 +1,6 @@
 #include "zep/filesystem.h"
 #include "zep/editor.h"
-
-#include <fstream>
-
 #include "zep/mcommon/logger.h"
-#include "zep/mcommon/string/stringutils.h"
 
 #undef ERROR
 
@@ -37,8 +33,7 @@ ZepFileSystemCPP::ZepFileSystemCPP(const ZepPath &configPath) {
     ZLOG(INFO, "Working Dir: " << m_workingDirectory.c_str());
 }
 
-ZepFileSystemCPP::~ZepFileSystemCPP() {
-}
+ZepFileSystemCPP::~ZepFileSystemCPP() = default;
 
 void ZepFileSystemCPP::SetWorkingDirectory(const ZepPath &path) {
     m_workingDirectory = path;
@@ -84,7 +79,7 @@ std::string ZepFileSystemCPP::Read(const ZepPath &fileName) {
     } else {
         ZLOG(ERROR, "File Not Found: " << fileName.string());
     }
-    return std::string();
+    return {};
 }
 
 bool ZepFileSystemCPP::Write(const ZepPath &fileName, const void *pData, size_t size) {
@@ -105,20 +100,14 @@ void ZepFileSystemCPP::ScanDirectory(const ZepPath &path, std::function<bool(con
         auto p = ZepPath(itr->path().string());
 
         bool recurse = true;
-        if (!fnScan(p, recurse))
-            return;
-
-        if (!recurse && itr.recursion_pending()) {
-            itr.disable_recursion_pending();
-        }
+        if (!fnScan(p, recurse)) return;
     }
 }
 
 bool ZepFileSystemCPP::Exists(const ZepPath &path) const {
     try {
         return cpp_fs::exists(path.string());
-    }
-    catch (cpp_fs::filesystem_error &err) {
+    } catch (cpp_fs::filesystem_error &err) {
         ZEP_UNUSED(err);
         ZLOG(ERROR, "Exception: " << err.what());
         return false;

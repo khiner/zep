@@ -14,7 +14,7 @@ class ZepEditor;
 
 // NOTE: These are input keys mapped to Zep's internal keymapping; they live below 'space'/32
 // Key mapping needs a rethink for international keyboards.  But for modes, this is the remapped key definitions for anything that isn't
-// basic ascii symbol.  ASCII 0-31 are mostly ununsed these days anyway.
+// basic ascii symbol.  ASCII 0-31 are mostly unused these days anyway.
 struct ExtKeys {
     enum Key {
         RETURN = 0, // NOTE: Do not change this value
@@ -43,8 +43,6 @@ struct ExtKeys {
         F11 = 23,
         F12 = 24,
 
-        // Note: No higher than 31
-        LAST = 31,
         NONE = 32
     };
 };
@@ -137,14 +135,14 @@ public:
 
 class ZepMode : public ZepComponent {
 public:
-    ZepMode(ZepEditor &editor);
-    virtual ~ZepMode();
+    explicit ZepMode(ZepEditor &editor);
+    ~ZepMode() override;
 
     virtual void Init() {};
     virtual void AddKeyPress(uint32_t key, uint32_t modifierKeys = ModifierKey::None);
     virtual const char *Name() const = 0;
     virtual void Begin(ZepWindow *pWindow);
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override {}
+    void Notify(const std::shared_ptr<ZepMessage> &) override {}
     virtual uint32_t ModifyWindowFlags(uint32_t windowFlags) { return windowFlags; }
     virtual EditorMode GetEditorMode() const;
     virtual EditorMode DefaultMode() const = 0;

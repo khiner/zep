@@ -13,15 +13,8 @@ public:
     virtual void Begin(ZepWindow *pWindow) override;
     virtual EditorMode DefaultMode() const override { return EditorMode::Insert; }
 
-    static const char *StaticName() {
-        return "Standard";
-    }
-    virtual const char *Name() const override {
-        return StaticName();
-    }
-
-private:
-    std::string keyCache;
+    static const char *StaticName() { return "Standard"; }
+    virtual const char *Name() const override { return StaticName(); }
 };
 
 } // namespace Zep

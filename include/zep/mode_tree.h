@@ -5,8 +5,6 @@
 
 namespace Zep {
 
-struct ZepRepl;
-
 namespace ZepTreeNodeFlags {
 enum {
     None = (0),
@@ -19,7 +17,7 @@ public:
     using TNode = std::shared_ptr<ZepTreeNode>;
     using TChildren = std::vector<TNode>;
 
-    ZepTreeNode(const std::string &strName, uint32_t flags = ZepTreeNodeFlags::None);
+    explicit ZepTreeNode(std::string strName, uint32_t flags = ZepTreeNodeFlags::None);
 
     virtual const std::string &GetName() const { return m_strName; }
     virtual void SetName(const std::string &name) { m_strName = name; }
@@ -31,22 +29,6 @@ public:
         m_children.push_back(pNode);
         pNode->m_pParent = this;
         return pNode.get();
-    }
-
-    virtual bool RemoveChild(ZepTreeNode *pNode) {
-        auto itr = std::find_if(m_children.begin(), m_children.end(), [=](TNode &node) {
-            if (node.get() == pNode) {
-                return true;
-            }
-            return false;
-        });
-
-        if (itr != m_children.end()) {
-            m_children.erase(itr);
-            pNode->SetParent(nullptr);
-            return true;
-        }
-        return false;
     }
 
     virtual void ClearChildren() {
@@ -95,10 +77,7 @@ protected:
 
 class ZepFileNode : public ZepTreeNode {
 public:
-    ZepFileNode(const std::string &name, uint32_t flags = ZepTreeNodeFlags::None)
-        : ZepTreeNode(name, flags) {
-
-    }
+    explicit ZepFileNode(const std::string &name, uint32_t flags = ZepTreeNodeFlags::None) : ZepTreeNode(name, flags) {}
 };
 
 class ZepFileTree : public ZepTree {
@@ -110,22 +89,20 @@ public:
 class ZepMode_Tree : public ZepMode_Vim {
 public:
     ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &replWindow);
-    ~ZepMode_Tree();
+    ~ZepMode_Tree() override;
 
     static const char *StaticName() {
         return "TREE";
     }
-    virtual void Begin(ZepWindow *pWindow) override;
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual const char *Name() const override { return StaticName(); }
+    void Begin(ZepWindow *pWindow) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    const char *Name() const override { return StaticName(); }
 
 private:
     void BuildTree();
 
 private:
     std::shared_ptr<ZepTree> m_spTree;
-    GlyphIterator m_startLocation = GlyphIterator{0};
-    ZepWindow &m_launchWindow;
     ZepWindow &m_window;
 };
 

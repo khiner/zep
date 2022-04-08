@@ -1,5 +1,9 @@
 #pragma once
 
+#include <utility>
+
+#include <utility>
+
 #include "zep/editor.h"
 
 namespace Zep {
@@ -21,17 +25,17 @@ public:
     FloatSlider(ZepEditor &editor, uint32_t dimension, fnWidgetValueChanged fnChanged = nullptr)
         : m_editor(editor),
           m_dimension(dimension),
-          m_fnChanged(fnChanged) {
+          m_fnChanged(std::move(std::move(fnChanged))) {
 
     }
-    virtual NVec2f GetSize() const override;
-    virtual void MouseDown(const NVec2f &pos, ZepMouseButton button) override;
-    virtual void MouseUp(const NVec2f &pos, ZepMouseButton button) override;
-    virtual void MouseMove(const NVec2f &pos) override;
-    virtual void Draw(const ZepBuffer &buffer, const NVec2f &location) override;
-    virtual void DrawInline(const ZepBuffer &buffer, const NRectf &location) override;
-    virtual void Set(const NVec4f &value) override;
-    virtual const NVec4f &Get() const override;
+    NVec2f GetSize() const override;
+    void MouseDown(const NVec2f &pos, ZepMouseButton button) override;
+    void MouseUp(const NVec2f &pos, ZepMouseButton button) override;
+    void MouseMove(const NVec2f &pos) override;
+    void Draw(const ZepBuffer &buffer, const NVec2f &location) override;
+    void DrawInline(const ZepBuffer &buffer, const NRectf &location) override;
+    void Set(const NVec4f &value) override;
+    const NVec4f &Get() const override;
 
 private:
     virtual ZepEditor &GetEditor() const {
@@ -49,19 +53,16 @@ private:
 
 class ColorPicker : public IWidget {
 public:
-    ColorPicker(ZepEditor &editor, fnWidgetValueChanged fnChanged = nullptr)
-        : m_editor(editor),
-          m_fnChanged(fnChanged) {
+    explicit ColorPicker(ZepEditor &editor) : m_editor(editor) {}
 
-    }
-    virtual NVec2f GetSize() const override;
-    virtual void MouseDown(const NVec2f &pos, ZepMouseButton button) override;
-    virtual void MouseUp(const NVec2f &pos, ZepMouseButton button) override;
-    virtual void MouseMove(const NVec2f &pos) override;
-    virtual void Draw(const ZepBuffer &buffer, const NVec2f &location) override;
-    virtual void DrawInline(const ZepBuffer &buffer, const NRectf &location) override;
-    virtual void Set(const NVec4f &value) override;
-    virtual const NVec4f &Get() const override;
+    NVec2f GetSize() const override;
+    void MouseDown(const NVec2f &pos, ZepMouseButton button) override;
+    void MouseUp(const NVec2f &pos, ZepMouseButton button) override;
+    void MouseMove(const NVec2f &pos) override;
+    void Draw(const ZepBuffer &buffer, const NVec2f &location) override;
+    void DrawInline(const ZepBuffer &buffer, const NRectf &location) override;
+    void Set(const NVec4f &value) override;
+    const NVec4f &Get() const override;
 
 private:
     virtual ZepEditor &GetEditor() const {
@@ -70,7 +71,6 @@ private:
 
 private:
     ZepEditor &m_editor;
-    fnWidgetValueChanged m_fnChanged = nullptr;
     NVec4f m_color;
 };
 } // Zep

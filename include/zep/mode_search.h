@@ -13,24 +13,19 @@ class ZepWindow;
 class ZepMode_Search : public ZepMode {
 public:
     ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, const ZepPath &startPath);
-    ~ZepMode_Search();
+    ~ZepMode_Search() override;
 
-    virtual void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
-    virtual void Begin(ZepWindow *pWindow) override;
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual EditorMode DefaultMode() const override { return EditorMode::Normal; }
+    void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
+    void Begin(ZepWindow *pWindow) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    EditorMode DefaultMode() const override { return EditorMode::Normal; }
 
-    static const char *StaticName() {
-        return "Search";
-    }
-    virtual const char *Name() const override {
-        return StaticName();
-    }
+    static const char *StaticName() { return "Search"; }
+    const char *Name() const override { return StaticName(); }
 
-    virtual CursorType GetCursorType() const override;
+    CursorType GetCursorType() const override;
 
 private:
-    void GetSearchPaths(const ZepPath &path, std::vector<std::string> &ignore, std::vector<std::string> &include) const;
     void InitSearchTree();
     void ShowTreeResult();
     void UpdateTree();

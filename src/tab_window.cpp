@@ -338,7 +338,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
     }
 }
 
-void ZepTabWindow::Notify(std::shared_ptr<ZepMessage> pMsg) {
+void ZepTabWindow::Notify(const std::shared_ptr<ZepMessage> &pMsg) {
     if (pMsg->messageId == Msg::MouseDown) {
         for (auto &region: m_windowRegions) {
             if (region.second->rect.Contains(pMsg->pos)) {

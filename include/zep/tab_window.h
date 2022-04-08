@@ -23,7 +23,7 @@ public:
     ZepTabWindow(ZepEditor &editor);
     virtual ~ZepTabWindow();
 
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     ZepWindow *DoMotion(WindowMotion motion);
     ZepWindow *AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent = nullptr, RegionLayoutType layoutType = RegionLayoutType::HBox);

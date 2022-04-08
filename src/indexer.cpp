@@ -129,9 +129,7 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
                     }
 
                     if (!matched) {
-                        if (bDir) {
-                            recurse = false;
-                        }
+                        if (bDir) recurse = false;
                         return true;
                     }
 
@@ -144,14 +142,10 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
                         }
                     }
 
-                    if (!matched) {
-                        return true;
-                    }
+                    if (!matched) return true;
 
                     // Not adding directories to the search list
-                    if (bDir) {
-                        return true;
-                    }
+                    if (bDir) return true;
 
                     spResult->paths.push_back(rel);
                     spResult->lowerPaths.push_back(string_tolower(rel.string()));
@@ -166,12 +160,10 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
         startPath);
 }
 
-void Indexer::Notify(std::shared_ptr<ZepMessage> message) {
+void Indexer::Notify(const std::shared_ptr<ZepMessage> &message) {
     if (message->messageId == Msg::Tick) {
         if (m_fileSearchActive) {
-            if (!is_future_ready(m_indexResult)) {
-                return;
-            }
+            if (!is_future_ready(m_indexResult)) return;
 
             m_fileSearchActive = false;
 

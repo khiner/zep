@@ -13,7 +13,7 @@ public:
     Scroller(ZepEditor &editor, Region &parent);
 
     virtual void Display(ZepTheme &theme);
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     float vScrollVisiblePercent = 1.0f;
     float vScrollPosition = 0.0f;

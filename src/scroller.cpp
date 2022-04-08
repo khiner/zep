@@ -119,7 +119,7 @@ NRectf Scroller::ThumbRect() const {
         NVec2f(m_mainRegion->rect.bottomRightPx.x, m_mainRegion->rect.topLeftPx.y + m_mainRegion->rect.Height() * vScrollPosition + thumbSize));
 }
 
-void Scroller::Notify(std::shared_ptr<ZepMessage> message) {
+void Scroller::Notify(const std::shared_ptr<ZepMessage> &message) {
     switch (message->messageId) {
         case Msg::Tick: {
             CheckState();

@@ -1,9 +1,9 @@
+#include <utility>
+
 #include "zep/display.h"
 
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
-
-#define UTF_CPP_CPLUSPLUS 201103L // C++ 11 or later
 
 #include "zep/mcommon/utf8/unchecked.h"
 
@@ -19,7 +19,7 @@ void ZepFont::BuildCharCache() {
     const char chA = 'A';
     m_defaultCharSize = GetTextSize((const uint8_t *) &chA, (const uint8_t *) &chA + 1);
     for (int i = 0; i < 256; i++) {
-        uint8_t ch = (uint8_t) i;
+        auto ch = (uint8_t) i;
         m_charCacheASCII[i] = GetTextSize(&ch, &ch + 1);
     }
     m_charCacheDirty = false;
@@ -67,8 +67,8 @@ NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
 
 ZepDisplay::ZepDisplay()
     : m_pixelScale(Zep::NVec2f(1.0f)) {
-    for (size_t i = 0; i < m_fonts.size(); i++) {
-        m_fonts[i] = nullptr;
+    for (auto &m_font: m_fonts) {
+        m_font = nullptr;
     }
 }
 
@@ -97,7 +97,7 @@ void ZepDisplay::SetLayoutDirty(bool dirty) {
 }
 
 void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont) {
-    m_fonts[(int) type] = spFont;
+    m_fonts[(int) type] = std::move(spFont);
 }
 
 const NVec2f &ZepDisplay::GetPixelScale() const {
@@ -106,8 +106,8 @@ const NVec2f &ZepDisplay::GetPixelScale() const {
 
 void ZepDisplay::SetPixelScale(const NVec2f &scale) {
     m_pixelScale = scale;
-    for (size_t i = 0; i < m_fonts.size(); i++) {
-        m_fonts[i] = nullptr;
+    for (auto &m_font: m_fonts) {
+        m_font = nullptr;
     }
 }
 

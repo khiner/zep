@@ -90,13 +90,12 @@ void ZepSyntax::QueueUpdateSyntax(GlyphIterator startLocation, GlyphIterator end
     //});
 }
 
-void ZepSyntax::Notify(std::shared_ptr<ZepMessage> spMsg) {
+void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
     // Handle any interesting buffer messages
     if (spMsg->messageId == Msg::Buffer) {
         auto spBufferMsg = std::static_pointer_cast<BufferMessage>(spMsg);
-        if (spBufferMsg->pBuffer != &m_buffer) {
-            return;
-        }
+        if (spBufferMsg->pBuffer != &m_buffer) return;
+
         if (spBufferMsg->type == BufferMessageType::PreBufferChange) {
             Interrupt();
         } else if (spBufferMsg->type == BufferMessageType::TextDeleted) {
@@ -126,11 +125,7 @@ void ZepSyntax::UpdateSyntax() {
     std::string delim;
     std::string lineEnd("\n");
 
-    if (m_flags & ZepSyntaxFlags::LispLike) {
-        delim = std::string(" \t.\n(){}[]");
-    } else {
-        delim = std::string(" \t.\n;(){}[]=:");
-    }
+    delim = std::string(m_flags & ZepSyntaxFlags::LispLike ? " \t.\n(){}[]" : " \t.\n;(){}[]=:");
 
     // Walk backwards to previous delimiter
     while (itrCurrent > buffer.begin()) {

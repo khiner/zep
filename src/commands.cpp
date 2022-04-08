@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "zep/commands.h"
 
 namespace Zep {
@@ -9,11 +11,8 @@ ZepCommand_DeleteRange::ZepCommand_DeleteRange(ZepBuffer &buffer, const GlyphIte
     assert(m_endIndex.Valid());
 
     // We never allow deletion of the '0' at the end of the buffer
-    if (buffer.GetWorkingBuffer().empty()) {
-        m_endIndex = m_startIndex;
-    } else {
-        m_endIndex.Clamp();
-    }
+    if (buffer.GetWorkingBuffer().empty()) m_endIndex = m_startIndex;
+    else m_endIndex.Clamp();
 }
 
 void ZepCommand_DeleteRange::Redo() {
@@ -24,8 +23,7 @@ void ZepCommand_DeleteRange::Redo() {
 }
 
 void ZepCommand_DeleteRange::Undo() {
-    if (m_changeRecord.strDeleted.empty())
-        return;
+    if (m_changeRecord.strDeleted.empty()) return;
 
     ChangeRecord tempRecord;
     m_buffer.Insert(m_startIndex, m_changeRecord.strDeleted, tempRecord);
@@ -41,11 +39,8 @@ void ZepCommand_Insert::Redo() {
     m_changeRecord.Clear();
     bool ret = m_buffer.Insert(m_startIndex, m_strInsert, m_changeRecord);
     assert(ret);
-    if (ret == true) {
-        m_endIndexInserted = m_startIndex.PeekByteOffset(long(m_strInsert.size()));
-    } else {
-        m_endIndexInserted.Invalidate();
-    }
+    if (ret) m_endIndexInserted = m_startIndex.PeekByteOffset(long(m_strInsert.size()));
+    else m_endIndexInserted.Invalidate();
 }
 
 void ZepCommand_Insert::Undo() {
@@ -56,9 +51,9 @@ void ZepCommand_Insert::Undo() {
 }
 
 // Replace
-ZepCommand_ReplaceRange::ZepCommand_ReplaceRange(ZepBuffer &buffer, ReplaceRangeMode currentMode, const GlyphIterator &startIndex, const GlyphIterator &endIndex, const std::string &strReplace,
+ZepCommand_ReplaceRange::ZepCommand_ReplaceRange(ZepBuffer &buffer, ReplaceRangeMode currentMode, const GlyphIterator &startIndex, const GlyphIterator &endIndex, std::string strReplace,
                                                  const GlyphIterator &cursor, const GlyphIterator &cursorAfter)
-    : ZepCommand(buffer, cursor.Valid() ? cursor : endIndex, cursorAfter.Valid() ? cursorAfter : startIndex), m_startIndex(startIndex), m_endIndex(endIndex), m_strReplace(strReplace), m_mode(currentMode) {
+    : ZepCommand(buffer, cursor.Valid() ? cursor : endIndex, cursorAfter.Valid() ? cursorAfter : startIndex), m_startIndex(startIndex), m_endIndex(endIndex), m_strReplace(std::move(strReplace)), m_mode(currentMode) {
     m_startIndex.Clamp();
 }
 

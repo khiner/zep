@@ -54,16 +54,13 @@ ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName)
     Clear();
 }
 
-ZepBuffer::ZepBuffer(ZepEditor &editor, const ZepPath &path)
-    : ZepComponent(editor) {
+ZepBuffer::ZepBuffer(ZepEditor &editor, const ZepPath &path) : ZepComponent(editor) {
     Load(path);
 }
 
-ZepBuffer::~ZepBuffer()
-= default;
+ZepBuffer::~ZepBuffer() = default;
 
-void ZepBuffer::Notify(std::shared_ptr<ZepMessage> message) {
-}
+void ZepBuffer::Notify(const std::shared_ptr<ZepMessage> &message) {}
 
 // Vertical column
 long ZepBuffer::GetBufferColumn(const GlyphIterator &location) const {

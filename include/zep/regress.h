@@ -7,14 +7,14 @@ namespace Zep {
 class ZepEditor;
 class ZepRegressExCommand : public ZepExCommand {
 public:
-    ZepRegressExCommand(ZepEditor &editor);
+    explicit ZepRegressExCommand(ZepEditor &editor);
 
     static void Register(ZepEditor &editor);
 
     virtual void Tick();
-    virtual void Run(const std::vector<std::string> &tokens) override;
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual const char *ExCommandName() const override;
+    void Run(const std::vector<std::string> &tokens) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
+    const char *ExCommandName() const override;
 
 private:
     timer m_timer;

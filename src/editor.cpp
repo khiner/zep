@@ -1,6 +1,5 @@
 #include "zep/editor.h"
 #include "zep/filesystem.h"
-#include "zep/indexer.h"
 #include "zep/mode_search.h"
 #include "zep/mode_standard.h"
 #include "zep/mode_tree.h"
@@ -65,7 +64,7 @@ ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t f
 
     timer_restart(m_cursorTimer);
     timer_restart(m_lastEditTimer);
-    m_commandLines.push_back("");
+    m_commandLines.emplace_back("");
 
     RegisterSyntaxProviders(*this);
 
@@ -137,7 +136,7 @@ void ZepEditor::LoadConfig(const ZepPath &config_path) {
     }
 }
 
-void ZepEditor::LoadConfig(std::shared_ptr<cpptoml::table> spConfig) {
+void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
     try {
         m_config.showNormalModeKeyStrokes = spConfig->get_qualified_as<bool>("editor.show_normal_mode_keystrokes").value_or(false);
         m_config.showIndicatorRegion = spConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
@@ -163,7 +162,7 @@ void ZepEditor::LoadConfig(std::shared_ptr<cpptoml::table> spConfig) {
     }
 }
 
-void ZepEditor::SaveConfig(std::shared_ptr<cpptoml::table> spConfig) {
+void ZepEditor::SaveConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
     auto table = spConfig->get_table("editor");
     if (!table) {
         table = cpptoml::make_table();
@@ -237,7 +236,7 @@ void ZepEditor::RemoveBuffer(ZepBuffer *pBuffer) {
     }
 
     // Find the buffer in the list of buffers owned by the editor and remove it
-    auto itr = std::find_if(m_buffers.begin(), m_buffers.end(), [pBuffer](std::shared_ptr<ZepBuffer> spBuffer) {
+    auto itr = std::find_if(m_buffers.begin(), m_buffers.end(), [pBuffer](const std::shared_ptr<ZepBuffer> &spBuffer) {
         return spBuffer.get() == pBuffer;
     });
 
@@ -575,12 +574,12 @@ const ZepEditor::tTabWindows &ZepEditor::GetTabWindows() const {
     return m_tabWindows;
 }
 
-void ZepEditor::RegisterGlobalMode(std::shared_ptr<ZepMode> spMode) {
+void ZepEditor::RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode) {
     m_mapGlobalModes[spMode->Name()] = spMode;
     spMode->Init();
 }
 
-void ZepEditor::RegisterExCommand(std::shared_ptr<ZepExCommand> spCommand) {
+void ZepEditor::RegisterExCommand(const std::shared_ptr<ZepExCommand> &spCommand) {
     m_mapExCommands[spCommand->ExCommandName()] = spCommand;
 }
 
@@ -605,7 +604,7 @@ ZepExCommand *ZepEditor::FindExCommand(const StringId &Id) {
     return nullptr;
 }
 
-void ZepEditor::RegisterBufferMode(const std::string &extension, std::shared_ptr<ZepMode> spMode) {
+void ZepEditor::RegisterBufferMode(const std::string &extension, const std::shared_ptr<ZepMode> &spMode) {
     m_mapBufferModes[extension] = spMode;
     spMode->Init();
 }
@@ -645,8 +644,8 @@ void ZepEditor::SetBufferMode(ZepBuffer &buffer) const {
         ext = string_tolower(buffer.GetFilePath().filename().extension().string());
         fileName = string_tolower(buffer.GetFilePath().filename().string());
     } else {
-        auto str = buffer.GetName();
-        size_t dot_pos = str.find_last_of(".");
+        const auto &str = buffer.GetName();
+        size_t dot_pos = str.find_last_of('.');
         if (dot_pos != std::string::npos) {
             ext = string_tolower(str.substr(dot_pos, str.length() - dot_pos));
         }
@@ -665,8 +664,8 @@ void ZepEditor::SetBufferSyntax(ZepBuffer &buffer) const {
         ext = string_tolower(buffer.GetFilePath().filename().extension().string());
         fileName = string_tolower(buffer.GetFilePath().filename().string());
     } else {
-        auto str = buffer.GetName();
-        size_t dot_pos = str.find_last_of(".");
+        const auto &str = buffer.GetName();
+        size_t dot_pos = str.find_last_of('.');
         if (dot_pos != std::string::npos) {
             ext = string_tolower(str.substr(dot_pos, str.length() - dot_pos));
         }
@@ -694,14 +693,14 @@ void ZepEditor::SetBufferSyntax(ZepBuffer &buffer) const {
     }
 }
 
-void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string> &mappings, SyntaxProvider provider) {
+void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string> &mappings, const SyntaxProvider &provider) {
     for (auto &m: mappings) {
         m_mapSyntax[string_tolower(m)] = provider;
     }
 }
 
 // Inform clients of an event in the buffer
-bool ZepEditor::Broadcast(std::shared_ptr<ZepMessage> message) {
+bool ZepEditor::Broadcast(const std::shared_ptr<ZepMessage> &message) {
     Notify(message);
     if (message->handled)
         return true;
@@ -719,16 +718,14 @@ const std::deque<std::shared_ptr<ZepBuffer>> &ZepEditor::GetBuffers() const {
 }
 
 // Do any special buffer processing
-void ZepEditor::InitBuffer(ZepBuffer &buffer) {
+void ZepEditor::InitBuffer(ZepBuffer &buffer) const {
     SetBufferMode(buffer);
 }
 
 ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
     auto pBuffer = std::make_shared<ZepBuffer>(*this, str);
-
     // For a new buffer, set the syntax based on the string name
     SetBufferSyntax(*pBuffer);
-
     m_buffers.push_front(pBuffer);
 
     InitBuffer(*pBuffer);
@@ -765,24 +762,10 @@ void ZepEditor::WriteClipboard() {
     Broadcast(pMsg);
 }
 
-void ZepEditor::SetRegister(const std::string &reg, const Register &val) {
-    m_registers[reg] = val;
-    if (reg == "+" || reg == "*") {
-        WriteClipboard();
-    }
-}
-
 void ZepEditor::SetRegister(const char reg, const Register &val) {
     std::string str({reg});
     m_registers[str] = val;
     if (reg == '+' || reg == '*') {
-        WriteClipboard();
-    }
-}
-
-void ZepEditor::SetRegister(const std::string &reg, const char *pszText) {
-    m_registers[reg] = Register(pszText);
-    if (reg == "+" || reg == "*") {
         WriteClipboard();
     }
 }
@@ -814,7 +797,7 @@ const tRegisters &ZepEditor::GetRegisters() {
     return m_registers;
 }
 
-void ZepEditor::Notify(std::shared_ptr<ZepMessage> pMsg) {
+void ZepEditor::Notify(const std::shared_ptr<ZepMessage> &pMsg) {
     if (pMsg->messageId == Msg::MouseDown) {
         for (auto &tab: m_tabRegion->children) {
             if (tab->rect.Contains(pMsg->pos)) {
@@ -839,9 +822,8 @@ std::string ZepEditor::GetCommandText() const {
 
 void ZepEditor::SetCommandText(const std::string &strCommand) {
     m_commandLines = string_split(strCommand, "\n\r");
-    if (m_commandLines.empty()) {
-        m_commandLines.push_back("");
-    }
+    if (m_commandLines.empty()) m_commandLines.emplace_back("");
+
     m_bRegionsChanged = true;
 }
 
@@ -855,9 +837,7 @@ bool ZepEditor::RefreshRequired() {
 
     auto lastBlink = m_lastCursorBlink;
     if (m_bPendingRefresh || lastBlink != GetCursorBlinkState()) {
-        if (!ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) {
-            m_bPendingRefresh = false;
-        }
+        if (!ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) m_bPendingRefresh = false;
         return true;
     }
 
@@ -1035,13 +1015,9 @@ bool ZepEditor::OnMouseUp(const NVec2f &mousePos, ZepMouseButton button) {
     return handled;
 }
 
-const NVec2f ZepEditor::GetMousePos() const {
-    return m_mousePos;
-}
+NVec2f ZepEditor::GetMousePos() const { return m_mousePos; }
 
-uint32_t ZepEditor::GetFlags() const {
-    return m_flags;
-}
+uint32_t ZepEditor::GetFlags() const { return m_flags; }
 
 void ZepEditor::SetFlags(uint32_t flags) {
     m_flags = flags;
@@ -1054,20 +1030,9 @@ std::vector<const KeyMap *> ZepEditor::GetGlobalKeyMaps(ZepMode &mode) {
     std::vector<const KeyMap *> maps;
     for (auto&[id, spMap]: m_mapExCommands) {
         auto pMap = spMap->GetKeyMappings(mode);
-        if (pMap) {
-            maps.push_back(pMap);
-        }
+        if (pMap) maps.push_back(pMap);
     }
     return maps;
-}
-
-ZepBuffer *ZepEditor::GetBufferFromHandle(uint64_t handle) {
-    for (auto &buffer: m_buffers) {
-        if (uint64_t(buffer.get()) == handle) {
-            return buffer.get();
-        }
-    }
-    return nullptr;
 }
 
 } // namespace Zep

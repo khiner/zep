@@ -6,6 +6,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 #include "zep_config.h"
 
@@ -54,7 +55,7 @@ class Indexer;
 
 struct Region;
 
-#define ZEP_UNUSED(var) (void)var;
+#define ZEP_UNUSED(var) (void)(var);
 
 // Helpers 
 inline bool ZTestFlags(const uint32_t &flags, uint32_t value) { return ((flags & value) ? true : false); }
@@ -94,8 +95,8 @@ enum class Msg {
 struct IZepComponent;
 class ZepMessage {
 public:
-    ZepMessage(Msg id, const std::string &strIn = std::string())
-        : messageId(id), str(strIn) {
+    explicit ZepMessage(Msg id, std::string strIn = std::string())
+        : messageId(id), str(std::move(strIn)) {
     }
 
     ZepMessage(Msg id, const NVec2f &p, ZepMouseButton b = ZepMouseButton::Unknown)
@@ -115,17 +116,15 @@ public:
 };
 
 struct IZepComponent {
-    virtual void Notify(std::shared_ptr<ZepMessage> message) { ZEP_UNUSED(message); };
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) { ZEP_UNUSED(message); };
     virtual ZepEditor &GetEditor() const = 0;
 };
 
 class ZepComponent : public IZepComponent {
 public:
-    ZepComponent(ZepEditor &editor);
+    explicit ZepComponent(ZepEditor &editor);
     virtual ~ZepComponent();
-    ZepEditor &GetEditor() const override {
-        return m_editor;
-    }
+    ZepEditor &GetEditor() const override { return m_editor; }
 
 private:
     ZepEditor &m_editor;
@@ -133,18 +132,11 @@ private:
 
 // Registers are used by the editor to store/retrieve text fragments
 struct Register {
-    Register()
-        : text(""), lineWise(false) {
-    }
-    Register(const char *ch, bool lw = false)
-        : text(ch), lineWise(lw) {
-    }
-    Register(uint8_t *ch, bool lw = false)
-        : text((const char *) ch), lineWise(lw) {
-    }
-    Register(const std::string &str, bool lw = false)
-        : text(str), lineWise(lw) {
-    }
+    Register() : lineWise(false) {}
+
+    Register(const char *ch, bool lw = false) : text(ch), lineWise(lw) {}
+    Register(uint8_t *ch, bool lw = false) : text((const char *) ch), lineWise(lw) {}
+    Register(std::string str, bool lw = false) : text(std::move(str)), lineWise(lw) {}
 
     std::string text;
     bool lineWise = false;
@@ -164,16 +156,10 @@ const float textBorder = 2.0f;
 const float tabSpacing = 1.0f;
 const float leftBorderChars = 3;
 
-#define DPI_VEC2(value) (value * GetEditor().GetDisplay().GetPixelScale())
-#define DPI_Y(value) (GetEditor().GetDisplay().GetPixelScale().y * value)
-#define DPI_X(value) (GetEditor().GetDisplay().GetPixelScale().x * value)
-#define DPI_RECT(value) (value * GetEditor().GetDisplay().GetPixelScale())
-
-inline float FontHeightPixelsFromPointSize(float pointSize, float pixelScaleY) {
-    const auto fontDotsPerInch = 72.0f;
-    auto inches = pointSize / fontDotsPerInch;
-    return inches * (pixelScaleY * 96.0f);
-}
+#define DPI_VEC2(value) ((value) * GetEditor().GetDisplay().GetPixelScale())
+#define DPI_Y(value) (GetEditor().GetDisplay().GetPixelScale().y * (value))
+#define DPI_X(value) (GetEditor().GetDisplay().GetPixelScale().x * (value))
+#define DPI_RECT(value) ((value) * GetEditor().GetDisplay().GetPixelScale())
 
 enum class EditorStyle {
     Normal = 0,
@@ -199,9 +185,8 @@ struct EditorConfig {
 
 class ZepExCommand : public ZepComponent {
 public:
-    ZepExCommand(ZepEditor &editor)
-        : ZepComponent(editor) {}
-    virtual ~ZepExCommand() {}
+    explicit ZepExCommand(ZepEditor &editor) : ZepComponent(editor) {}
+    ~ZepExCommand() override = default;
     virtual void Run(const std::vector<std::string> &args = {}) = 0;
     virtual const char *ExCommandName() const = 0;
     virtual StringId ExCommandId() const { return StringId(ExCommandName()); }
@@ -223,8 +208,8 @@ public:
     ~ZepEditor();
 
     void LoadConfig(const ZepPath &config_path);
-    void LoadConfig(std::shared_ptr<cpptoml::table> spConfig);
-    void SaveConfig(std::shared_ptr<cpptoml::table> spConfig);
+    void LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig);
+    void SaveConfig(const std::shared_ptr<cpptoml::table> &spConfig);
     void RequestQuit();
 
     void Reset();
@@ -232,22 +217,20 @@ public:
     ZepBuffer *InitWithText(const std::string &strName, const std::string &strText);
 
     ZepMode *GetGlobalMode();
-    void RegisterGlobalMode(std::shared_ptr<ZepMode> spMode);
-    void RegisterExCommand(std::shared_ptr<ZepExCommand> spMode);
+    void RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode);
+    void RegisterExCommand(const std::shared_ptr<ZepExCommand> &spMode);
     ZepExCommand *FindExCommand(const std::string &strName);
     ZepExCommand *FindExCommand(const StringId &strName);
     void SetGlobalMode(const std::string &currentMode);
-    ZepMode *GetSecondaryMode() const;
-    const ZepPath &GetConfigRoot() const;
 
     std::vector<const KeyMap *> GetGlobalKeyMaps(ZepMode &mode);
 
-    void RegisterBufferMode(const std::string &strExtension, std::shared_ptr<ZepMode> spMode);
+    void RegisterBufferMode(const std::string &strExtension, const std::shared_ptr<ZepMode> &spMode);
 
     void Display();
 
-    void RegisterSyntaxFactory(const std::vector<std::string> &mappings, SyntaxProvider factory);
-    bool Broadcast(std::shared_ptr<ZepMessage> payload);
+    void RegisterSyntaxFactory(const std::vector<std::string> &mappings, const SyntaxProvider &factory);
+    bool Broadcast(const std::shared_ptr<ZepMessage> &payload);
     void RegisterCallback(IZepComponent *pClient) {
         m_notifyClients.insert(pClient);
     }
@@ -263,18 +246,16 @@ public:
     void RemoveBuffer(ZepBuffer *pBuffer);
     std::vector<ZepWindow *> FindBufferWindows(const ZepBuffer *pBuffer) const;
 
-    void SetRegister(const std::string &reg, const Register &val);
-    void SetRegister(const char reg, const Register &val);
-    void SetRegister(const std::string &reg, const char *pszText);
-    void SetRegister(const char reg, const char *pszText);
+    void SetRegister(char reg, const Register &val);
+    void SetRegister(char reg, const char *pszText);
     Register &GetRegister(const std::string &reg);
-    Register &GetRegister(const char reg);
+    Register &GetRegister(char reg);
     const tRegisters &GetRegisters();
 
     void ReadClipboard();
     void WriteClipboard();
 
-    void Notify(std::shared_ptr<ZepMessage> message);
+    void Notify(const std::shared_ptr<ZepMessage> &message);
     uint32_t GetFlags() const;
     void SetFlags(uint32_t flags);
 
@@ -328,7 +309,7 @@ public:
     bool OnMouseMove(const NVec2f &mousePos);
     bool OnMouseDown(const NVec2f &mousePos, ZepMouseButton button);
     bool OnMouseUp(const NVec2f &mousePos, ZepMouseButton button);
-    const NVec2f GetMousePos() const;
+    NVec2f GetMousePos() const;
 
     void SetBufferSyntax(ZepBuffer &buffer) const;
     void SetBufferMode(ZepBuffer &buffer) const;
@@ -345,14 +326,12 @@ public:
     // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
     virtual void OnFileChanged(const ZepPath &path);
 
-    ZepBuffer *GetBufferFromHandle(uint64_t handle);
-
 private:
     // Call GetBuffer publicly, to stop creation of duplicate buffers refering to the same file
     ZepBuffer *CreateNewBuffer(const std::string &bufferName);
     ZepBuffer *CreateNewBuffer(const ZepPath &path);
 
-    void InitBuffer(ZepBuffer &buffer);
+    void InitBuffer(ZepBuffer &buffer) const;
 
     // Ensure there is a valid tab window and return it
     ZepTabWindow *EnsureTab();

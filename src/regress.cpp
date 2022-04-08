@@ -47,7 +47,7 @@ void ZepRegressExCommand::Run(const std::vector<std::string> &tokens) {
     }
 }
 
-void ZepRegressExCommand::Notify(std::shared_ptr<ZepMessage> message) {
+void ZepRegressExCommand::Notify(const std::shared_ptr<ZepMessage> &message) {
     if (message->messageId == Msg::Tick) {
         Tick();
     }

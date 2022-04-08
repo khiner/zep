@@ -178,7 +178,6 @@ struct CommandNode {
 };
 
 struct KeyMap {
-    bool ignoreFinalDigit = false;
     std::shared_ptr<CommandNode> spRoot = std::make_shared<CommandNode>();
 };
 
@@ -193,17 +192,13 @@ struct KeyMapResult {
     std::string searchPath;
 
     int TotalCount() const {
-        if (captureNumbers.empty()) {
-            return 1;
-        }
+        if (captureNumbers.empty()) return 1;
         return std::accumulate(captureNumbers.begin(), captureNumbers.end(), 0);
     }
 
     // Return the first register for commands that only want 1
     char RegisterName() const {
-        if (captureRegisters.empty()) {
-            return 0;
-        }
+        if (captureRegisters.empty()) return 0;
         return captureRegisters[0];
     }
 };

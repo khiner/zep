@@ -111,7 +111,7 @@ public:
     ZepWindow(ZepTabWindow &window, ZepBuffer *buffer);
     virtual ~ZepWindow();
 
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     // Display
     virtual void SetDisplayRegion(const NRectf &region);

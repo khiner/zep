@@ -5,7 +5,7 @@ namespace Zep {
 
 NVec2f FloatSlider::GetSize() const {
     // Make the slider as high as the font, but return non-dpi scale
-    return NVec2f((60.0f * m_dimension) + (m_sliderGap * (m_dimension - 1)), m_editor.GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() / m_editor.GetDisplay().GetPixelScale().y);
+    return {60.0f * m_dimension + (m_sliderGap * (m_dimension - 1)), m_editor.GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight() / m_editor.GetDisplay().GetPixelScale().y};
 }
 
 void FloatSlider::MouseDown(const NVec2f &pos, ZepMouseButton button) {
@@ -26,7 +26,6 @@ void FloatSlider::DrawInline(const ZepBuffer &buffer, const NRectf &location) {
     // Nothing inline
     ZEP_UNUSED(buffer);
     ZEP_UNUSED(location);
-    return;
 }
 
 void FloatSlider::Draw(const ZepBuffer &buffer, const NVec2f &loc) {
@@ -41,9 +40,7 @@ void FloatSlider::Draw(const ZepBuffer &buffer, const NVec2f &loc) {
         NVec2f size = GetSize();
         size.x -= ((m_dimension - 1) * m_sliderGap);
         size.x /= m_dimension;
-        auto rc = NRectf(
-            NVec2f(location.x, location.y),
-            NVec2f(location.x + size.x, location.y + size.y));
+        auto rc = NRectf(NVec2f(location.x, location.y), NVec2f(location.x + size.x, location.y + size.y));
 
         NVec2f padding = NVec2f(1, 1);
         NRectf rcInner = rc;
@@ -61,18 +58,12 @@ void FloatSlider::Draw(const ZepBuffer &buffer, const NVec2f &loc) {
 
 void FloatSlider::Set(const NVec4f &value) {
     m_value = value;
-    if (m_fnChanged) {
-        m_fnChanged(this);
-    }
+    if (m_fnChanged) m_fnChanged(this);
 }
 
-const NVec4f &FloatSlider::Get() const {
-    return m_value;
-}
+const NVec4f &FloatSlider::Get() const { return m_value; }
 
-NVec2f ColorPicker::GetSize() const {
-    return NVec2f(0.0f, 0.0f);
-}
+NVec2f ColorPicker::GetSize() const { return {0.0f, 0.0f}; }
 
 void ColorPicker::MouseDown(const NVec2f &pos, ZepMouseButton button) {
     ZEP_UNUSED(pos);

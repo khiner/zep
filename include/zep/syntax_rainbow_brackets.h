@@ -13,7 +13,7 @@ public:
     ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer);
     virtual ~ZepSyntaxAdorn_RainbowBrackets();
 
-    void Notify(std::shared_ptr<ZepMessage> payload) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const override;
 
     virtual void Clear(const GlyphIterator &start, const GlyphIterator &end);

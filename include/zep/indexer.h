@@ -24,13 +24,11 @@ struct SymbolDetails {
     int column = 0;
 };
 
-using SymbolContainer = std::map<std::string, SymbolDetails>;
-
 class Indexer : public ZepComponent {
 public:
-    Indexer(ZepEditor &editor);
+    explicit Indexer(ZepEditor &editor);
 
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     bool StartIndexing();
     void StartSymbolSearch();
@@ -46,10 +44,7 @@ private:
     std::mutex m_queueMutex;
     std::deque<ZepPath> m_searchQueue;
 
-    std::mutex m_symbolMutex;
-    SymbolContainer m_symbols;
     ZepPath m_searchRoot;
-
 };
 
 } // Zep

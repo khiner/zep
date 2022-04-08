@@ -152,13 +152,11 @@ void ZepWindow::UpdateAirline() {
     }
 }
 
-void ZepWindow::Notify(std::shared_ptr<ZepMessage> payload) {
+void ZepWindow::Notify(const std::shared_ptr<ZepMessage> &payload) {
     if (payload->messageId == Msg::Buffer) {
         auto pMsg = std::static_pointer_cast<BufferMessage>(payload);
 
-        if (pMsg->pBuffer != m_pBuffer) {
-            return;
-        }
+        if (pMsg->pBuffer != m_pBuffer) return;
 
         m_layoutDirty = true;
 

@@ -1,10 +1,10 @@
+#include <utility>
+
 #include "zep/mode_tree.h"
 
 namespace Zep {
 
-ZepTreeNode::ZepTreeNode(const std::string &strName, uint32_t flags)
-    : m_strName(strName), m_flags(flags) {
-}
+ZepTreeNode::ZepTreeNode(std::string strName, uint32_t flags) : m_strName(std::move(strName)), m_flags(flags) {}
 
 ZepFileTree::ZepFileTree() {
     // Root node is 'invisible' and always expanded
@@ -13,15 +13,11 @@ ZepFileTree::ZepFileTree() {
 }
 
 ZepMode_Tree::ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &window)
-    : ZepMode_Vim(editor), m_spTree(spTree), m_launchWindow(launchWindow), m_window(window) {
-}
+    : ZepMode_Vim(editor), m_spTree(std::move(spTree)), m_window(window) {}
 
-ZepMode_Tree::~ZepMode_Tree() {
-}
+ZepMode_Tree::~ZepMode_Tree() = default;
 
-void ZepMode_Tree::Notify(std::shared_ptr<ZepMessage> message) {
-
-}
+void ZepMode_Tree::Notify(const std::shared_ptr<ZepMessage> &message) {}
 
 void ZepMode_Tree::BuildTree() {
     auto &buffer = m_window.GetBuffer();
@@ -30,15 +26,9 @@ void ZepMode_Tree::BuildTree() {
     std::function<void(ZepTreeNode *, uint32_t indent)> fnVisit;
 
     fnVisit = [&](ZepTreeNode *pNode, uint32_t indent) {
-        for (uint32_t i = 0; i < indent; i++) {
-            strBuffer << " ";
-        }
+        for (uint32_t i = 0; i < indent; i++) strBuffer << " ";
 
-        if (pNode->HasChildren()) {
-            strBuffer << (pNode->IsExpanded() ? "~ " : "+ ");
-        } else {
-            strBuffer << "  ";
-        }
+        strBuffer << (pNode->HasChildren() ? pNode->IsExpanded() ? "~ " : "+ " : "  ");
 
         strBuffer << pNode->GetName() << std::endl;
 
@@ -50,7 +40,7 @@ void ZepMode_Tree::BuildTree() {
     };
 
     if (m_spTree->GetRoot()->IsExpanded()) {
-        for (auto pChild: m_spTree->GetRoot()->GetChildren()) {
+        for (const auto &pChild: m_spTree->GetRoot()->GetChildren()) {
             fnVisit(pChild.get(), 0);
         }
     }

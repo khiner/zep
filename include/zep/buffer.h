@@ -184,7 +184,7 @@ public:
     }
 
     std::string GetDisplayName() const;
-    void Notify(std::shared_ptr<ZepMessage> message) override;
+    void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     ZepTheme &GetTheme() const;
     void SetTheme(std::shared_ptr<ZepTheme> spTheme);

@@ -58,7 +58,7 @@ public:
     virtual long GetProcessedChar() const {
         return m_processedChar;
     }
-    virtual void Notify(std::shared_ptr<ZepMessage> payload) override;
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     const NVec4f &ToBackgroundColor(const SyntaxResult &res) const;
     const NVec4f &ToForegroundColor(const SyntaxResult &res) const;

@@ -9,14 +9,11 @@ class ZepBuffer;
 
 using ByteIndex = long;
 struct ByteRange {
-    ByteRange(ByteIndex a = 0, ByteIndex b = 0)
-        : first(a),
-          second(b) {}
+    ByteRange(ByteIndex a = 0, ByteIndex b = 0) : first(a), second(b) {}
+    bool ContainsLocation(ByteIndex loc) const { return loc >= first && loc < second; }
+
     ByteIndex first;
     ByteIndex second;
-    bool ContainsLocation(ByteIndex loc) const {
-        return loc >= first && loc < second;
-    }
 };
 
 enum class LineLocation {
@@ -47,8 +44,8 @@ public:
     bool operator>=(const GlyphIterator &rhs) const;
     bool operator==(const GlyphIterator &rhs) const;
     bool operator!=(const GlyphIterator &rhs) const;
-    GlyphIterator operator--(int);
-    GlyphIterator operator++(int);
+    const GlyphIterator operator--(int);
+    const GlyphIterator operator++(int);
     void operator-=(long count);
     void operator+=(long count);
 
@@ -90,12 +87,11 @@ struct GlyphRange {
     GlyphIterator first;
     GlyphIterator second;
 
-    GlyphRange(GlyphIterator a, GlyphIterator b);
+    GlyphRange(const GlyphIterator &a, const GlyphIterator &b);
     GlyphRange(const ZepBuffer *buffer, ByteRange range);
     GlyphRange();
-    bool ContainsLocation(long loc) const;
-    bool ContainsLocation(GlyphIterator loc) const;
-    bool ContainsInclusiveLocation(GlyphIterator loc) const;
+
+    bool ContainsInclusiveLocation(const GlyphIterator &loc) const;
 };
 
 } // namespace Zep

@@ -16,13 +16,8 @@ ZepMode_Search::ZepMode_Search(ZepEditor &editor, ZepWindow &launchWindow, ZepWi
 
 ZepMode_Search::~ZepMode_Search() {
     // Ensure threads have finished
-    if (m_indexResult.valid()) {
-        m_indexResult.wait();
-    }
-
-    if (m_searchResult.valid()) {
-        m_searchResult.wait();
-    }
+    if (m_indexResult.valid()) m_indexResult.wait();
+    if (m_searchResult.valid()) m_searchResult.wait();
 }
 
 void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
@@ -100,7 +95,7 @@ void ZepMode_Search::Begin(ZepWindow *pWindow) {
     fileSearchActive = true;
 }
 
-void ZepMode_Search::Notify(std::shared_ptr<ZepMessage> message) {
+void ZepMode_Search::Notify(const std::shared_ptr<ZepMessage> &message) {
     ZepMode::Notify(message);
     if (message->messageId == Msg::Tick) {
         if (fileSearchActive) {
