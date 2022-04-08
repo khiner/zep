@@ -87,7 +87,6 @@ void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector
             "*.scm",
             "*.cs",
             "*.cfg",
-            "*.orca"
         };
     }
 } // namespace Zep
