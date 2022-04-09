@@ -19,12 +19,9 @@ struct ZepConsole : Zep::IZepComponent {
         return;
     }
 
-    virtual Zep::ZepEditor &GetEditor() const {
-        return (Zep::ZepEditor &) zepEditor;
-    }
+    virtual Zep::ZepEditor &GetEditor() const { return (Zep::ZepEditor &) zepEditor; }
 
-    ZepConsole(Zep::ZepPath &p)
-        : zepEditor(p, Zep::NVec2f(1.0f)) {
+    ZepConsole(Zep::ZepPath &p) : zepEditor(p) {
         zepEditor.RegisterCallback(this);
         auto pBuffer = zepEditor.GetEmptyBuffer("Log");
         pBuffer->SetFileFlags(Zep::FileFlags::ReadOnly);

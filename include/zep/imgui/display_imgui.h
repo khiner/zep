@@ -5,9 +5,6 @@
 #include <imgui.h>
 #include <string>
 
-// Can't include this publicly
-//#include "zep/mcommon/logger.h"
-
 namespace Zep {
 
 inline NVec2f toNVec2f(const ImVec2 &im) {
@@ -51,7 +48,6 @@ public:
 
 private:
     ImFont *m_pFont;
-    float m_fontScale = 1.0f;
 };
 
 class ZepDisplay_ImGui : public ZepDisplay {
@@ -79,6 +75,7 @@ public:
     void DrawLine(const NVec2f &start, const NVec2f &end, const NVec4f &color, float width) const override {
         ImDrawList *drawList = ImGui::GetWindowDrawList();
         const auto modulatedColor = GetStyleModulatedColor(color);
+
         // Background rect for numbers
         if (m_clipRect.Width() == 0) {
             drawList->AddLine(toImVec2(start), toImVec2(end), modulatedColor, width);
@@ -102,9 +99,7 @@ public:
         }
     }
 
-    virtual void SetClipRect(const NRectf &rc) override {
-        m_clipRect = rc;
-    }
+    virtual void SetClipRect(const NRectf &rc) override { m_clipRect = rc; }
 
     virtual ZepFont &GetFont(ZepTextType type) override {
         if (m_fonts[(int) type] == nullptr) {
