@@ -274,7 +274,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     }
 
     // Inherited via IZepComponent
-    virtual void Notify(std::shared_ptr<ZepMessage> message) override {
+    virtual void Notify(const std::shared_ptr<ZepMessage> &message) override {
         if (message->messageId == Msg::GetClipBoard) {
             clip::get_text(message->str);
             message->handled = true;

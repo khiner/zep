@@ -10,7 +10,7 @@ struct ZepConsole : Zep::IZepComponent {
     bool pendingScroll = true;
 
     // Intercept messages from the editor command line and relay them
-    virtual void Notify(std::shared_ptr<Zep::ZepMessage> message) {
+    virtual void Notify(const std::shared_ptr<Zep::ZepMessage> &message) {
         if (message->messageId == Zep::Msg::HandleCommand) {
             message->handled = Callback(message->str);
             return;
