@@ -1285,14 +1285,10 @@ void ZepWindow::PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t li
                 case ToolTipPos::AboveLine:location = ToolTipPos::BelowLine;
                     break;
                 case ToolTipPos::BelowLine:
-                case ToolTipPos::RightLine:
-
-                    location = ToolTipPos::AboveLine;
+                case ToolTipPos::RightLine:location = ToolTipPos::AboveLine;
                     break;
                 case ToolTipPos::Count:
-                default:
-
-                    break;
+                default:break;
             }
         } else {
             break;

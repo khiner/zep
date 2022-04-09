@@ -134,8 +134,8 @@ private:
 struct Register {
     Register() : lineWise(false) {}
 
-    Register(const char *ch, bool lw = false) : text(ch), lineWise(lw) {}
-    Register(uint8_t *ch, bool lw = false) : text((const char *) ch), lineWise(lw) {}
+    explicit Register(const char *ch, bool lw = false) : text(ch), lineWise(lw) {}
+    explicit Register(uint8_t *ch, bool lw = false) : text((const char *) ch), lineWise(lw) {}
     Register(std::string str, bool lw = false) : text(std::move(str)), lineWise(lw) {}
 
     std::string text;
@@ -161,17 +161,14 @@ const float leftBorderChars = 3;
 #define DPI_X(value) (GetEditor().GetDisplay().GetPixelScale().x * (value))
 #define DPI_RECT(value) ((value) * GetEditor().GetDisplay().GetPixelScale())
 
-enum class EditorStyle {
-    Normal = 0,
-    Minimal
-};
+enum class EditorStyle { Normal = 0, Minimal };
 
 struct EditorConfig {
     uint32_t showScrollBar = 1;
-    EditorStyle style = EditorStyle::Normal;
-    NVec2f lineMargins = NVec2f(1.0f);
-    NVec2f widgetMargins = NVec2f(1.0f);
-    NVec2f inlineWidgetMargins = NVec2f(2.0f);
+    EditorStyle style{EditorStyle::Normal};
+    NVec2f lineMargins{1.0f};
+    NVec2f widgetMargins{1.0f};
+    NVec2f inlineWidgetMargins{2.0f};
     float underlineHeight = 3.0f;
     bool showLineNumbers = true;
     bool shortTabNames = true;
@@ -222,7 +219,6 @@ public:
     ZepExCommand *FindExCommand(const std::string &strName);
     ZepExCommand *FindExCommand(const StringId &strName);
     void SetGlobalMode(const std::string &currentMode);
-
     std::vector<const KeyMap *> GetGlobalKeyMaps(ZepMode &mode);
 
     void RegisterBufferMode(const std::string &strExtension, const std::shared_ptr<ZepMode> &spMode);
@@ -231,12 +227,8 @@ public:
 
     void RegisterSyntaxFactory(const std::vector<std::string> &mappings, const SyntaxProvider &factory);
     bool Broadcast(const std::shared_ptr<ZepMessage> &payload);
-    void RegisterCallback(IZepComponent *pClient) {
-        m_notifyClients.insert(pClient);
-    }
-    void UnRegisterCallback(IZepComponent *pClient) {
-        m_notifyClients.erase(pClient);
-    }
+    void RegisterCallback(IZepComponent *pClient) { m_notifyClients.insert(pClient); }
+    void UnRegisterCallback(IZepComponent *pClient) { m_notifyClients.erase(pClient); }
 
     const tBuffers &GetBuffers() const;
     ZepBuffer *GetMRUBuffer() const;
@@ -259,8 +251,8 @@ public:
     uint32_t GetFlags() const;
     void SetFlags(uint32_t flags);
 
-    // Tab windows
     using tTabWindows = std::vector<ZepTabWindow *>;
+
     void NextTabWindow();
     void PreviousTabWindow();
     void SetCurrentTabWindow(ZepTabWindow *pTabWindow);
@@ -286,24 +278,15 @@ public:
     void SetCommandText(const std::string &strCommand);
 
     std::string GetCommandText() const;
-    const std::vector<std::string> &GetCommandLines() {
-        return m_commandLines;
-    }
+    const std::vector<std::string> &GetCommandLines() { return m_commandLines; }
 
     void UpdateWindowState();
 
-    // Setup the display fixed_size for the editor
     void SetDisplayRegion(const NVec2f &topLeft, const NVec2f &bottomRight);
     void UpdateSize();
 
-    ZepDisplay &GetDisplay() const {
-        return *m_pDisplay;
-    }
-
-    IZepFileSystem &GetFileSystem() const {
-        return *m_pFileSystem;
-    }
-
+    ZepDisplay &GetDisplay() const { return *m_pDisplay; }
+    IZepFileSystem &GetFileSystem() const { return *m_pFileSystem; }
     ZepTheme &GetTheme() const;
 
     bool OnMouseMove(const NVec2f &mousePos);
@@ -314,20 +297,15 @@ public:
     void SetBufferSyntax(ZepBuffer &buffer) const;
     void SetBufferMode(ZepBuffer &buffer) const;
 
-    EditorConfig &GetConfig() {
-        return m_config;
-    }
-
-    // Helper for macros
-    ZepEditor &GetEditor() { return *this; }
-
+    EditorConfig &GetConfig() { return m_config; }
+    ZepEditor &GetEditor() { return *this; } // Helper for macros
     ThreadPool &GetThreadPool() const;
 
     // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
     virtual void OnFileChanged(const ZepPath &path);
 
 private:
-    // Call GetBuffer publicly, to stop creation of duplicate buffers refering to the same file
+    // Call GetBuffer publicly, to stop creation of duplicate buffers referring to the same file
     ZepBuffer *CreateNewBuffer(const std::string &bufferName);
     ZepBuffer *CreateNewBuffer(const ZepPath &path);
 
@@ -339,55 +317,30 @@ private:
 private:
     ZepDisplay *m_pDisplay;
     IZepFileSystem *m_pFileSystem;
-
     std::set<IZepComponent *> m_notifyClients;
     mutable tRegisters m_registers;
-
     std::shared_ptr<ZepTheme> m_spTheme;
     std::map<std::string, SyntaxProvider> m_mapSyntax;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;
-
-    // Blinking cursor
     timer m_cursorTimer;
-
-    // Last edit
     timer m_lastEditTimer;
-
-    // Active mode
     ZepMode *m_pCurrentMode = nullptr;
-
-    // Tab windows
     tTabWindows m_tabWindows;
     ZepTabWindow *m_pActiveTabWindow = nullptr;
-
-    // List of buffers that the editor is managing
-    // May or may not be visible
-    tBuffers m_buffers;
+    tBuffers m_buffers; // May or may not be visible
     uint32_t m_flags = 0;
-
     mutable std::atomic_bool m_bPendingRefresh = true;
     mutable bool m_lastCursorBlink = false;
-
     std::vector<std::string> m_commandLines; // Command information, shown under the buffer
-
-    std::shared_ptr<Region> m_editorRegion;
-    std::shared_ptr<Region> m_tabContentRegion;
-    std::shared_ptr<Region> m_commandRegion;
-    std::shared_ptr<Region> m_tabRegion;
+    std::shared_ptr<Region> m_editorRegion, m_tabContentRegion, m_commandRegion, m_tabRegion;
     bool m_bRegionsChanged = false;
-
     float m_tabOffsetX = 0.0f;
-
     NVec2f m_mousePos = NVec2f(0.0f);
-
-    // Config
     EditorConfig m_config;
-
     std::unique_ptr<ThreadPool> m_threadPool;
-
-    std::shared_ptr<Indexer> m_indexer;
+    std::shared_ptr<Indexer> m_indexer; // Define `IMPLEMENTED_INDEXER` to initialize
 };
 
 } // namespace Zep

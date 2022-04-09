@@ -35,23 +35,9 @@ ZepComponent::~ZepComponent() {
 ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, IZepFileSystem *pFileSystem)
     : m_pDisplay(pDisplay), m_pFileSystem(pFileSystem), m_flags(flags) {
 
-#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
-    if (m_pFileSystem == nullptr) {
-        m_pFileSystem = new ZepFileSystemCPP(configRoot);
-    }
-#else
-    if (m_pFileSystem == nullptr)
-    {
-        assert(!"Must supply a file system - no default available on this platform!");
-        throw std::invalid_argument("pFileSystem");
-    }
-#endif
+    if (m_pFileSystem == nullptr) m_pFileSystem = new ZepFileSystemCPP(configRoot);
 
-    if (m_flags & ZepEditorFlags::DisableThreads) {
-        m_threadPool = std::make_unique<ThreadPool>(1);
-    } else {
-        m_threadPool = std::make_unique<ThreadPool>();
-    }
+    m_threadPool = m_flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
 
     LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
 
@@ -97,9 +83,7 @@ ZepEditor::~ZepEditor() {
     delete m_pFileSystem;
 }
 
-ThreadPool &ZepEditor::GetThreadPool() const {
-    return *m_threadPool;
-}
+ThreadPool &ZepEditor::GetThreadPool() const { return *m_threadPool; }
 
 void ZepEditor::OnFileChanged(const ZepPath &path) {
     if (path.filename() == "zep.cfg") {
@@ -112,15 +96,12 @@ void ZepEditor::OnFileChanged(const ZepPath &path) {
 // If you pass a valid path to a 'zep.cfg' file, then editor settings will serialize from that
 // You can even edit it inside zep for immediate changes :)
 void ZepEditor::LoadConfig(const ZepPath &config_path) {
-    if (!GetFileSystem().Exists(config_path)) {
-        return;
-    }
+    if (!GetFileSystem().Exists(config_path)) return;
 
     try {
         std::shared_ptr<cpptoml::table> spConfig;
         spConfig = cpptoml::parse_file(config_path.string());
-        if (spConfig == nullptr)
-            return;
+        if (spConfig == nullptr) return;
 
         LoadConfig(spConfig);
     }
@@ -128,8 +109,7 @@ void ZepEditor::LoadConfig(const ZepPath &config_path) {
         std::ostringstream str;
         str << config_path.filename().string() << " : Failed to parse. " << ex.what();
         SetCommandText(str.str());
-    }
-    catch (...) {
+    } catch (...) {
         std::ostringstream str;
         str << config_path.filename().string() << " : Failed to parse. ";
         SetCommandText(str.str());
@@ -199,20 +179,13 @@ void ZepEditor::SaveBuffer(ZepBuffer &buffer) {
     // - What if the buffer has no associated file?  Prompt for one.
     // - We don't check for outside modification yet either, meaning this could overwrite
     std::ostringstream strText;
-
-    if (buffer.HasFileFlags(FileFlags::ReadOnly)) {
-        strText << "Failed to save, Read Only: " << buffer.GetDisplayName();
-    } else if (buffer.HasFileFlags(FileFlags::Locked)) {
-        strText << "Failed to save, Locked: " << buffer.GetDisplayName();
-    } else if (buffer.GetFilePath().empty()) {
-        strText << "Error: No file name";
-    } else {
+    if (buffer.HasFileFlags(FileFlags::ReadOnly)) strText << "Failed to save, Read Only: " << buffer.GetDisplayName();
+    else if (buffer.HasFileFlags(FileFlags::Locked)) strText << "Failed to save, Locked: " << buffer.GetDisplayName();
+    else if (buffer.GetFilePath().empty()) strText << "Error: No file name";
+    else {
         int64_t size;
-        if (!buffer.Save(size)) {
-            strText << "Failed to save: " << buffer.GetDisplayName() << " at: " << buffer.GetFilePath().string();
-        } else {
-            strText << "Wrote " << buffer.GetFilePath().string() << ", " << size << " bytes";
-        }
+        if (!buffer.Save(size)) strText << "Failed to save: " << buffer.GetDisplayName() << " at: " << buffer.GetFilePath().string();
+        else strText << "Wrote " << buffer.GetFilePath().string() << ", " << size << " bytes";
     }
     SetCommandText(strText.str());
 }
@@ -263,9 +236,7 @@ ZepBuffer *ZepEditor::GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags,
         }
     }
 
-    if (!create) {
-        return nullptr;
-    }
+    if (!create) return nullptr;
 
     // Create buffer, try to load even if not present, the buffer represents the save path (it just isn't saved yet)
     auto pBuffer = CreateNewBuffer(filePath);
@@ -297,9 +268,7 @@ ZepWindow *ZepEditor::AddTree() {
 }
 
 ZepWindow *ZepEditor::AddSearch() {
-    if (!GetActiveTabWindow()) {
-        return nullptr;
-    }
+    if (!GetActiveTabWindow()) return nullptr;
 
     static std::unordered_set<std::string> search_keywords = {};
     static std::unordered_set<std::string> search_identifiers = {};
@@ -323,14 +292,7 @@ ZepWindow *ZepEditor::AddSearch() {
 }
 
 ZepTabWindow *ZepEditor::EnsureTab() {
-    if (m_tabWindows.empty()) {
-        return AddTabWindow();
-    }
-
-    if (m_pActiveTabWindow) {
-        return m_pActiveTabWindow;
-    }
-    return m_tabWindows[0];
+    return m_tabWindows.empty() ? AddTabWindow() : m_pActiveTabWindow ? m_pActiveTabWindow : m_tabWindows[0];
 }
 
 // Reset editor to start state; with a single tab, a single window and an empty unmodified buffer
@@ -345,7 +307,6 @@ ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
     auto &fs = GetFileSystem();
     if (fs.Exists(startPath)) {
         startPath = fs.Canonical(startPath);
-
         // If a directory, just return the default already created buffer.
         if (fs.IsDirectory(startPath)) {
             // Remember the working directory 
@@ -370,10 +331,8 @@ ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
 
 ZepBuffer *ZepEditor::InitWithText(const std::string &strName, const std::string &strText) {
     auto pTab = EnsureTab();
-
     auto pBuffer = GetEmptyBuffer(strName);
     pBuffer->SetText(strText);
-
     pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
 
     return pBuffer;
@@ -382,10 +341,8 @@ ZepBuffer *ZepEditor::InitWithText(const std::string &strName, const std::string
 // Here we ensure that the editor is in a valid state, and cleanup Default buffers
 void ZepEditor::UpdateWindowState() {
     // If there is no active tab window, and we have one, set it.
-    if (!m_pActiveTabWindow) {
-        if (!m_tabWindows.empty()) {
-            SetCurrentTabWindow(m_tabWindows.back());
-        }
+    if (!m_pActiveTabWindow && !m_tabWindows.empty()) {
+        SetCurrentTabWindow(m_tabWindows.back());
     }
 
     // If the tab window doesn't contain an active window, and there is one, set it
@@ -424,39 +381,22 @@ void ZepEditor::UpdateWindowState() {
     }
 }
 
-void ZepEditor::ResetCursorTimer() {
-    timer_restart(m_cursorTimer);
-}
-
-void ZepEditor::ResetLastEditTimer() {
-    timer_restart(m_lastEditTimer);
-}
-
-float ZepEditor::GetLastEditElapsedTime() const {
-    return (float) timer_get_elapsed_seconds(m_lastEditTimer);
-}
+void ZepEditor::ResetCursorTimer() { timer_restart(m_cursorTimer); }
+void ZepEditor::ResetLastEditTimer() { timer_restart(m_lastEditTimer); }
+float ZepEditor::GetLastEditElapsedTime() const { return (float) timer_get_elapsed_seconds(m_lastEditTimer); }
 
 void ZepEditor::NextTabWindow() {
     auto itr = std::find(m_tabWindows.begin(), m_tabWindows.end(), m_pActiveTabWindow);
-    if (itr != m_tabWindows.end())
-        itr++;
-
-    if (itr == m_tabWindows.end()) {
-        itr = m_tabWindows.end() - 1;
-    }
+    if (itr != m_tabWindows.end()) itr++;
+    if (itr == m_tabWindows.end()) itr = m_tabWindows.end() - 1;
     SetCurrentTabWindow(*itr);
 }
 
 void ZepEditor::PreviousTabWindow() {
     auto itr = std::find(m_tabWindows.begin(), m_tabWindows.end(), m_pActiveTabWindow);
-    if (itr == m_tabWindows.end()) {
-        return;
-    }
+    if (itr == m_tabWindows.end()) return;
 
-    if (itr != m_tabWindows.begin()) {
-        itr--;
-    }
-
+    if (itr != m_tabWindows.begin()) itr--;
     SetCurrentTabWindow(*itr);
 }
 
@@ -465,23 +405,19 @@ void ZepEditor::SetCurrentTabWindow(ZepTabWindow *pTabWindow) {
     auto itr = std::find(m_tabWindows.begin(), m_tabWindows.end(), pTabWindow);
     if (itr != m_tabWindows.end()) {
         m_pActiveTabWindow = pTabWindow;
-
         // Force a reactivation of the active window to ensure buffer setup is correct
         m_pActiveTabWindow->SetActiveWindow(m_pActiveTabWindow->GetActiveWindow());
     }
 }
 
-ZepTabWindow *ZepEditor::GetActiveTabWindow() const {
-    return m_pActiveTabWindow;
-}
+ZepTabWindow *ZepEditor::GetActiveTabWindow() const { return m_pActiveTabWindow; }
 
 void ZepEditor::UpdateTabs() {
     m_tabRegion->children.clear();
     if (GetTabWindows().size() > 1) {
         // Tab region
         for (auto &window: GetTabWindows()) {
-            if (window->GetActiveWindow() == nullptr)
-                continue;
+            if (window->GetActiveWindow() == nullptr) continue;
 
             // Show active buffer in tab as tab name
             auto &buffer = window->GetActiveWindow()->GetBuffer();
@@ -508,8 +444,8 @@ void ZepEditor::UpdateTabs() {
                 tabColor = tabColor * .55f;
                 tabColor.w = 1.0f;
             }
-            auto tabLength = m_pDisplay->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) name.c_str()).x + DPI_X(textBorder) * 2;
 
+            auto tabLength = m_pDisplay->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) name.c_str()).x + DPI_X(textBorder) * 2;
             auto spTabRegionTab = std::make_shared<TabRegionTab>();
             spTabRegionTab->color = tabColor;
             spTabRegionTab->name = name;
@@ -522,6 +458,7 @@ void ZepEditor::UpdateTabs() {
             spTabRegionTab->pParent = m_tabRegion.get();
         }
     }
+
     LayoutRegion(*m_tabRegion);
 }
 
@@ -542,8 +479,7 @@ void ZepEditor::RequestQuit() {
 
 void ZepEditor::RemoveTabWindow(ZepTabWindow *pTabWindow) {
     assert(pTabWindow);
-    if (!pTabWindow)
-        return;
+    if (!pTabWindow) return;
 
     auto itrFound = std::find(m_tabWindows.begin(), m_tabWindows.end(), pTabWindow);
     if (itrFound == m_tabWindows.end()) {
@@ -556,23 +492,19 @@ void ZepEditor::RemoveTabWindow(ZepTabWindow *pTabWindow) {
 
     if (m_tabWindows.empty()) {
         m_pActiveTabWindow = nullptr;
-
         // Reset the window state, but request a quit
         Reset();
         RequestQuit();
     } else {
         if (m_pActiveTabWindow == pTabWindow) {
             m_pActiveTabWindow = m_tabWindows[m_tabWindows.size() - 1];
-
             // Force a reset of active to initialize the mode
             m_pActiveTabWindow->SetActiveWindow(m_pActiveTabWindow->GetActiveWindow());
         }
     }
 }
 
-const ZepEditor::tTabWindows &ZepEditor::GetTabWindows() const {
-    return m_tabWindows;
-}
+const ZepEditor::tTabWindows &ZepEditor::GetTabWindows() const { return m_tabWindows; }
 
 void ZepEditor::RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode) {
     m_mapGlobalModes[spMode->Name()] = spMode;
@@ -585,22 +517,16 @@ void ZepEditor::RegisterExCommand(const std::shared_ptr<ZepExCommand> &spCommand
 
 ZepExCommand *ZepEditor::FindExCommand(const std::string &strName) {
     auto itr = m_mapExCommands.find(strName);
-    if (itr != m_mapExCommands.end()) {
-        return itr->second.get();
-    }
-    return nullptr;
+    return itr != m_mapExCommands.end() ? itr->second.get() : nullptr;
 }
 
 ZepExCommand *ZepEditor::FindExCommand(const StringId &Id) {
-    if (Id.id == 0) {
-        return nullptr;
-    }
+    if (Id.id == 0) return nullptr;
 
     for (auto&[name, pEx]: m_mapExCommands) {
-        if (pEx->ExCommandId() == Id) {
-            return pEx.get();
-        }
+        if (pEx->ExCommandId() == Id) return pEx.get();
     }
+
     return nullptr;
 }
 
@@ -612,16 +538,9 @@ void ZepEditor::RegisterBufferMode(const std::string &extension, const std::shar
 void ZepEditor::SetGlobalMode(const std::string &currentMode) {
     auto itrMode = m_mapGlobalModes.find(currentMode);
     if (itrMode != m_mapGlobalModes.end()) {
-        ZepWindow *pWindow = nullptr;
-        if (m_pCurrentMode) {
-            pWindow = m_pCurrentMode->GetCurrentWindow();
-        }
-
+        auto *pWindow = m_pCurrentMode ? m_pCurrentMode->GetCurrentWindow() : nullptr;
         m_pCurrentMode = itrMode->second.get();
-
-        if (pWindow) {
-            m_pCurrentMode->Begin(pWindow);
-        }
+        if (pWindow) m_pCurrentMode->Begin(pWindow);
     }
 }
 
@@ -685,11 +604,7 @@ void ZepEditor::SetBufferSyntax(ZepBuffer &buffer) const {
         buffer.SetSyntaxProvider(itr->second);
     } else {
         itr = m_mapSyntax.find(string_tolower(buffer.GetName()));
-        if (itr != m_mapSyntax.end()) {
-            buffer.SetSyntaxProvider(itr->second);
-        } else {
-            buffer.SetSyntaxProvider(SyntaxProvider{});
-        }
+        buffer.SetSyntaxProvider(itr != m_mapSyntax.end() ? itr->second : SyntaxProvider{});
     }
 }
 
@@ -702,25 +617,19 @@ void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string> &mappings, 
 // Inform clients of an event in the buffer
 bool ZepEditor::Broadcast(const std::shared_ptr<ZepMessage> &message) {
     Notify(message);
-    if (message->handled)
-        return true;
+    if (message->handled) return true;
 
     for (auto &client: m_notifyClients) {
         client->Notify(message);
-        if (message->handled)
-            break;
+        if (message->handled) break;
     }
     return message->handled;
 }
 
-const std::deque<std::shared_ptr<ZepBuffer>> &ZepEditor::GetBuffers() const {
-    return m_buffers;
-}
+const std::deque<std::shared_ptr<ZepBuffer>> &ZepEditor::GetBuffers() const { return m_buffers; }
 
 // Do any special buffer processing
-void ZepEditor::InitBuffer(ZepBuffer &buffer) const {
-    SetBufferMode(buffer);
-}
+void ZepEditor::InitBuffer(ZepBuffer &buffer) const { SetBufferMode(buffer); }
 
 ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
     auto pBuffer = std::make_shared<ZepBuffer>(*this, str);
@@ -729,7 +638,6 @@ ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
     m_buffers.push_front(pBuffer);
 
     InitBuffer(*pBuffer);
-
     return pBuffer.get();
 }
 
@@ -738,13 +646,10 @@ ZepBuffer *ZepEditor::CreateNewBuffer(const ZepPath &path) {
     m_buffers.push_front(pBuffer);
 
     InitBuffer(*pBuffer);
-
     return pBuffer.get();
 }
 
-ZepBuffer *ZepEditor::GetMRUBuffer() const {
-    return m_buffers.front().get();
-}
+ZepBuffer *ZepEditor::GetMRUBuffer() const { return m_buffers.front().get(); }
 
 void ZepEditor::ReadClipboard() {
     auto pMsg = std::make_shared<ZepMessage>(Msg::GetClipBoard);
@@ -765,30 +670,22 @@ void ZepEditor::WriteClipboard() {
 void ZepEditor::SetRegister(const char reg, const Register &val) {
     std::string str({reg});
     m_registers[str] = val;
-    if (reg == '+' || reg == '*') {
-        WriteClipboard();
-    }
+    if (reg == '+' || reg == '*') WriteClipboard();
 }
 
 void ZepEditor::SetRegister(const char reg, const char *pszText) {
     std::string str({reg});
     m_registers[str] = Register(pszText);
-    if (reg == '+' || reg == '*') {
-        WriteClipboard();
-    }
+    if (reg == '+' || reg == '*') WriteClipboard();
 }
 
 Register &ZepEditor::GetRegister(const std::string &reg) {
-    if (reg == "+" || reg == "*") {
-        ReadClipboard();
-    }
+    if (reg == "+" || reg == "*") ReadClipboard();
     return m_registers[reg];
 }
 
 Register &ZepEditor::GetRegister(const char reg) {
-    if (reg == '+' || reg == '*') {
-        ReadClipboard();
-    }
+    if (reg == '+' || reg == '*') ReadClipboard();
     std::string str({reg});
     return m_registers[str];
 }
@@ -798,12 +695,12 @@ const tRegisters &ZepEditor::GetRegisters() {
 }
 
 void ZepEditor::Notify(const std::shared_ptr<ZepMessage> &pMsg) {
-    if (pMsg->messageId == Msg::MouseDown) {
-        for (auto &tab: m_tabRegion->children) {
-            if (tab->rect.Contains(pMsg->pos)) {
-                auto pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
-                SetCurrentTabWindow(pTabRegionTab->pTabWindow);
-            }
+    if (pMsg->messageId != Msg::MouseDown) return;
+
+    for (auto &tab: m_tabRegion->children) {
+        if (tab->rect.Contains(pMsg->pos)) {
+            auto pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
+            SetCurrentTabWindow(pTabRegionTab->pTabWindow);
         }
     }
 }
@@ -812,8 +709,7 @@ std::string ZepEditor::GetCommandText() const {
     std::ostringstream str;
     bool start = true;
     for (auto &line: m_commandLines) {
-        if (!start)
-            str << "\n";
+        if (!start) str << "\n";
         start = false;
         str << line;
     }
@@ -827,9 +723,7 @@ void ZepEditor::SetCommandText(const std::string &strCommand) {
     m_bRegionsChanged = true;
 }
 
-void ZepEditor::RequestRefresh() {
-    m_bPendingRefresh = true;
-}
+void ZepEditor::RequestRefresh() { m_bPendingRefresh = true; }
 
 bool ZepEditor::RefreshRequired() {
     // Allow any components to update themselves
@@ -893,7 +787,6 @@ void ZepEditor::Display() {
 
     // Command plus output
     auto &commandLines = GetCommandLines();
-
     long commandCount = long(commandLines.size());
 
     auto &uiFont = m_pDisplay->GetFont(ZepTextType::UI);
@@ -929,7 +822,12 @@ void ZepEditor::Display() {
     if (GetConfig().style == EditorStyle::Normal) {
         // A line along the bottom of the tab region
         m_pDisplay->DrawRectFilled(
-            NRectf(NVec2f(m_tabRegion->rect.Left(), m_tabRegion->rect.Bottom() - DPI_Y(1)), NVec2f(m_tabRegion->rect.Right(), m_tabRegion->rect.Bottom())), GetTheme().GetColor(ThemeColor::TabInactive));
+            NRectf(
+                NVec2f(m_tabRegion->rect.Left(), m_tabRegion->rect.Bottom() - DPI_Y(1)),
+                NVec2f(m_tabRegion->rect.Right(), m_tabRegion->rect.Bottom())
+            ),
+            GetTheme().GetColor(ThemeColor::TabInactive)
+        );
     }
 
     // Figure out the active region
@@ -949,7 +847,7 @@ void ZepEditor::Display() {
         virtualSize = m_tabRegion->children.back()->rect.Right();
     }
 
-    // Move the tab bar origin if approriate
+    // Move the tab bar origin if appropriate
     if (tabRect.Width() != 0.0f) {
         if ((tabRect.Left() - tabRect.Width() + m_tabOffsetX) < m_tabRegion->rect.Left()) {
             m_tabOffsetX += m_tabRegion->rect.Left() - (tabRect.Left() + m_tabOffsetX - tabRect.Width());
@@ -984,15 +882,10 @@ void ZepEditor::Display() {
         m_pDisplay->DrawChars(uiFont, rc.topLeftPx + DPI_VEC2(NVec2f(textBorder, 0.0f)), textCol, (const uint8_t *) spTabRegionTab->name.c_str());
     }
 
-    // Display the tab
-    if (GetActiveTabWindow()) {
-        GetActiveTabWindow()->Display();
-    }
+    if (GetActiveTabWindow()) GetActiveTabWindow()->Display();
 } // namespace Zep
 
-ZepTheme &ZepEditor::GetTheme() const {
-    return *m_spTheme;
-}
+ZepTheme &ZepEditor::GetTheme() const { return *m_spTheme; }
 
 bool ZepEditor::OnMouseMove(const NVec2f &mousePos) {
     m_mousePos = mousePos;
@@ -1016,14 +909,11 @@ bool ZepEditor::OnMouseUp(const NVec2f &mousePos, ZepMouseButton button) {
 }
 
 NVec2f ZepEditor::GetMousePos() const { return m_mousePos; }
-
 uint32_t ZepEditor::GetFlags() const { return m_flags; }
 
 void ZepEditor::SetFlags(uint32_t flags) {
     m_flags = flags;
-    if (ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) {
-        RequestRefresh();
-    }
+    if (ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) RequestRefresh();
 }
 
 std::vector<const KeyMap *> ZepEditor::GetGlobalKeyMaps(ZepMode &mode) {

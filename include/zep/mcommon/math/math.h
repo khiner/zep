@@ -14,30 +14,15 @@ namespace Zep {
 const inline float ZPI = 3.14159862f;
 template<class T>
 struct NVec2 {
-    NVec2(T xVal, T yVal)
-        : x(xVal), y(yVal) {
-    }
+    NVec2(T xVal, T yVal) : x(xVal), y(yVal) {}
+    NVec2(T v) : x(v), y(v) {}
 
-    explicit NVec2(T v)
-        : x(v), y(v) {
-    }
+    NVec2() : x(0), y(0) {}
 
-    NVec2()
-        : x(0), y(0) {
-    }
+    T x, y;
 
-    T x;
-    T y;
-
-    bool operator==(const NVec2<T> &rhs) const {
-        if (x == rhs.x && y == rhs.y)
-            return true;
-        return false;
-    }
-
-    bool operator!=(const NVec2<T> &rhs) const {
-        return !(*this == rhs);
-    }
+    bool operator==(const NVec2<T> &rhs) const { return x == rhs.x && y == rhs.y; }
+    bool operator!=(const NVec2<T> &rhs) const { return !(*this == rhs); }
 };
 template<class T>
 inline NVec2<T> operator+(const NVec2<T> &lhs, const NVec2<T> &rhs) {
@@ -108,32 +93,16 @@ using NVec2i = NVec2<long>;
 
 template<class T>
 struct NVec4 {
-    NVec4(T xVal, T yVal, T zVal, T wVal)
-        : x(xVal), y(yVal), z(zVal), w(wVal) {
-    }
+    NVec4(T xVal, T yVal, T zVal, T wVal) : x(xVal), y(yVal), z(zVal), w(wVal) {}
 
-    explicit NVec4(T val)
-        : NVec4(val, val, val, val) {
-    }
+    explicit NVec4(T val) : NVec4(val, val, val, val) {}
 
-    NVec4()
-        : x(0), y(0), z(0), w(1) {
-    }
+    NVec4() : x(0), y(0), z(0), w(1) {}
 
-    T x;
-    T y;
-    T z;
-    T w;
+    T x, y, z, w;
 
-    bool operator==(const NVec4<T> &rhs) const {
-        if (x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w)
-            return true;
-        return false;
-    }
-
-    bool operator!=(const NVec4<T> &rhs) const {
-        return !(*this = rhs);
-    }
+    bool operator==(const NVec4<T> &rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+    bool operator!=(const NVec4<T> &rhs) const { return !(*this = rhs); }
 };
 template<class T>
 inline NVec4<T> operator+(const NVec4<T> &lhs, const NVec4<T> &rhs) {
@@ -188,30 +157,12 @@ inline uint32_t ToPacked(const NVec4<float> &val) {
     return col;
 }
 
-inline uint32_t ToPackedARGB(const NVec4<float> &val) {
-    uint32_t col = 0;
-    col |= uint32_t(val.w * 255.0f) << 24;
-    col |= uint32_t(val.x * 255.0f) << 16;
-    col |= uint32_t(val.y * 255.0f) << 8;
-    col |= uint32_t(val.z * 255.0f);
-    return col;
-}
-
 inline uint32_t ToPackedABGR(const NVec4<float> &val) {
     uint32_t col = 0;
     col |= uint32_t(val.w * 255.0f) << 24;
     col |= uint32_t(val.x * 255.0f);
     col |= uint32_t(val.y * 255.0f) << 8;
     col |= uint32_t(val.z * 255.0f) << 16;
-    return col;
-}
-
-inline uint32_t ToPackedBGRA(const NVec4<float> &val) {
-    uint32_t col = 0;
-    col |= uint32_t(val.w * 255.0f) << 8;
-    col |= uint32_t(val.x * 255.0f) << 16;
-    col |= uint32_t(val.y * 255.0f) << 24;
-    col |= uint32_t(val.z * 255.0f);
     return col;
 }
 
@@ -235,11 +186,7 @@ inline NVec4<float> HSVToRGB(float h, float s, float v) {
     } else {
         int i;
         float f, p, q, t;
-
-        if (h == 360)
-            h = 0;
-        else
-            h = h / 60.0f;
+        h = h == 360 ? 0 : h / 60.0f;
 
         i = (int) trunc(h);
         f = h - i;
@@ -281,7 +228,7 @@ inline NVec4<float> HSVToRGB(float h, float s, float v) {
         }
     }
 
-    return NVec4<float>(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+    return {r / 255.0f, g / 255.0f, b / 255.0f, 1.0f};
 }
 
 template<class T>
@@ -291,70 +238,37 @@ inline std::ostream &operator<<(std::ostream &str, const NVec4<T> &region) {
 }
 
 using NVec4f = NVec4<float>;
-using NVec4i = NVec4<long>;
 
 template<class T>
 struct NRect {
-    NRect(const NVec2<T> &topLeft, const NVec2<T> &bottomRight)
-        : topLeftPx(topLeft), bottomRightPx(bottomRight) {
-    }
+    NRect(const NVec2<T> &topLeft, const NVec2<T> &bottomRight) : topLeftPx(topLeft), bottomRightPx(bottomRight) {}
+    NRect(T left, T top, T width, T height) : topLeftPx(NVec2<T>(left, top)), bottomRightPx(NVec2<T>(left, top) + NVec2<T>(width, height)) {}
+    NRect() = default;
 
-    NRect(T left, T top, T width, T height)
-        : topLeftPx(NVec2<T>(left, top)), bottomRightPx(NVec2<T>(left, top) + NVec2<T>(width, height)) {
-    }
-
-    NRect() {
-    }
-
-    NVec2f topLeftPx;
-    NVec2f bottomRightPx;
+    NVec2f topLeftPx, bottomRightPx;
 
     bool Contains(const NVec2<T> &pt) const {
         return topLeftPx.x <= pt.x && topLeftPx.y <= pt.y && bottomRightPx.x > pt.x && bottomRightPx.y > pt.y;
     }
 
-    NVec2f BottomLeft() const {
-        return NVec2f(topLeftPx.x, bottomRightPx.y);
-    }
-    NVec2f TopRight() const {
-        return NVec2f(bottomRightPx.x, topLeftPx.y);
-    }
+    NVec2f BottomLeft() const { return {topLeftPx.x, bottomRightPx.y}; }
+    NVec2f TopRight() const { return {bottomRightPx.x, topLeftPx.y}; }
 
-    float Left() const {
-        return topLeftPx.x;
-    }
-    float Right() const {
-        return TopRight().x;
-    }
-    float Top() const {
-        return TopRight().y;
-    }
-    float Bottom() const {
-        return bottomRightPx.y;
-    }
-    float Height() const {
-        return bottomRightPx.y - topLeftPx.y;
-    }
-    float Width() const {
-        return bottomRightPx.x - topLeftPx.x;
-    }
-    NVec2f Center() const {
-        return (bottomRightPx + topLeftPx) * .5f;
-    }
-    NVec2f Size() const {
-        return bottomRightPx - topLeftPx;
-    }
-    bool Empty() const {
-        return (Height() == 0.0f || Width() == 0.0f) ? true : false;
-    }
+    float Left() const { return topLeftPx.x; }
+    float Right() const { return TopRight().x; }
+    float Top() const { return TopRight().y; }
+    float Bottom() const { return bottomRightPx.y; }
+    float Height() const { return bottomRightPx.y - topLeftPx.y; }
+    float Width() const { return bottomRightPx.x - topLeftPx.x; }
+    NVec2f Center() const { return (bottomRightPx + topLeftPx) * .5f; }
+    NVec2f Size() const { return bottomRightPx - topLeftPx; }
+    bool Empty() const { return (Height() == 0.0f || Width() == 0.0f) ? true : false; }
     void Clear() {
         topLeftPx = NRect<T>();
         bottomRightPx = NRect<T>();
     }
 
-    void SetSize(const NVec2f &size) {
-        bottomRightPx = topLeftPx + size;
-    }
+    void SetSize(const NVec2f &size) { bottomRightPx = topLeftPx + size; }
 
     void Adjust(float x, float y, float z, float w) {
         topLeftPx.x += x;
@@ -379,12 +293,8 @@ struct NRect {
         bottomRightPx.y = y + height;
     }
 
-    bool operator==(const NRect<T> &region) const {
-        return (topLeftPx == region.topLeftPx) && (bottomRightPx == region.bottomRightPx);
-    }
-    bool operator!=(const NRect<T> &region) const {
-        return !(*this == region);
-    }
+    bool operator==(const NRect<T> &region) const { return (topLeftPx == region.topLeftPx) && (bottomRightPx == region.bottomRightPx); }
+    bool operator!=(const NRect<T> &region) const { return !(*this == region); }
 };
 
 template<class T>
@@ -405,48 +315,24 @@ inline std::ostream &operator<<(std::ostream &str, const NRect<T> &region) {
     return str;
 }
 
-enum FitCriteria {
-    X,
-    Y
-};
+enum FitCriteria { X, Y };
 
 template<class T>
 inline bool NRectFits(const NRect<T> &area, const NRect<T> &rect, FitCriteria criteria) {
     if (criteria == FitCriteria::X) {
         auto xDiff = rect.bottomRightPx.x - area.bottomRightPx.x;
-        if (xDiff > 0) {
-            return false;
-        }
+        if (xDiff > 0) return false;
         xDiff = rect.topLeftPx.x - area.topLeftPx.x;
-        if (xDiff < 0) {
-            return false;
-        }
+        if (xDiff < 0) return false;
     } else {
         auto yDiff = rect.bottomRightPx.y - area.bottomRightPx.y;
-        if (yDiff > 0) {
-            return false;
-        }
+        if (yDiff > 0) return false;
         yDiff = rect.topLeftPx.y - area.topLeftPx.y;
-        if (yDiff < 0) {
-            return false;
-        }
+        if (yDiff < 0) return false;
     }
     return true;
 }
 
 using NRectf = NRect<float>;
-
-inline float ZClamp(float x, float lowerlimit, float upperlimit) {
-    x = std::max(lowerlimit, x);
-    x = std::min(upperlimit, x);
-    return x;
-}
-
-inline float ZSmoothStep(float edge0, float edge1, float x) {
-    // Scale, bias and saturate x to 0..1 range
-    x = ZClamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
-    // Evaluate polynomial
-    return x * x * (3 - 2 * x);
-}
 
 } // namespace Zep
