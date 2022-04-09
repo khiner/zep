@@ -1,5 +1,3 @@
-#include <utility>
-
 #include "zep/mode_search.h"
 #include "zep/filesystem.h"
 #include "zep/tab_window.h"

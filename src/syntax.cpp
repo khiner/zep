@@ -6,7 +6,6 @@
 #include "zep/mcommon/string/stringutils.h"
 
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace Zep {

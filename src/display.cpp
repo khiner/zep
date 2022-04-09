@@ -1,10 +1,6 @@
-#include <utility>
-
 #include "zep/display.h"
-
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
-
 #include "zep/mcommon/utf8/unchecked.h"
 
 // A 'window' is like a vim window; i.e. a region inside a tab
