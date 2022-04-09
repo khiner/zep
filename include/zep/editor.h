@@ -172,7 +172,7 @@ struct EditorConfig {
     bool showLineNumbers = true;
     bool shortTabNames = true;
     bool showIndicatorRegion = true;
-    bool autoHideCommandRegion = true;
+    bool autoHideCommandRegion = false;
     bool cursorLineSolid = false;
     bool showNormalModeKeyStrokes = false;
     float backgroundFadeTime = 60.0f;
