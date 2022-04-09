@@ -328,8 +328,6 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
 // - Have a no-wrap text mode and save a lot of the wrapping work.
 // - Do some threading
 void ZepWindow::UpdateLineSpans() {
-    TIME_SCOPE(UpdateLineSpans);
-
     m_maxDisplayLines = (long) std::max(0.0f, std::floor(m_textRegion->rect.Height() / m_defaultLineSize));
 
     const auto &textBuffer = m_pBuffer->GetWorkingBuffer();
@@ -538,8 +536,6 @@ void ZepWindow::UpdateLineSpans() {
 }
 
 void ZepWindow::UpdateVisibleLineRange() {
-    TIME_SCOPE(UpdateVisibleLineRange);
-
     m_visibleLineIndices.x = (long) m_windowLines.size();
     m_visibleLineIndices.y = 0;
     m_textSizePx.x = 0;
@@ -1326,8 +1322,6 @@ void ZepWindow::DisplayGridMarkers() {
 }
 
 void ZepWindow::Display() {
-    TIME_SCOPE(Display);
-
     auto pMode = GetBuffer().GetMode();
     pMode->PreDisplay(*this);
 
@@ -1381,13 +1375,10 @@ void ZepWindow::Display() {
 
     DisplayLineNumbers();
 
-    {
-        TIME_SCOPE(DrawLine);
-        for (int displayPass = 0; displayPass < WindowPass::Max; displayPass++) {
-            for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++) {
-                auto &lineInfo = *m_windowLines[windowLine];
-                if (!DisplayLine(lineInfo, displayPass)) break;
-            }
+    for (int displayPass = 0; displayPass < WindowPass::Max; displayPass++) {
+        for (long windowLine = m_visibleLineIndices.x; windowLine < m_visibleLineIndices.y; windowLine++) {
+            auto &lineInfo = *m_windowLines[windowLine];
+            if (!DisplayLine(lineInfo, displayPass)) break;
         }
     }
 

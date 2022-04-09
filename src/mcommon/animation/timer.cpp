@@ -10,7 +10,6 @@ struct TimedSection {
 };
 
 timer globalTimer;
-profile_data globalProfiler;
 
 uint64_t timer_get_time_now() {
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
@@ -30,24 +29,5 @@ uint64_t timer_get_elapsed(const timer &timer) {
 double timer_get_elapsed_seconds(const timer &timer) { return timer_to_seconds(timer_get_elapsed(timer)); }
 double timer_to_seconds(uint64_t value) { return double(value) / 1000000.0; }
 double timer_to_ms(uint64_t value) { return double(value) / 1000.0; }
-
-ProfileBlock::ProfileBlock(const char *timer) : strTimer(timer) {
-    timer_start(blockTimer);
-    if (globalProfiler.timerData.find(timer) == globalProfiler.timerData.end()) {
-        globalProfiler.timerData[timer] = profile_value{};
-    }
-}
-
-ProfileBlock::~ProfileBlock() {
-    elapsed = timer_get_elapsed(blockTimer);
-    profile_add_value(globalProfiler.timerData.find(strTimer)->second, double(elapsed));
-}
-
-void profile_add_value(profile_value &val, double av) {
-    val.count++;
-    auto count = double(val.count);
-    val.average = val.average * (count - 1.0) / count + av / count;
-    val.current = av;
-}
 
 } // namespace Zep

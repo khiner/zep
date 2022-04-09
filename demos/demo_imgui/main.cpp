@@ -19,7 +19,6 @@
 #include <clipp.h>
 #include <mutils/chibi/chibi.h>
 #include <mutils/file/file.h>
-#include <mutils/time/profiler.h>
 #include <mutils/ui/dpi.h>
 #include <zep/mcommon/animation/timer.h>
 
@@ -413,8 +412,6 @@ int main(int argc, char *argv[]) {
     // Main loop
     bool done = false;
     while (!done && !zep.quit) {
-        Profiler::NewFrame();
-
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -442,8 +439,6 @@ int main(int argc, char *argv[]) {
                 continue;
             }
         }
-
-        TIME_SCOPE(Frame);
 
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -502,18 +497,6 @@ int main(int argc, char *argv[]) {
                     pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::VBox);
                 } else if (ImGui::MenuItem("Vertical Split")) {
                     pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::HBox);
-                }
-                ImGui::EndMenu();
-            }
-
-            // Helpful for diagnostics
-            // Make sure you run a release build; iterator debugging makes the debug build much slower
-            // Currently on a typical file, editor display time is < 1ms, and editor editor time is < 2ms
-            if (ImGui::BeginMenu("Timings")) {
-                for (auto &p: globalProfiler.timerData) {
-                    std::ostringstream strval;
-                    strval << p.first << " : " << p.second.current / 1000.0 << "ms"; // << " Last: " << p.second.current / 1000.0 << "ms";
-                    ImGui::MenuItem(strval.str().c_str());
                 }
                 ImGui::EndMenu();
             }
