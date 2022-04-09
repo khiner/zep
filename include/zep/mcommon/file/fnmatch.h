@@ -44,9 +44,9 @@
 
 #pragma once
 
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
+#include <cctype>
+#include <cstring>
+#include <cstdio>
 
 #define    FNM_NOMATCH    1    /* Match failed. */
 #define    FNM_NOESCAPE    0x01    /* Disable backslash escaping. */
@@ -67,15 +67,10 @@ inline int fnmatch(const char *pattern, const char *string, int flags) {
 
     for (stringstart = string;;)
         switch (c = *pattern++) {
-            case EOS:
-                if ((flags & FNM_LEADING_DIR) && *string == '/')
-                    return (0);
+            case EOS:if ((flags & FNM_LEADING_DIR) && *string == '/') return (0);
                 return (*string == EOS ? 0 : FNM_NOMATCH);
-            case '?':
-                if (*string == EOS)
-                    return (FNM_NOMATCH);
-                if (*string == '/' && (flags & FNM_PATHNAME))
-                    return (FNM_NOMATCH);
+            case '?':if (*string == EOS) return (FNM_NOMATCH);
+                if (*string == '/' && (flags & FNM_PATHNAME)) return (FNM_NOMATCH);
                 if (*string == '.' && (flags & FNM_PERIOD) &&
                     (string == stringstart ||
                         ((flags & FNM_PATHNAME) && *(string - 1) == '/')))

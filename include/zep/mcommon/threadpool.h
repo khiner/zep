@@ -49,7 +49,7 @@ Original here: https://github.com/progschj/ThreadPool
 class ThreadPool {
 public:
     // the constructor just launches some amount of workers
-    ThreadPool(size_t threads_n = std::thread::hardware_concurrency()) : stop(false) {
+    explicit ThreadPool(size_t threads_n = std::thread::hardware_concurrency()) : stop(false) {
         // If not enough threads, the pool will just execute all tasks immediately
         if (threads_n > 1) {
             this->workers.reserve(threads_n);

@@ -177,7 +177,7 @@ inline NVec4<float> Mix(const NVec4<float> &c1, const NVec4<float> &c2, float fa
 }
 
 inline NVec4<float> HSVToRGB(float h, float s, float v) {
-    auto r = 0.0f, g = 0.0f, b = 0.0f;
+    float r, g, b;
 
     if (s == 0) {
         r = v;

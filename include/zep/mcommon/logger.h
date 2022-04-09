@@ -43,9 +43,8 @@ extern ZLogger logger;
 
 class ZLog {
 public:
-    ZLog() {
-    }
-    ZLog(ZLT type) {
+    ZLog() = default;
+    explicit ZLog(ZLT type) {
         msglevel = type;
         if (logger.headers && msglevel >= logger.level) {
             operator<<("[" + getLabel(type) + "] ");
@@ -76,7 +75,7 @@ public:
 private:
     bool opened = false;
     ZLT msglevel = ZLT::DBG;
-    inline std::string getLabel(ZLT type) {
+    static inline std::string getLabel(ZLT type) {
         std::string label;
         switch (type) {
             case ZLT::DBG:label = "DEBUG";

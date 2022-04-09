@@ -9,7 +9,7 @@ class ZepBuffer;
 
 using ByteIndex = long;
 struct ByteRange {
-    ByteRange(ByteIndex a = 0, ByteIndex b = 0) : first(a), second(b) {}
+    explicit ByteRange(ByteIndex a = 0, ByteIndex b = 0) : first(a), second(b) {}
     bool ContainsLocation(ByteIndex loc) const { return loc >= first && loc < second; }
 
     ByteIndex first;

@@ -30,9 +30,7 @@ public:
         }
     }
 
-    const Collection &Getitems() const {
-        return items;
-    }
+    const Collection &GetItems() const { return items; }
 
 private:
     Collection items;

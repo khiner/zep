@@ -43,7 +43,7 @@ public:
     timer blockTimer;
     uint64_t elapsed = 0;
 
-    ProfileBlock(const char *timer);
+    explicit ProfileBlock(const char *timer);
     ~ProfileBlock();
 };
 

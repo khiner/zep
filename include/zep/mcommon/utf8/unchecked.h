@@ -30,8 +30,7 @@ DEALINGS IN THE SOFTWARE.
 
 #include "core.h"
 
-namespace utf8 {
-namespace unchecked {
+namespace utf8::unchecked {
 template<typename octet_iterator>
 octet_iterator append(uint32_t cp, octet_iterator result) {
     if (cp < 0x80)                        // one octet
@@ -196,7 +195,7 @@ template<typename octet_iterator>
 class iterator : public std::iterator<std::bidirectional_iterator_tag, uint32_t> {
     octet_iterator it;
 public:
-    iterator() {}
+    iterator() = default;
     explicit iterator(const octet_iterator &octet_it) : it(octet_it) {}
     // the default "big three" are OK
     octet_iterator base() const { return it; }
@@ -214,7 +213,7 @@ public:
         ::std::advance(it, utf8::internal::sequence_length(it));
         return *this;
     }
-    iterator operator++(int) {
+    const iterator operator++(int) {
         iterator temp = *this;
         ::std::advance(it, utf8::internal::sequence_length(it));
         return temp;
@@ -223,15 +222,14 @@ public:
         utf8::unchecked::prior(it);
         return *this;
     }
-    iterator operator--(int) {
+    const iterator operator--(int) {
         iterator temp = *this;
         utf8::unchecked::prior(it);
         return temp;
     }
 }; // class iterator
 
-} // namespace utf8::unchecked
-} // namespace utf8 
+} // namespace utf8
 
 
 #endif // header guard

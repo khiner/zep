@@ -11,10 +11,10 @@ class ZepSyntaxAdorn_RainbowBrackets : public ZepSyntaxAdorn {
 public:
     using TParent = ZepSyntaxAdorn;
     ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer);
-    virtual ~ZepSyntaxAdorn_RainbowBrackets();
+    ~ZepSyntaxAdorn_RainbowBrackets() override;
 
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
-    virtual SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const override;
+    SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const override;
 
     virtual void Clear(const GlyphIterator &start, const GlyphIterator &end);
     virtual void Insert(const GlyphIterator &start, const GlyphIterator &end);
@@ -30,9 +30,9 @@ private:
     };
 
     struct Bracket {
-        int32_t indent;
-        BracketType type;
-        bool is_open;
+        int32_t indent{};
+        BracketType type{};
+        bool is_open = false;
         bool valid = true;
     };
     std::map<long, Bracket> m_brackets;
