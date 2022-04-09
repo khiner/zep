@@ -30,6 +30,7 @@ struct IZepReplProvider {
         ZEP_UNUSED(text);
         return "<Supply IZepReplProvider>";
     };
+
     virtual bool ReplIsFormComplete(const std::string &input, int &depth) {
         // The default repl assumes all commands are complete.
         ZEP_UNUSED(input);
