@@ -158,17 +158,16 @@ void ZepSyntax::UpdateSyntax() {
             token = string_tolower(token);
         }
 
-        if (m_keywords.find(token) != m_keywords.end()) {
-            mark(itrFirst, itrLast, ThemeColor::Keyword, ThemeColor::None);
-        } else if (m_identifiers.find(token) != m_identifiers.end() || ((m_flags & ZepSyntaxFlags::LispLike) && token[0] == ':')) {
-            mark(itrFirst, itrLast, ThemeColor::Identifier, ThemeColor::None);
-        } else if (token.find_first_not_of("0123456789") == std::string::npos) {
-            mark(itrFirst, itrLast, ThemeColor::Number, ThemeColor::None);
-        } else if (token.find_first_not_of("{}()[]") == std::string::npos) {
-            mark(itrFirst, itrLast, ThemeColor::Parenthesis, ThemeColor::None);
-        } else {
-            mark(itrFirst, itrLast, ThemeColor::Normal, ThemeColor::None);
-        }
+        auto themeColor = m_keywords.find(token) != m_keywords.end() ?
+                          ThemeColor::Keyword :
+                          m_identifiers.find(token) != m_identifiers.end() || ((m_flags & ZepSyntaxFlags::LispLike) && token[0] == ':') ?
+                          ThemeColor::Identifier :
+                          token.find_first_not_of("0123456789") == std::string::npos ?
+                          ThemeColor::Number :
+                          token.find_first_not_of("{}()[]") == std::string::npos ?
+                          ThemeColor::Parenthesis :
+                          ThemeColor::Normal;
+        mark(itrFirst, itrLast, themeColor, ThemeColor::None);
 
         // Find String
         auto findString = [&](uint8_t ch) {
