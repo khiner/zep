@@ -134,7 +134,7 @@ bool ReadCommandLine(int argc, char *argv[], int &exitCode) {
 struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     ZepContainerImGui(const std::string &startupFilePath, const std::string &configPath)
         : spEditor(std::make_unique<ZepEditor_ImGui>(configPath, GetPixelScale()))
-    //, fileWatcher(spEditor->GetFileSystem().GetConfigPath(), std::chrono::seconds(2))
+    //, fileWatcher(spEditor->fileSystem->GetConfigPath(), std::chrono::seconds(2))
     {
         chibi_init(scheme, SDL_GetBasePath());
 
@@ -191,7 +191,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
             if (spEditor)
             {
                 ZLOG(DBG, "Config File Change: " << path);
-                spEditor->OnFileChanged(spEditor->GetFileSystem().GetConfigPath() / path);
+                spEditor->OnFileChanged(spEditor->fileSystem->GetConfigPath() / path);
             }
         });*/
     }
@@ -478,13 +478,13 @@ int main(int argc, char *argv[]) {
                 }
 
                 if (ImGui::BeginMenu("Theme")) {
-                    bool enabledDark = zep.GetEditor().GetTheme().GetThemeType() == ThemeType::Dark ? true : false;
+                    bool enabledDark = zep.GetEditor().theme->GetThemeType() == ThemeType::Dark ? true : false;
                     bool enabledLight = !enabledDark;
 
                     if (ImGui::MenuItem("Dark", "", &enabledDark)) {
-                        zep.GetEditor().GetTheme().SetThemeType(ThemeType::Dark);
+                        zep.GetEditor().theme->SetThemeType(ThemeType::Dark);
                     } else if (ImGui::MenuItem("Light", "", &enabledLight)) {
-                        zep.GetEditor().GetTheme().SetThemeType(ThemeType::Light);
+                        zep.GetEditor().theme->SetThemeType(ThemeType::Light);
                     }
                     ImGui::EndMenu();
                 }

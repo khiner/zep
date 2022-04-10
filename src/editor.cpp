@@ -33,17 +33,17 @@ ZepComponent::~ZepComponent() {
 }
 
 ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, IZepFileSystem *pFileSystem)
-    : m_pDisplay(pDisplay), m_pFileSystem(pFileSystem), m_flags(flags) {
+    : display(pDisplay), fileSystem(pFileSystem), m_flags(flags) {
 
-    if (m_pFileSystem == nullptr) m_pFileSystem = new ZepFileSystemCPP(configRoot);
+    if (fileSystem == nullptr) fileSystem = new ZepFileSystemCPP(configRoot);
 
-    m_threadPool = m_flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
+    threadPool = m_flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
 
-    LoadConfig(m_pFileSystem->GetConfigPath() / "zep.cfg");
+    LoadConfig(fileSystem->GetConfigPath() / "zep.cfg");
 
-    m_spTheme = std::make_shared<ZepTheme>();
+    theme = std::make_shared<ZepTheme>();
 
-    assert(m_pDisplay != nullptr);
+    assert(display != nullptr);
     RegisterGlobalMode(std::make_shared<ZepMode_Vim>(*this));
     RegisterGlobalMode(std::make_shared<ZepMode_Standard>(*this));
     SetGlobalMode(ZepMode_Vim::StaticName());
@@ -79,11 +79,9 @@ ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t f
 ZepEditor::~ZepEditor() {
     std::for_each(m_tabWindows.begin(), m_tabWindows.end(), [](ZepTabWindow *w) { delete w; });
     m_tabWindows.clear();
-    delete m_pDisplay;
-    delete m_pFileSystem;
+    delete display;
+    delete fileSystem;
 }
-
-ThreadPool &ZepEditor::GetThreadPool() const { return *m_threadPool; }
 
 void ZepEditor::OnFileChanged(const ZepPath &path) {
     if (path.filename() == "zep.cfg") {
@@ -96,7 +94,7 @@ void ZepEditor::OnFileChanged(const ZepPath &path) {
 // If you pass a valid path to a 'zep.cfg' file, then editor settings will serialize from that
 // You can even edit it inside zep for immediate changes :)
 void ZepEditor::LoadConfig(const ZepPath &config_path) {
-    if (!GetFileSystem().Exists(config_path)) return;
+    if (!fileSystem->Exists(config_path)) return;
 
     try {
         std::shared_ptr<cpptoml::table> spConfig;
@@ -118,24 +116,24 @@ void ZepEditor::LoadConfig(const ZepPath &config_path) {
 
 void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
     try {
-        m_config.showNormalModeKeyStrokes = spConfig->get_qualified_as<bool>("editor.show_normal_mode_keystrokes").value_or(false);
-        m_config.showIndicatorRegion = spConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
-        m_config.showLineNumbers = spConfig->get_qualified_as<bool>("editor.show_line_numbers").value_or(true);
-        m_config.autoHideCommandRegion = spConfig->get_qualified_as<bool>("editor.autohide_command_region").value_or(false);
-        m_config.cursorLineSolid = spConfig->get_qualified_as<bool>("editor.cursor_line_solid").value_or(true);
-        m_config.backgroundFadeTime = (float) spConfig->get_qualified_as<double>("editor.background_fade_time").value_or(60.0f);
-        m_config.backgroundFadeWait = (float) spConfig->get_qualified_as<double>("editor.background_fade_wait").value_or(60.0f);
-        m_config.showScrollBar = spConfig->get_qualified_as<uint32_t>("editor.show_scrollbar").value_or(1);
-        m_config.lineMargins.x = (float) spConfig->get_qualified_as<double>("editor.line_margin_top").value_or(1);
-        m_config.lineMargins.y = (float) spConfig->get_qualified_as<double>("editor.line_margin_bottom").value_or(1);
-        m_config.widgetMargins.x = (float) spConfig->get_qualified_as<double>("editor.widget_margin_top").value_or(1);
-        m_config.widgetMargins.y = (float) spConfig->get_qualified_as<double>("editor.widget_margin_bottom").value_or(1);
-        m_config.shortTabNames = spConfig->get_qualified_as<bool>("editor.short_tab_names").value_or(false);
+        config.showNormalModeKeyStrokes = spConfig->get_qualified_as<bool>("editor.show_normal_mode_keystrokes").value_or(false);
+        config.showIndicatorRegion = spConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
+        config.showLineNumbers = spConfig->get_qualified_as<bool>("editor.show_line_numbers").value_or(true);
+        config.autoHideCommandRegion = spConfig->get_qualified_as<bool>("editor.autohide_command_region").value_or(false);
+        config.cursorLineSolid = spConfig->get_qualified_as<bool>("editor.cursor_line_solid").value_or(true);
+        config.backgroundFadeTime = (float) spConfig->get_qualified_as<double>("editor.background_fade_time").value_or(60.0f);
+        config.backgroundFadeWait = (float) spConfig->get_qualified_as<double>("editor.background_fade_wait").value_or(60.0f);
+        config.showScrollBar = spConfig->get_qualified_as<uint32_t>("editor.show_scrollbar").value_or(1);
+        config.lineMargins.x = (float) spConfig->get_qualified_as<double>("editor.line_margin_top").value_or(1);
+        config.lineMargins.y = (float) spConfig->get_qualified_as<double>("editor.line_margin_bottom").value_or(1);
+        config.widgetMargins.x = (float) spConfig->get_qualified_as<double>("editor.widget_margin_top").value_or(1);
+        config.widgetMargins.y = (float) spConfig->get_qualified_as<double>("editor.widget_margin_bottom").value_or(1);
+        config.shortTabNames = spConfig->get_qualified_as<bool>("editor.short_tab_names").value_or(false);
         auto styleStr = string_tolower(spConfig->get_qualified_as<std::string>("editor.style").value_or("normal"));
         if (styleStr == "normal") {
-            m_config.style = EditorStyle::Normal;
+            config.style = EditorStyle::Normal;
         } else if (styleStr == "minimal") {
-            m_config.style = EditorStyle::Minimal;
+            config.style = EditorStyle::Minimal;
         }
     }
     catch (...) {
@@ -149,22 +147,22 @@ void ZepEditor::SaveConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
         spConfig->insert("editor", table);
     }
 
-    table->insert("show_normal_mode_keystrokes", m_config.showNormalModeKeyStrokes);
-    table->insert("show_indicator_region", m_config.showIndicatorRegion);
-    table->insert("show_line_numbers", m_config.showLineNumbers);
-    table->insert("autohide_command_region", m_config.autoHideCommandRegion);
-    table->insert("cursor_line_solid", m_config.cursorLineSolid);
-    table->insert("short_tab_names", m_config.shortTabNames);
-    table->insert("background_fade_time", (double) m_config.backgroundFadeTime);
-    table->insert("background_fade_wait", (double) m_config.backgroundFadeWait);
-    table->insert("show_scrollbar", m_config.showScrollBar);
+    table->insert("show_normal_mode_keystrokes", config.showNormalModeKeyStrokes);
+    table->insert("show_indicator_region", config.showIndicatorRegion);
+    table->insert("show_line_numbers", config.showLineNumbers);
+    table->insert("autohide_command_region", config.autoHideCommandRegion);
+    table->insert("cursor_line_solid", config.cursorLineSolid);
+    table->insert("short_tab_names", config.shortTabNames);
+    table->insert("background_fade_time", (double) config.backgroundFadeTime);
+    table->insert("background_fade_wait", (double) config.backgroundFadeWait);
+    table->insert("show_scrollbar", config.showScrollBar);
 
-    table->insert("line_margin_top", m_config.lineMargins.x);
-    table->insert("line_margin_bottom", m_config.lineMargins.y);
-    table->insert("widget_margin_top", m_config.widgetMargins.x);
-    table->insert("widget_margin_bottom", m_config.widgetMargins.y);
+    table->insert("line_margin_top", config.lineMargins.x);
+    table->insert("line_margin_bottom", config.lineMargins.y);
+    table->insert("widget_margin_top", config.widgetMargins.x);
+    table->insert("widget_margin_bottom", config.widgetMargins.y);
 
-    table->insert("style", m_config.style == EditorStyle::Minimal ? "minimal" : "normal");
+    table->insert("style", config.style == EditorStyle::Minimal ? "minimal" : "normal");
 
     /*
     Example Write:
@@ -209,12 +207,12 @@ void ZepEditor::RemoveBuffer(ZepBuffer *pBuffer) {
     }
 
     // Find the buffer in the list of buffers owned by the editor and remove it
-    auto itr = std::find_if(m_buffers.begin(), m_buffers.end(), [pBuffer](const std::shared_ptr<ZepBuffer> &spBuffer) {
+    auto itr = std::find_if(buffers.begin(), buffers.end(), [pBuffer](const std::shared_ptr<ZepBuffer> &spBuffer) {
         return spBuffer.get() == pBuffer;
     });
 
-    if (itr != m_buffers.end()) {
-        m_buffers.erase(itr);
+    if (itr != buffers.end()) {
+        buffers.erase(itr);
     }
 }
 
@@ -225,11 +223,11 @@ ZepBuffer *ZepEditor::GetEmptyBuffer(const std::string &name, uint32_t fileFlags
 }
 
 ZepBuffer *ZepEditor::GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags, bool create) {
-    auto path = GetFileSystem().Exists(filePath) ? GetFileSystem().Canonical(filePath) : filePath;
+    auto path = fileSystem->Exists(filePath) ? fileSystem->Canonical(filePath) : filePath;
     if (!path.empty()) {
-        for (auto &pBuffer: m_buffers) {
+        for (auto &pBuffer: buffers) {
             if (!pBuffer->GetFilePath().empty()) {
-                if (GetFileSystem().Equivalent(pBuffer->GetFilePath(), path)) {
+                if (fileSystem->Equivalent(pBuffer->GetFilePath(), path)) {
                     return pBuffer.get();
                 }
             }
@@ -280,7 +278,7 @@ ZepWindow *ZepEditor::AddSearch() {
     auto pActiveWindow = GetActiveTabWindow()->GetActiveWindow();
 
     bool hasGit = false;
-    auto searchPath = GetFileSystem().GetSearchRoot(pActiveWindow->GetBuffer().GetFilePath(), hasGit);
+    auto searchPath = fileSystem->GetSearchRoot(pActiveWindow->GetBuffer().GetFilePath(), hasGit);
 
     auto pSearchWindow = GetActiveTabWindow()->AddWindow(pSearchBuffer, nullptr, RegionLayoutType::VBox);
     pSearchWindow->SetWindowFlags(pSearchWindow->GetWindowFlags() | WindowFlags::Modal);
@@ -304,38 +302,37 @@ void ZepEditor::Reset() {
 ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
     ZepPath startPath(str);
 
-    auto &fs = GetFileSystem();
-    if (fs.Exists(startPath)) {
-        startPath = fs.Canonical(startPath);
+    if (fileSystem->Exists(startPath)) {
+        startPath = fileSystem->Canonical(startPath);
         // If a directory, just return the default already created buffer.
-        if (fs.IsDirectory(startPath)) {
+        if (fileSystem->IsDirectory(startPath)) {
             // Remember the working directory 
-            fs.SetWorkingDirectory(startPath);
+            fileSystem->SetWorkingDirectory(startPath);
             return &GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
         } else {
             // Try to get the working directory from the parent path of the passed file
             auto parentDir = startPath.parent_path();
-            if (fs.Exists(parentDir) && fs.IsDirectory(parentDir)) {
-                fs.SetWorkingDirectory(startPath.parent_path());
+            if (fileSystem->Exists(parentDir) && fileSystem->IsDirectory(parentDir)) {
+                fileSystem->SetWorkingDirectory(startPath.parent_path());
             }
         }
     }
 
     // Get a buffer for the start file; even if the path is not valid; it can be created but not saved
-    auto pFileBuffer = GetFileBuffer(startPath);
-    auto pTab = EnsureTab();
-    pTab->AddWindow(pFileBuffer, nullptr, RegionLayoutType::HBox);
+    auto fileBuffer = GetFileBuffer(startPath);
+    auto tab = EnsureTab();
+    tab->AddWindow(fileBuffer, nullptr, RegionLayoutType::HBox);
 
-    return pFileBuffer;
+    return fileBuffer;
 }
 
 ZepBuffer *ZepEditor::InitWithText(const std::string &strName, const std::string &strText) {
-    auto pTab = EnsureTab();
-    auto pBuffer = GetEmptyBuffer(strName);
-    pBuffer->SetText(strText);
-    pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
+    auto tab = EnsureTab();
+    auto buffer = GetEmptyBuffer(strName);
+    buffer->SetText(strText);
+    tab->AddWindow(buffer, nullptr, RegionLayoutType::HBox);
 
-    return pBuffer;
+    return buffer;
 }
 
 // Here we ensure that the editor is in a valid state, and cleanup Default buffers
@@ -355,7 +352,7 @@ void ZepEditor::UpdateWindowState() {
 
     // Clean up any default buffers
     std::vector<ZepBuffer *> victims;
-    for (auto &buffer: m_buffers) {
+    for (auto &buffer: buffers) {
         if (!buffer->HasFileFlags(FileFlags::DefaultBuffer) || buffer->HasFileFlags(FileFlags::Dirty)) {
             continue;
         }
@@ -371,13 +368,13 @@ void ZepEditor::UpdateWindowState() {
     }
 
     // If the display says we need a layout update, force it on all the windows
-    if (GetDisplay().LayoutDirty()) {
+    if (display->LayoutDirty()) {
         for (auto &tabWindow: GetTabWindows()) {
             for (auto &window: tabWindow->GetWindows()) {
                 window->DirtyLayout();
             }
         }
-        GetDisplay().SetLayoutDirty(false);
+        display->SetLayoutDirty(false);
     }
 }
 
@@ -422,21 +419,21 @@ void ZepEditor::UpdateTabs() {
             // Show active buffer in tab as tab name
             auto &buffer = window->GetActiveWindow()->GetBuffer();
             std::string name = buffer.GetName();
-            if (m_config.shortTabNames) {
+            if (config.shortTabNames) {
                 auto pos = name.find_last_of('.');
                 if (pos != std::string::npos) {
                     name = name.substr(0, pos);
                 }
             }
 
-            auto tabColor = GetTheme().GetColor(ThemeColor::TabActive);
+            auto tabColor = theme->GetColor(ThemeColor::TabActive);
             if (buffer.HasFileFlags(FileFlags::HasWarnings)) {
-                tabColor = GetTheme().GetColor(ThemeColor::Warning);
+                tabColor = theme->GetColor(ThemeColor::Warning);
             }
 
             // Errors win for coloring
             if (buffer.HasFileFlags(FileFlags::HasErrors)) {
-                tabColor = GetTheme().GetColor(ThemeColor::Error);
+                tabColor = theme->GetColor(ThemeColor::Error);
             }
 
             if (window != GetActiveTabWindow()) {
@@ -445,7 +442,7 @@ void ZepEditor::UpdateTabs() {
                 tabColor.w = 1.0f;
             }
 
-            auto tabLength = m_pDisplay->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) name.c_str()).x + DPI_X(textBorder) * 2;
+            auto tabLength = display->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) name.c_str()).x + DPI_X(textBorder) * 2;
             auto spTabRegionTab = std::make_shared<TabRegionTab>();
             spTabRegionTab->color = tabColor;
             spTabRegionTab->name = name;
@@ -626,8 +623,6 @@ bool ZepEditor::Broadcast(const std::shared_ptr<ZepMessage> &message) {
     return message->handled;
 }
 
-const std::deque<std::shared_ptr<ZepBuffer>> &ZepEditor::GetBuffers() const { return m_buffers; }
-
 // Do any special buffer processing
 void ZepEditor::InitBuffer(ZepBuffer &buffer) const { SetBufferMode(buffer); }
 
@@ -635,7 +630,7 @@ ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
     auto pBuffer = std::make_shared<ZepBuffer>(*this, str);
     // For a new buffer, set the syntax based on the string name
     SetBufferSyntax(*pBuffer);
-    m_buffers.push_front(pBuffer);
+    buffers.push_front(pBuffer);
 
     InitBuffer(*pBuffer);
     return pBuffer.get();
@@ -643,13 +638,13 @@ ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
 
 ZepBuffer *ZepEditor::CreateNewBuffer(const ZepPath &path) {
     auto pBuffer = std::make_shared<ZepBuffer>(*this, path);
-    m_buffers.push_front(pBuffer);
+    buffers.push_front(pBuffer);
 
     InitBuffer(*pBuffer);
     return pBuffer.get();
 }
 
-ZepBuffer *ZepEditor::GetMRUBuffer() const { return m_buffers.front().get(); }
+ZepBuffer *ZepEditor::GetMRUBuffer() const { return buffers.front().get(); }
 
 void ZepEditor::ReadClipboard() {
     auto pMsg = std::make_shared<ZepMessage>(Msg::GetClipBoard);
@@ -750,7 +745,7 @@ void ZepEditor::SetDisplayRegion(const NVec2f &topLeft, const NVec2f &bottomRigh
 }
 
 void ZepEditor::UpdateSize() {
-    auto &uiFont = m_pDisplay->GetFont(ZepTextType::UI);
+    auto &uiFont = display->GetFont(ZepTextType::UI);
     auto commandCount = GetCommandLines().size();
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DPI_X(textBorder) * 2.0f;
     auto displaySize = m_editorRegion->rect.Size();
@@ -789,7 +784,7 @@ void ZepEditor::Display() {
     auto &commandLines = GetCommandLines();
     long commandCount = long(commandLines.size());
 
-    auto &uiFont = m_pDisplay->GetFont(ZepTextType::UI);
+    auto &uiFont = display->GetFont(ZepTextType::UI);
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DPI_X(textBorder) * 2.0f;
 
     auto displaySize = m_editorRegion->rect.Size();
@@ -798,13 +793,13 @@ void ZepEditor::Display() {
     commandSpace = std::max(commandCount, 0l);
 
     // This fill will effectively fill the region around the tabs in Normal mode
-    if (GetConfig().style == EditorStyle::Normal) {
-        GetDisplay().DrawRectFilled(m_editorRegion->rect, GetTheme().GetColor(ThemeColor::Background));
+    if (config.style == EditorStyle::Normal) {
+        display->DrawRectFilled(m_editorRegion->rect, theme->GetColor(ThemeColor::Background));
     }
 
     // Background rect for CommandLine
-    if (!GetCommandText().empty() || (GetConfig().autoHideCommandRegion == false)) {
-        m_pDisplay->DrawRectFilled(m_commandRegion->rect, GetTheme().GetColor(ThemeColor::Background));
+    if (!GetCommandText().empty() || (config.autoHideCommandRegion == false)) {
+        display->DrawRectFilled(m_commandRegion->rect, theme->GetColor(ThemeColor::Background));
     }
 
     // Draw command text
@@ -812,21 +807,21 @@ void ZepEditor::Display() {
     for (int i = 0; i < commandSpace; i++) {
         if (!commandLines[i].empty()) {
             auto textSize = uiFont.GetTextSize((const uint8_t *) commandLines[i].c_str(), (const uint8_t *) commandLines[i].c_str() + commandLines[i].size());
-            m_pDisplay->DrawChars(uiFont, screenPosYPx, GetTheme().GetColor(ThemeColor::Text), (const uint8_t *) commandLines[i].c_str());
+            display->DrawChars(uiFont, screenPosYPx, theme->GetColor(ThemeColor::Text), (const uint8_t *) commandLines[i].c_str());
         }
 
         screenPosYPx.y += uiFont.GetPixelHeight();
         screenPosYPx.x = m_commandRegion->rect.topLeftPx.x;
     }
 
-    if (GetConfig().style == EditorStyle::Normal) {
+    if (config.style == EditorStyle::Normal) {
         // A line along the bottom of the tab region
-        m_pDisplay->DrawRectFilled(
+        display->DrawRectFilled(
             NRectf(
                 NVec2f(m_tabRegion->rect.Left(), m_tabRegion->rect.Bottom() - DPI_Y(1)),
                 NVec2f(m_tabRegion->rect.Right(), m_tabRegion->rect.Bottom())
             ),
-            GetTheme().GetColor(ThemeColor::TabInactive)
+            theme->GetColor(ThemeColor::TabInactive)
         );
     }
 
@@ -868,7 +863,7 @@ void ZepEditor::Display() {
         rc.Adjust(m_tabOffsetX, 0.0f);
 
         // Tab background rect
-        m_pDisplay->DrawRectFilled(rc, spTabRegionTab->color);
+        display->DrawRectFilled(rc, spTabRegionTab->color);
 
         auto lum = Luminosity(spTabRegionTab->color);
         auto textCol = NVec4f(1.0f);
@@ -879,13 +874,11 @@ void ZepEditor::Display() {
         }
 
         // Tab text
-        m_pDisplay->DrawChars(uiFont, rc.topLeftPx + DPI_VEC2(NVec2f(textBorder, 0.0f)), textCol, (const uint8_t *) spTabRegionTab->name.c_str());
+        display->DrawChars(uiFont, rc.topLeftPx + DPI_VEC2(NVec2f(textBorder, 0.0f)), textCol, (const uint8_t *) spTabRegionTab->name.c_str());
     }
 
     if (GetActiveTabWindow()) GetActiveTabWindow()->Display();
 } // namespace Zep
-
-ZepTheme &ZepEditor::GetTheme() const { return *m_spTheme; }
 
 bool ZepEditor::OnMouseMove(const NVec2f &mousePos) {
     m_mousePos = mousePos;

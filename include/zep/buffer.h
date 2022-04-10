@@ -139,29 +139,18 @@ public:
     bool Insert(const GlyphIterator &startOffset, const std::string &str, ChangeRecord &changeRecord);
     bool Replace(const GlyphIterator &startOffset, const GlyphIterator &endOffset, /*note; not ref*/ std::string str, ReplaceRangeMode mode, ChangeRecord &changeRecord);
 
-    long GetLineCount() const {
-        return long(m_lineEnds.size());
-    }
+    long GetLineCount() const { return long(m_lineEnds.size()); }
     long GetBufferLine(const GlyphIterator &offset) const;
 
     GlyphIterator End() const;
     GlyphIterator Begin() const;
 
-    const GapBuffer<uint8_t> &GetWorkingBuffer() const {
-        return m_workingBuffer;
-    }
+    const GapBuffer<uint8_t> &GetWorkingBuffer() const { return m_workingBuffer; }
+    GapBuffer<uint8_t> &GetMutableWorkingBuffer() { return m_workingBuffer; }
 
-    GapBuffer<uint8_t> &GetMutableWorkingBuffer() {
-        return m_workingBuffer;
-    }
+    std::vector<ByteIndex> GetLineEnds() const { return m_lineEnds; }
 
-    std::vector<ByteIndex> GetLineEnds() const {
-        return m_lineEnds;
-    }
-
-    void SetSyntax(std::shared_ptr<ZepSyntax> syntax) {
-        m_spSyntax = std::move(syntax);
-    }
+    void SetSyntax(std::shared_ptr<ZepSyntax> syntax) { m_spSyntax = std::move(syntax); }
 
     void SetSyntaxProvider(const SyntaxProvider &provider) {
         if (provider.syntaxID != m_syntaxProvider.syntaxID) {
@@ -175,13 +164,9 @@ public:
         }
     }
 
-    ZepSyntax *GetSyntax() const {
-        return m_spSyntax.get();
-    }
+    ZepSyntax *GetSyntax() const { return m_spSyntax.get(); }
 
-    const std::string &GetName() const {
-        return m_strName;
-    }
+    const std::string &GetName() const { return m_strName; }
 
     std::string GetDisplayName() const;
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
@@ -215,13 +200,8 @@ public:
     ZepMode *GetMode() const;
     void SetMode(std::shared_ptr<ZepMode> spMode);
 
-    uint64_t GetLastUpdateTime() const {
-        return m_lastUpdateTime;
-    }
-
-    uint64_t GetUpdateCount() const {
-        return m_updateCount;
-    }
+    uint64_t GetLastUpdateTime() const { return m_lastUpdateTime; }
+    uint64_t GetUpdateCount() const { return m_updateCount; }
 
     bool IsHidden() const;
 
@@ -238,9 +218,6 @@ public:
 
     void EndFlash() const;
     void BeginFlash(float seconds, FlashType flashType, const GlyphRange &range);
-
-    uint64_t ToHandle() const;
-    static ZepBuffer *FromHandle(ZepEditor &editor, uint64_t handle);
 
     Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const std::string &)> sigPreInsert;
     Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const GlyphIterator &)> sigPreDelete;

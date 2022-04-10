@@ -339,7 +339,7 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     auto spContext = std::make_shared<CommandContext>(m_currentCommand, *this, m_currentMode);
 
     // Before handling the command, change the command text, since the command might override it
-    if (GetEditor().GetConfig().showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual)) {
+    if (GetEditor().config.showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual)) {
         GetEditor().SetCommandText(spContext->keymap.searchPath);
     }
 
@@ -593,7 +593,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         // It also only looks for a file with the same name and different extension!
         // it is good enough for my current needs...
         auto path = buffer.GetFilePath();
-        if (!path.empty() && GetEditor().GetFileSystem().Exists(path)) {
+        if (!path.empty() && GetEditor().fileSystem->Exists(path)) {
             auto ext = path.extension();
             auto searchPaths = std::vector<ZepPath>{
                 path.parent_path(),
@@ -613,9 +613,9 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 // Look for the priority folder locations
                 std::vector<ZepPath> searchFolders{path.parent_path()};
                 for (auto &priorityFolder: priorityFolders) {
-                    GetEditor().GetFileSystem().ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
+                    GetEditor().fileSystem->ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = false;
-                        if (GetEditor().GetFileSystem().IsDirectory(currentPath)) {
+                        if (GetEditor().fileSystem->IsDirectory(currentPath)) {
                             auto lower = string_tolower(currentPath.filename().string());
                             if (std::find(ignoreFolders.begin(), ignoreFolders.end(), lower) != ignoreFolders.end()) {
                                 return true;
@@ -632,7 +632,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 for (auto &folder: searchFolders) {
                     ZLOG(INFO, "Searching: " << folder.string());
 
-                    GetEditor().GetFileSystem().ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
+                    GetEditor().fileSystem->ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = true;
                         if (path.stem() == currentPath.stem() && !(currentPath.extension() == path.extension())) {
                             auto load = GetEditor().GetFileBuffer(currentPath, 0, true);
@@ -649,10 +649,10 @@ bool ZepMode::GetCommand(CommandContext &context) {
             }
         }
     } else if (mappedCommand == id_FontBigger) {
-        GetEditor().GetDisplay().Bigger();
+        GetEditor().display->Bigger();
         return true;
     } else if (mappedCommand == id_FontSmaller) {
-        GetEditor().GetDisplay().Smaller();
+        GetEditor().display->Smaller();
         return true;
     }
         // Moving between splits
@@ -1664,12 +1664,12 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 GetEditor().GetActiveTabWindow()->CloseActiveWindow();
             }
         } else if (strCommand.find(":ZConfigPath") == 0) {
-            GetEditor().SetCommandText(GetEditor().GetFileSystem().GetConfigPath().string());
+            GetEditor().SetCommandText(GetEditor().fileSystem->GetConfigPath().string());
         } else if (strCommand.find(":ZConfig") == 0) {
-            auto pBuffer = GetEditor().GetFileBuffer(GetEditor().GetFileSystem().GetConfigPath() / "zep.cfg");
+            auto pBuffer = GetEditor().GetFileBuffer(GetEditor().fileSystem->GetConfigPath() / "zep.cfg");
             GetCurrentWindow()->SetBuffer(pBuffer);
         } else if (strCommand.find(":cd") == 0) {
-            GetEditor().SetCommandText(GetEditor().GetFileSystem().GetWorkingDirectory().string());
+            GetEditor().SetCommandText(GetEditor().fileSystem->GetWorkingDirectory().string());
         } else if (strCommand.find(":ZTestFloatSlider") == 0) {
             // auto line = buffer.GetBufferLine(bufferCursor);
             auto pSlider = std::make_shared<FloatSlider>(GetEditor(), 4);
@@ -1737,7 +1737,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
                     spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::Indicator | RangeMarkerDisplayType::Background;
                     break;
-                case 3:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, GetEditor().GetTheme().GetUniqueColor(unique++));
+                case 3:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, GetEditor().theme->GetUniqueColor(unique++));
                     spMarker->SetName("Underline Marker");
                     spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
                     spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::CursorTip;
@@ -1770,20 +1770,12 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         } else if (strCommand == ":ZShowIndicators") {
             GetCurrentWindow()->ToggleFlag(WindowFlags::ShowIndicators);
         } else if (strCommand == ":ZShowInput") {
-            GetEditor().GetConfig().showNormalModeKeyStrokes = !GetEditor().GetConfig().showNormalModeKeyStrokes;
-        } else if (strCommand == ":ZThemeToggle") {
-            // An easy test command to check per-buffer theming
-            // Just gets the current theme on the buffer and makes a new
-            // one that is opposite
-            auto theme = GetCurrentWindow()->GetBuffer().GetTheme();
-            auto spNewTheme = std::make_shared<ZepTheme>();
-            spNewTheme->SetThemeType(theme.GetThemeType() == ThemeType::Dark ? ThemeType::Light : ThemeType::Dark);
-            GetCurrentWindow()->GetBuffer().SetTheme(spNewTheme);
+            GetEditor().config.showNormalModeKeyStrokes = !GetEditor().config.showNormalModeKeyStrokes;
         } else if (strCommand == ":ls") {
             std::ostringstream str;
             str << "--- buffers ---" << '\n';
             int index = 0;
-            for (auto &editor_buffer: GetEditor().GetBuffers()) {
+            for (auto &editor_buffer: GetEditor().buffers) {
                 if (!editor_buffer->GetName().empty()) {
                     std::string displayText = editor_buffer->GetName();
                     displayText = string_replace(displayText, "\n", "^J");
@@ -1801,7 +1793,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 try {
                     auto index = std::stoi(strTok[1]);
                     auto current = 0;
-                    for (auto &editor_buffer: GetEditor().GetBuffers()) {
+                    for (auto &editor_buffer: GetEditor().buffers) {
                         if (index == current) {
                             GetCurrentWindow()->SetBuffer(editor_buffer.get());
                         }

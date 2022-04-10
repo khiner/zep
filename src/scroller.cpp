@@ -20,12 +20,12 @@ Scroller::Scroller(ZepEditor &editor, Region &parent)
     m_mainRegion->flags = RegionFlags::Expanding;
     m_region->layoutType = RegionLayoutType::VBox;
 
-    const float scrollButtonMargin = 3.0f * editor.GetDisplay().GetPixelScale().x;
+    const float scrollButtonMargin = 3.0f * editor.display->GetPixelScale().x;
     m_topButtonRegion->padding = NVec2f(scrollButtonMargin, scrollButtonMargin);
     m_bottomButtonRegion->padding = NVec2f(scrollButtonMargin, scrollButtonMargin);
     m_mainRegion->padding = NVec2f(scrollButtonMargin, 0.0f);
 
-    const float scrollButtonSize = 16.0f * editor.GetDisplay().GetPixelScale().x;
+    const float scrollButtonSize = 16.0f * editor.display->GetPixelScale().x;
     m_topButtonRegion->fixed_size = NVec2f(0.0f, scrollButtonSize);
     m_bottomButtonRegion->fixed_size = NVec2f(0.0f, scrollButtonSize);
 
@@ -153,24 +153,24 @@ void Scroller::Notify(const std::shared_ptr<ZepMessage> &message) {
 }
 
 void Scroller::Display(ZepTheme &theme) {
-    auto &display = GetEditor().GetDisplay();
-    display.SetClipRect(m_region->rect);
+    auto *display = GetEditor().display;
+    display->SetClipRect(m_region->rect);
 
     auto mousePos = GetEditor().GetMousePos();
     auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
     auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
 
     // Scroller background
-    display.DrawRectFilled(m_region->rect, theme.GetColor(ThemeColor::WidgetBackground));
+    display->DrawRectFilled(m_region->rect, theme.GetColor(ThemeColor::WidgetBackground));
 
     bool onTop = (m_topButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag) || m_scrollState == ScrollState::ScrollUp;
     bool onBottom = (m_bottomButtonRegion->rect.Contains(mousePos) && m_scrollState != ScrollState::Drag) || m_scrollState == ScrollState::ScrollDown;
 
-    display.DrawRectFilled(m_topButtonRegion->rect, onTop ? activeColor : inactiveColor);
-    display.DrawRectFilled(m_bottomButtonRegion->rect, onBottom ? activeColor : inactiveColor);
+    display->DrawRectFilled(m_topButtonRegion->rect, onTop ? activeColor : inactiveColor);
+    display->DrawRectFilled(m_bottomButtonRegion->rect, onBottom ? activeColor : inactiveColor);
 
     auto thumbRect = ThumbRect();
-    display.DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || m_scrollState == ScrollState::Drag ? activeColor : inactiveColor);
+    display->DrawRectFilled(thumbRect, thumbRect.Contains(mousePos) || m_scrollState == ScrollState::Drag ? activeColor : inactiveColor);
 }
 
 }; // namespace Zep

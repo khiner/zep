@@ -72,7 +72,7 @@ void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const Glyp
 
     // Have the thread update the syntax in the new region
     // If the pool has no threads, this will end up serial
-    //m_syntaxResult = GetEditor().GetThreadPool().enqueue([=]() {
+    //m_syntaxResult = GetEditor().threadPool->enqueue([=]() {
     UpdateSyntax();
     //});
 }

@@ -49,7 +49,7 @@ Indexer::Indexer(ZepEditor &editor)
 void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector<std::string> &ignore_patterns, std::vector<std::string> &include_patterns, std::string &errors) {
     ZepPath config = path / ".zep" / "project.cfg";
 
-    if (editor.GetFileSystem().Exists(config)) {
+    if (editor.fileSystem->Exists(config)) {
         try {
             auto spConfig = cpptoml::parse_file(config.string());
             if (spConfig != nullptr) {
@@ -103,19 +103,19 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
         return make_ready_future(spResult);
     }
 
-    auto pFileSystem = &editor.GetFileSystem();
-    return editor.GetThreadPool().enqueue([=](ZepPath root) {
+    auto *fileSystem = editor.fileSystem;
+    return editor.threadPool->enqueue([=](ZepPath root) {
             spResult->root = root;
 
             try {
                 // Index the whole subtree, ignoring any patterns supplied to us
-                pFileSystem->ScanDirectory(root, [&](const ZepPath &p, bool &recurse) -> bool {
+                fileSystem->ScanDirectory(root, [&](const ZepPath &p, bool &recurse) -> bool {
                     recurse = true;
 
-                    auto bDir = pFileSystem->IsDirectory(p);
+                    auto bDir = fileSystem->IsDirectory(p);
 
                     // Add this one to our list
-                    auto targetZep = pFileSystem->Canonical(p);
+                    auto targetZep = fileSystem->Canonical(p);
                     auto rel = path_get_relative(root, targetZep);
 
                     bool matched = true;
@@ -151,9 +151,8 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
 
                     return true;
                 });
-            }
-            catch (std::exception &) {
-            }
+            } catch (std::exception &) {}
+
             return spResult;
         },
         startPath);
@@ -172,42 +171,37 @@ void Indexer::Notify(const std::shared_ptr<ZepMessage> &message) {
                 return;
             }
 
-            // Queue the files to be searched
             {
+                // Queue the files to be searched
                 std::lock_guard<std::mutex> guard(m_queueMutex);
                 for (auto &p: m_spFilePaths->paths) {
                     m_searchQueue.push_back(p);
                 }
             }
 
-            // Kick off the thread
-            StartSymbolSearch();
+            StartSymbolSearch(); // Kick off the thread
         }
     }
 }
 
 void Indexer::StartSymbolSearch() {
-    GetEditor().GetThreadPool().enqueue([=]() {
+    GetEditor().threadPool->enqueue([=]() {
         for (;;) {
             ZepPath path;
             {
                 std::lock_guard<std::mutex> lock(m_queueMutex);
-                if (m_searchQueue.empty()) {
-                    return true;
-                }
+                if (m_searchQueue.empty()) return true;
 
                 path = m_searchQueue.front();
                 m_searchQueue.pop_front();
             }
 
-            auto &fs = GetEditor().GetFileSystem();
-
+            auto *fs = GetEditor().fileSystem;
             std::string strLast;
-
             auto fullPath = m_searchRoot / path;
-            if (fs.Exists(fullPath)) {
+            if (fs->Exists(fullPath)) {
                 ZLOG(DBG, "Parsing: " << fullPath.c_str());
-                auto strFile = GetEditor().GetFileSystem().Read(fullPath);
+                auto strFile = GetEditor().fileSystem->Read(fullPath);
 
                 std::vector<std::string> tokens;
                 string_split(strFile, ";()[] \t\n\r&!\"\'*:,<>", tokens);
@@ -218,24 +212,23 @@ void Indexer::StartSymbolSearch() {
 
 bool Indexer::StartIndexing() {
     bool foundGit = false;
-    m_searchRoot = GetEditor().GetFileSystem().GetSearchRoot(GetEditor().GetFileSystem().GetWorkingDirectory(), foundGit);
+    m_searchRoot = GetEditor().fileSystem->GetSearchRoot(GetEditor().fileSystem->GetWorkingDirectory(), foundGit);
     if (!foundGit) {
         ZLOG(INFO, "Not a git project");
         return false;
     }
 
-    auto &fs = GetEditor().GetFileSystem();
-
+    auto *fs = GetEditor().fileSystem;
     auto indexDBRoot = m_searchRoot / ".zep";
-    if (!fs.IsDirectory(indexDBRoot)) {
-        if (!fs.MakeDirectories(indexDBRoot)) {
+    if (!fs->IsDirectory(indexDBRoot)) {
+        if (!fs->MakeDirectories(indexDBRoot)) {
             ZLOG(ERROR, "Can't get the index folder");
             return false;
         }
     }
 
     int v = 0;
-    fs.Write(indexDBRoot / "indexdb", &v, 1);
+    fs->Write(indexDBRoot / "indexdb", &v, 1);
 
     m_fileSearchActive = true;
     m_indexResult = Indexer::IndexPaths(GetEditor(), m_searchRoot);

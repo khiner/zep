@@ -94,17 +94,9 @@ enum class Msg {
 struct IZepComponent;
 class ZepMessage {
 public:
-    explicit ZepMessage(Msg id, std::string strIn = std::string())
-        : messageId(id), str(std::move(strIn)) {
-    }
-
-    ZepMessage(Msg id, const NVec2f &p, ZepMouseButton b = ZepMouseButton::Unknown)
-        : messageId(id), pos(p), button(b) {
-    }
-
-    ZepMessage(Msg id, IZepComponent *pComp)
-        : messageId(id), pComponent(pComp) {
-    }
+    explicit ZepMessage(Msg id, std::string strIn = std::string()) : messageId(id), str(std::move(strIn)) {}
+    ZepMessage(Msg id, const NVec2f &p, ZepMouseButton b = ZepMouseButton::Unknown) : messageId(id), pos(p), button(b) {}
+    ZepMessage(Msg id, IZepComponent *pComp) : messageId(id), pComponent(pComp) {}
 
     Msg messageId; // Message ID
     std::string str;       // Generic string for simple messages
@@ -142,7 +134,6 @@ struct Register {
 };
 
 using tRegisters = std::map<std::string, Register>;
-using tBuffers = std::deque<std::shared_ptr<ZepBuffer>>;
 using tSyntaxFactory = std::function<std::shared_ptr<ZepSyntax>(ZepBuffer *)>;
 
 struct SyntaxProvider {
@@ -155,10 +146,10 @@ const float textBorder = 2.0f;
 const float tabSpacing = 1.0f;
 const float leftBorderChars = 3;
 
-#define DPI_VEC2(value) ((value) * GetEditor().GetDisplay().GetPixelScale())
-#define DPI_Y(value) (GetEditor().GetDisplay().GetPixelScale().y * (value))
-#define DPI_X(value) (GetEditor().GetDisplay().GetPixelScale().x * (value))
-#define DPI_RECT(value) ((value) * GetEditor().GetDisplay().GetPixelScale())
+#define DPI_VEC2(value) ((value) * GetEditor().display->GetPixelScale())
+#define DPI_Y(value) (GetEditor().display->GetPixelScale().y * (value))
+#define DPI_X(value) (GetEditor().display->GetPixelScale().x * (value))
+#define DPI_RECT(value) ((value) * GetEditor().display->GetPixelScale())
 
 enum class EditorStyle { Normal = 0, Minimal };
 
@@ -229,7 +220,6 @@ public:
     void RegisterCallback(IZepComponent *pClient) { m_notifyClients.insert(pClient); }
     void UnRegisterCallback(IZepComponent *pClient) { m_notifyClients.erase(pClient); }
 
-    const tBuffers &GetBuffers() const;
     ZepBuffer *GetMRUBuffer() const;
     void SaveBuffer(ZepBuffer &buffer);
     ZepBuffer *GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags = 0, bool create = true);
@@ -284,10 +274,6 @@ public:
     void SetDisplayRegion(const NVec2f &topLeft, const NVec2f &bottomRight);
     void UpdateSize();
 
-    ZepDisplay &GetDisplay() const { return *m_pDisplay; }
-    IZepFileSystem &GetFileSystem() const { return *m_pFileSystem; }
-    ZepTheme &GetTheme() const;
-
     bool OnMouseMove(const NVec2f &mousePos);
     bool OnMouseDown(const NVec2f &mousePos, ZepMouseButton button);
     bool OnMouseUp(const NVec2f &mousePos, ZepMouseButton button);
@@ -296,12 +282,17 @@ public:
     void SetBufferSyntax(ZepBuffer &buffer) const;
     void SetBufferMode(ZepBuffer &buffer) const;
 
-    EditorConfig &GetConfig() { return m_config; }
     ZepEditor &GetEditor() { return *this; } // Helper for macros
-    ThreadPool &GetThreadPool() const;
 
     // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
     virtual void OnFileChanged(const ZepPath &path);
+
+    ZepDisplay *display;
+    std::deque<std::shared_ptr<ZepBuffer>> buffers; // May or may not be visible
+    std::shared_ptr<ZepTheme> theme;
+    EditorConfig config;
+    IZepFileSystem *fileSystem;
+    std::unique_ptr<ThreadPool> threadPool;
 
 private:
     // Call GetBuffer publicly, to stop creation of duplicate buffers referring to the same file
@@ -314,11 +305,8 @@ private:
     ZepTabWindow *EnsureTab();
 
 private:
-    ZepDisplay *m_pDisplay;
-    IZepFileSystem *m_pFileSystem;
     std::set<IZepComponent *> m_notifyClients;
     mutable tRegisters m_registers;
-    std::shared_ptr<ZepTheme> m_spTheme;
     std::map<std::string, SyntaxProvider> m_mapSyntax;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
@@ -328,7 +316,6 @@ private:
     ZepMode *m_pCurrentMode = nullptr;
     tTabWindows m_tabWindows;
     ZepTabWindow *m_pActiveTabWindow = nullptr;
-    tBuffers m_buffers; // May or may not be visible
     uint32_t m_flags = 0;
     mutable std::atomic_bool m_bPendingRefresh = true;
     mutable bool m_lastCursorBlink = false;
@@ -337,8 +324,6 @@ private:
     bool m_bRegionsChanged = false;
     float m_tabOffsetX = 0.0f;
     NVec2f m_mousePos = NVec2f(0.0f);
-    EditorConfig m_config;
-    std::unique_ptr<ThreadPool> m_threadPool;
     std::shared_ptr<Indexer> m_indexer; // Define `IMPLEMENTED_INDEXER` to initialize
 };
 

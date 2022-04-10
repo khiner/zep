@@ -216,7 +216,7 @@ void ZepMode_Search::UpdateTree() {
         char startChar = m_searchTerm[m_indexTree.size() - 1];
 
         // Search for a match at the next level of the search tree
-        m_searchResult = GetEditor().GetThreadPool().enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
+        m_searchResult = GetEditor().threadPool->enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
                 auto spResult = std::make_shared<IndexSet>();
                 for (auto &searchPair: spStartSet->indices) {
                     auto index = searchPair.second.index;

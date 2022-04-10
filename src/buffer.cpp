@@ -46,11 +46,8 @@ inline bool IsSpaceOrTerminal(const char c) {
     return ch == ' ' || ch == 0 || ch == '\n';
 }
 
-using fnMatch = std::function<bool>(const char);
-
 } // namespace
-ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName)
-    : ZepComponent(editor), m_strName(std::move(strName)) {
+ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName) : ZepComponent(editor), m_strName(std::move(strName)) {
     Clear();
 }
 
@@ -129,14 +126,12 @@ bool ZepBuffer::SkipOne(const fnMatch &IsToken, GlyphIterator &start, Direction 
 }
 
 bool ZepBuffer::SkipNot(const fnMatch &IsToken, GlyphIterator &start, Direction dir) const {
-    if (!start.Valid())
-        return false;
+    if (!start.Valid()) return false;
 
     bool found = false;
     while (!IsToken(start.Char())) {
         found = true;
-        if (!Move(start, dir))
-            break;
+        if (!Move(start, dir)) break;
     }
     return found;
 }
@@ -524,9 +519,9 @@ void ZepBuffer::Load(const ZepPath &path) {
     // TODO: I believe that some of this buffer config should move to Editor.cpp
     GetEditor().SetBufferSyntax(*this);
 
-    if (GetEditor().GetFileSystem().Exists(path)) {
-        m_filePath = GetEditor().GetFileSystem().Canonical(path);
-        auto read = GetEditor().GetFileSystem().Read(path);
+    if (GetEditor().fileSystem->Exists(path)) {
+        m_filePath = GetEditor().fileSystem->Canonical(path);
+        auto read = GetEditor().fileSystem->Read(path);
 
         // Always set text, to ensure we prepare the buffer with 0 terminator,
         // even if string is empty
@@ -560,7 +555,7 @@ bool ZepBuffer::Save(int64_t &size) {
 
     if (size <= 0) return true;
 
-    if (GetEditor().GetFileSystem().Write(m_filePath, &str[0], (size_t) size)) {
+    if (GetEditor().fileSystem->Write(m_filePath, &str[0], (size_t) size)) {
         m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
         return true;
     }
@@ -576,11 +571,11 @@ ZepPath ZepBuffer::GetFilePath() const { return m_filePath; }
 
 void ZepBuffer::SetFilePath(const ZepPath &path) {
     auto testPath = path;
-    if (GetEditor().GetFileSystem().Exists(testPath)) {
-        testPath = GetEditor().GetFileSystem().Canonical(testPath);
+    if (GetEditor().fileSystem->Exists(testPath)) {
+        testPath = GetEditor().fileSystem->Canonical(testPath);
     }
 
-    if (!GetEditor().GetFileSystem().Equivalent(testPath, m_filePath)) {
+    if (!GetEditor().fileSystem->Equivalent(testPath, m_filePath)) {
         m_filePath = testPath;
     }
     GetEditor().SetBufferSyntax(*this);
@@ -939,29 +934,16 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
     return true;
 }
 
-ZepTheme &ZepBuffer::GetTheme() const {
-    if (m_spOverrideTheme) {
-        return *m_spOverrideTheme;
-    }
-    return GetEditor().GetTheme();
-}
+ZepTheme &ZepBuffer::GetTheme() const { return *GetEditor().theme; }
 
-void ZepBuffer::SetTheme(std::shared_ptr<ZepTheme> spTheme) {
-    m_spOverrideTheme = std::move(spTheme);
-}
-
-bool ZepBuffer::HasSelection() const {
-    return m_selection.first != m_selection.second;
-}
+bool ZepBuffer::HasSelection() const { return m_selection.first != m_selection.second; }
 
 void ZepBuffer::ClearSelection() {
     m_selection.first = Begin();
     m_selection.second = Begin();
 }
 
-GlyphRange ZepBuffer::GetInclusiveSelection() const {
-    return m_selection;
-}
+GlyphRange ZepBuffer::GetInclusiveSelection() const { return m_selection; }
 
 void ZepBuffer::SetSelection(const GlyphRange &selection) {
     m_selection = selection;
