@@ -102,7 +102,7 @@ ZepWindow *ZepTabWindow::DoMotion(WindowMotion motion) {
 void ZepTabWindow::SetActiveWindow(ZepWindow *pBuffer) {
     m_pActiveWindow = pBuffer;
     if (m_pActiveWindow) {
-        m_pActiveWindow->GetBuffer().GetMode()->Begin(m_pActiveWindow);
+        m_pActiveWindow->buffer->GetMode()->Begin(m_pActiveWindow);
     }
     editor.UpdateTabs();
 }
@@ -117,9 +117,9 @@ ZepWindow *ZepTabWindow::AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent, Regio
     // If we are replacing a default/unmodified start buffer, then this new window will replace it
     // This makes for nice behavior where adding a top-level window to the tab will nuke the default buffer
     if (m_windows.size() == 1 && pParent == nullptr) {
-        auto &buffer = m_windows[0]->GetBuffer();
-        if (buffer.HasFileFlags(FileFlags::DefaultBuffer) &&
-            !buffer.HasFileFlags(FileFlags::Dirty)) {
+        auto *buffer = m_windows[0]->buffer;
+        if (buffer->HasFileFlags(FileFlags::DefaultBuffer) &&
+            !buffer->HasFileFlags(FileFlags::Dirty)) {
             m_windows[0]->SetBuffer(pBuffer);
             return m_windows[0];
         }
@@ -132,7 +132,7 @@ ZepWindow *ZepTabWindow::AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent, Regio
     // This new window is going to introduce a new region
     auto r = std::make_shared<Region>();
     r->flags = RegionFlags::Expanding;
-    r->name = pBuffer->GetName();
+    r->name = pBuffer->name;
 
     SetActiveWindow(pWin);
 
@@ -219,8 +219,8 @@ ZepWindow *ZepTabWindow::AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent, Regio
 
 void ZepTabWindow::CloseActiveWindow() {
     if (m_pActiveWindow) {
-        if (m_pActiveWindow->GetBuffer().GetMode()) {
-            m_pActiveWindow->GetBuffer().GetMode()->Begin(nullptr);
+        if (m_pActiveWindow->buffer->GetMode()) {
+            m_pActiveWindow->buffer->GetMode()->Begin(nullptr);
         }
 
         // Note: cannot do anything after this call if this is the last window to close!

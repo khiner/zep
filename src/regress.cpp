@@ -67,12 +67,12 @@ void ZepRegressExCommand::Tick() {
     float fRand2 = rand() / (float) RAND_MAX;
     float fRand3 = rand() / (float) RAND_MAX;
 
-    auto &tabWindows = editor.GetTabWindows();
-    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+    const auto &tabWindows = editor.tabWindows;
+    auto *buffer = editor.activeTabWindow->GetActiveWindow()->buffer;
 
     if (fRand3 > .5f && tabWindows.size() < MaxTabWindows) {
         auto pNewTab = editor.AddTabWindow();
-        pNewTab->AddWindow(&buffer, nullptr, RegionLayoutType::HBox);
+        pNewTab->AddWindow(buffer, nullptr, RegionLayoutType::HBox);
         editor.SetCurrentTabWindow(pNewTab);
     } else {
         if (tabWindows.size() > 1) {
@@ -80,14 +80,14 @@ void ZepRegressExCommand::Tick() {
         }
     }
 
-    auto pTab = editor.GetActiveTabWindow();
+    auto pTab = editor.activeTabWindow;
     auto &windows = pTab->GetWindows();
     auto pActiveWindow = pTab->GetActiveWindow();
 
     if (fRand1 > .5f && windows.size() > 1) {
         pTab->RemoveWindow(*select_randomly(windows.begin(), windows.end()));
     } else if (windows.size() < 10) {
-        pTab->AddWindow(&pActiveWindow->GetBuffer(), *select_randomly(windows.begin(), windows.end()), fRand2 > .5f ? RegionLayoutType::HBox : RegionLayoutType::VBox);
+        pTab->AddWindow(pActiveWindow->buffer, *select_randomly(windows.begin(), windows.end()), fRand2 > .5f ? RegionLayoutType::HBox : RegionLayoutType::VBox);
     }
     editor.RequestRefresh();
 }

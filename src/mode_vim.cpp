@@ -187,7 +187,7 @@ void ZepMode_Vim::PreDisplay(ZepWindow &window) {
         m_currentMode == EditorMode::Insert &&
         m_currentCommand == "j") {
         auto cmd = std::make_shared<ZepCommand_Insert>(
-            window.GetBuffer(),
+            *window.buffer,
             window.GetBufferCursor(),
             m_currentCommand);
         AddCommand(cmd);

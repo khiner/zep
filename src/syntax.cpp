@@ -15,7 +15,7 @@ ZepSyntax::ZepSyntax(ZepBuffer &buffer,
                      std::unordered_set<std::string> identifiers,
                      uint32_t flags) : ZepComponent(buffer.editor),
                                        m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_flags(flags) {
-    m_syntax.resize(m_buffer.GetWorkingBuffer().size());
+    m_syntax.resize(m_buffer.workingBuffer.size());
     m_adornments.push_back(std::make_shared<ZepSyntaxAdorn_RainbowBrackets>(*this, m_buffer));
 }
 
@@ -70,10 +70,10 @@ void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const Glyp
     // Make sure the syntax buffer is big enough - adding normal syntax to the end
     // This may also 'chop'
     // TODO: Unicode? I _think_ this may be OK, but need to revisit
-    m_syntax.resize(m_buffer.GetWorkingBuffer().size(), SyntaxData{});
+    m_syntax.resize(m_buffer.workingBuffer.size(), SyntaxData{});
 
-    m_processedChar = std::min(long(m_processedChar), long(m_buffer.GetWorkingBuffer().size() - 1));
-    m_targetChar = std::min(long(m_targetChar), long(m_buffer.GetWorkingBuffer().size() - 1));
+    m_processedChar = std::min(long(m_processedChar), long(m_buffer.workingBuffer.size() - 1));
+    m_targetChar = std::min(long(m_targetChar), long(m_buffer.workingBuffer.size() - 1));
 
     // Have the thread update the syntax in the new region
     // If the pool has no threads, this will end up serial
@@ -107,7 +107,7 @@ void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
 
 // TODO: Multiline comments
 void ZepSyntax::UpdateSyntax() {
-    auto &buffer = m_buffer.GetWorkingBuffer();
+    const auto &buffer = m_buffer.workingBuffer;
     auto itrCurrent = buffer.begin() + m_processedChar;
     auto itrEnd = buffer.begin() + m_targetChar;
 

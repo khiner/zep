@@ -28,8 +28,8 @@ public:
 
         pBuffer = spEditor->InitWithText("Test Buffer", "");
 
-        pTabWindow = spEditor->GetActiveTabWindow();
-        pWindow = spEditor->GetActiveTabWindow()->GetActiveWindow();
+        pTabWindow = spEditor->activeTabWindow;
+        pWindow = spEditor->activeTabWindow->GetActiveWindow();
         spMode->Begin(pWindow);
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
@@ -43,7 +43,7 @@ public:
         /*pBuffer->SetText("one\n\nthree");
         spEditor->Display(*spDisplay);
         spMode->AddCommandText("jciwtwo");               
-        assert(pBuffer->GetWorkingBuffer().string() == "abc two three");
+        assert(pBuffer->workingBuffer.string() == "abc two three");
         */
     }
 
@@ -97,7 +97,7 @@ public:
     {                                                                   \
         pBuffer->SetText(source);                                       \
         spMode->AddCommandText(command);                                \
-        ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
+        ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 #define COMMAND_TEST_RET(name, source, command, target)                 \
@@ -106,7 +106,7 @@ public:
         pBuffer->SetText(source);                                       \
         spMode->AddCommandText(command);                                \
         spMode->AddKeyPress(ExtKeys::RETURN);                           \
-        ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
+        ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 TEST_F(VimTest, CheckDisplaySucceeds
@@ -157,7 +157,7 @@ spMode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -171,7 +171,7 @@ spMode->
 Redo();
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -189,7 +189,7 @@ spMode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -201,7 +201,7 @@ spMode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -226,7 +226,7 @@ spMode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -250,7 +250,7 @@ spMode->
 AddKeyPress(ExtKeys::RETURN);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -267,7 +267,7 @@ spMode->
 AddKeyPress(ExtKeys::TAB);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -286,7 +286,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -304,7 +304,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -321,7 +321,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .

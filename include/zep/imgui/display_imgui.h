@@ -102,7 +102,7 @@ public:
 
     virtual ZepFont &GetFont(ZepTextType type) override {
         if (m_fonts[(int) type] == nullptr) {
-            m_fonts[(int) type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetIO().Fonts[0].Fonts[0], int(16.0f * GetPixelScale().y));
+            m_fonts[(int) type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetIO().Fonts[0].Fonts[0], int(16.0f * pixelScale.y));
         }
         return *m_fonts[(int) type];
     }

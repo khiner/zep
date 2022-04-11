@@ -13,7 +13,7 @@ ZepSyntax_Markdown::ZepSyntax_Markdown(ZepBuffer &buffer, const std::unordered_s
 ZepSyntax_Markdown::ZepSyntax_Markdown(ZepBuffer &buffer, uint32_t flags) : ZepSyntax_Markdown(buffer, {}, {}, flags) {}
 
 void ZepSyntax_Markdown::UpdateSyntax() {
-    auto &buffer = m_buffer.GetWorkingBuffer();
+    const auto &buffer = m_buffer.workingBuffer;
     auto itrCurrent = buffer.begin();
     auto itrEnd = buffer.end();
 

@@ -7,7 +7,7 @@
 namespace Zep {
 
 void ZepFont::InvalidateCharCache() {
-    m_display.SetLayoutDirty();
+    m_display.layoutDirty = true;
     m_charCacheDirty = true;
 }
 
@@ -51,7 +51,7 @@ NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
 }
 
 ZepDisplay::ZepDisplay()
-    : m_pixelScale(Zep::NVec2f(1.0f)) {
+    : pixelScale(Zep::NVec2f(1.0f)) {
     for (auto &m_font: m_fonts) {
         m_font = nullptr;
     }
@@ -73,15 +73,9 @@ void ZepDisplay::DrawRect(const NRectf &rc, const NVec4f &col) const {
     DrawLine(rc.BottomLeft(), rc.bottomRightPx, col);
 }
 
-bool ZepDisplay::LayoutDirty() const { return m_bRebuildLayout; }
-
-void ZepDisplay::SetLayoutDirty(bool dirty) { m_bRebuildLayout = dirty; }
-
 void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont) {
     m_fonts[(int) type] = std::move(spFont);
 }
-
-const NVec2f &ZepDisplay::GetPixelScale() const { return m_pixelScale; }
 
 void ZepDisplay::Bigger() {
     for (int i = 0; i < (int) m_fonts.size(); i++) {

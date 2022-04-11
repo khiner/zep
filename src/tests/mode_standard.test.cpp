@@ -19,8 +19,8 @@ public:
         spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
         pBuffer = spEditor->InitWithText("Test Buffer", "");
 
-        pTabWindow = spEditor->GetActiveTabWindow();
-        pWindow = spEditor->GetActiveTabWindow()->GetActiveWindow();
+        pTabWindow = spEditor->activeTabWindow;
+        pWindow = spEditor->activeTabWindow->GetActiveWindow();
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
         spEditor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
@@ -134,7 +134,7 @@ empty()
     {                                                                   \
         pBuffer->SetText(source);                                       \
         PARSE_COMMAND(command)                                          \
-        ASSERT_STREQ(pBuffer->GetWorkingBuffer().string().c_str(), target); \
+        ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 #define CURSOR_TEST(name, source, command, xcoord, ycoord) \
@@ -169,7 +169,7 @@ spMode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -183,7 +183,7 @@ spMode->
 Redo();
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -216,7 +216,7 @@ spMode->AddKeyPress('c', ModifierKey::Ctrl);
 spMode->AddKeyPress('v', ModifierKey::Ctrl);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -228,7 +228,7 @@ c_str(),
 spMode->AddKeyPress('v', ModifierKey::Ctrl);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -280,7 +280,7 @@ AddKeyPress(ExtKeys::DOWN);
 spMode->AddKeyPress('o');
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -298,7 +298,7 @@ spMode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -310,7 +310,7 @@ spMode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -325,7 +325,7 @@ spMode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -336,7 +336,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -355,7 +355,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .
@@ -373,7 +373,7 @@ spMode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 string()
 .

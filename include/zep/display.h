@@ -43,7 +43,6 @@ public:
 
 protected:
     int m_pixelHeight{};
-    std::string m_filePath;
     bool m_charCacheDirty = true;
     std::unordered_map<uint32_t, NVec2f> m_charCache;
     NVec2f m_charCacheASCII[256];
@@ -67,20 +66,17 @@ public:
 
     virtual uint32_t GetCodePointCount(const uint8_t *pCh, const uint8_t *pEnd) const;
     virtual void DrawRect(const NRectf &rc, const NVec4f &col = NVec4f(1.0f)) const;
-    virtual bool LayoutDirty() const;
-    virtual void SetLayoutDirty(bool changed = true);
 
     virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
     virtual ZepFont &GetFont(ZepTextType type) = 0;
-    const NVec2f &GetPixelScale() const;
 
     void Bigger();
     void Smaller();
 
+    NVec2f pixelScale;
+    bool layoutDirty = false;
 protected:
-    bool m_bRebuildLayout = false;
     std::array<std::shared_ptr<ZepFont>, (int) ZepTextType::Count> m_fonts;
-    NVec2f m_pixelScale;
 };
 
 } // namespace Zep

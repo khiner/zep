@@ -113,56 +113,56 @@ public:
             mod |= ModifierKey::Shift;
         }
 
-        auto pWindow = GetActiveTabWindow()->GetActiveWindow();
-        const auto &buffer = pWindow->GetBuffer();
+        auto pWindow = activeTabWindow->GetActiveWindow();
+        const auto *buffer = pWindow->buffer;
 
         // Check USB Keys
         for (auto &usbKey: MapUSBKeys) {
             if (ImGui::IsKeyPressed(usbKey.first)) {
-                buffer.GetMode()->AddKeyPress(usbKey.second, mod);
+                buffer->GetMode()->AddKeyPress(usbKey.second, mod);
                 return;
             }
         }
 
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::TAB, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::TAB, mod);
             return;
         }
         if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::ESCAPE, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::ESCAPE, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::RETURN, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::RETURN, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::DEL, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::DEL, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Home))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::HOME, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::HOME, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_End))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::END, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::END, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::BACKSPACE, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::BACKSPACE, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::RIGHT, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::RIGHT, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::LEFT, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::LEFT, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::UP, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::UP, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::DOWN, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::DOWN, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::PAGEDOWN, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::PAGEDOWN, mod);
             return;
         } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp))) {
-            buffer.GetMode()->AddKeyPress(ExtKeys::PAGEUP, mod);
+            buffer->GetMode()->AddKeyPress(ExtKeys::PAGEUP, mod);
             return;
         } else if (io.KeyCtrl) {
             // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
@@ -178,13 +178,13 @@ public:
             } else {
                 for (int ch = ZEP_KEY_A; ch <= ZEP_KEY_Z; ch++) {
                     if (ImGui::IsKeyPressed(ch)) {
-                        buffer.GetMode()->AddKeyPress((ch - ZEP_KEY_A) + 'a', mod);
+                        buffer->GetMode()->AddKeyPress((ch - ZEP_KEY_A) + 'a', mod);
                         handled = true;
                     }
                 }
 
                 if (ImGui::IsKeyPressed(ZEP_KEY_SPACE)) {
-                    buffer.GetMode()->AddKeyPress(' ', mod);
+                    buffer->GetMode()->AddKeyPress(' ', mod);
                     handled = true;
                 }
             }
@@ -205,14 +205,14 @@ public:
                 {
                     if (ImGui::IsKeyPressed(ch))
                     {
-                        buffer.GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
+                        buffer->GetMode()->AddKeyPress(ch - 'A' + 'a', mod);
                         handled = true;
                     }
                 }
 
                 if (ImGui::IsKeyPressed(ZEP_KEY_SPACE))
                 {
-                    buffer.GetMode()->AddKeyPress(' ', mod);
+                    buffer->GetMode()->AddKeyPress(' ', mod);
                     handled = true;
                 }
             }
@@ -225,7 +225,7 @@ public:
                 if (io.InputQueueCharacters[n] == '\r')
                     continue;
 
-                buffer.GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
+                buffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
             }
         }
     }

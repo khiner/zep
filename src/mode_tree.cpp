@@ -6,8 +6,8 @@ ZepTreeNode::ZepTreeNode(std::string strName, uint32_t flags) : m_strName(std::m
 
 ZepFileTree::ZepFileTree() {
     // Root node is 'invisible' and always expanded
-    m_spRoot = std::make_shared<ZepFileNode>("Root");
-    m_spRoot->Expand(true);
+    root = std::make_shared<ZepFileNode>("Root");
+    root->Expand(true);
 }
 
 ZepMode_Tree::ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &window)
@@ -18,7 +18,7 @@ ZepMode_Tree::~ZepMode_Tree() = default;
 void ZepMode_Tree::Notify(const std::shared_ptr<ZepMessage> &message) {}
 
 void ZepMode_Tree::BuildTree() {
-    auto &buffer = m_window.GetBuffer();
+    auto *buffer = m_window.buffer;
 
     std::ostringstream strBuffer;
     std::function<void(ZepTreeNode *, uint32_t indent)> fnVisit;
@@ -36,15 +36,15 @@ void ZepMode_Tree::BuildTree() {
         }
     };
 
-    if (m_spTree->GetRoot()->IsExpanded()) {
-        for (const auto &pChild: m_spTree->GetRoot()->GetChildren()) {
+    if (m_spTree->root->IsExpanded()) {
+        for (const auto &pChild: m_spTree->root->GetChildren()) {
             fnVisit(pChild.get(), 0);
         }
     }
 
     ChangeRecord tempRecord;
-    buffer.Clear();
-    buffer.Insert(buffer.Begin(), strBuffer.str(), tempRecord);
+    buffer->Clear();
+    buffer->Insert(buffer->Begin(), strBuffer.str(), tempRecord);
 }
 
 void ZepMode_Tree::Begin(ZepWindow *pWindow) {

@@ -47,7 +47,7 @@ inline bool IsSpaceOrTerminal(const char c) {
 }
 
 } // namespace
-ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName) : ZepComponent(editor), m_strName(std::move(strName)) {
+ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName) : ZepComponent(editor), name(std::move(strName)) {
     Clear();
 }
 
@@ -67,12 +67,12 @@ long ZepBuffer::GetBufferColumn(const GlyphIterator &location) const {
 
 // Find the location inside the list of line ends
 long ZepBuffer::GetBufferLine(const GlyphIterator &location) const {
-    auto itrLine = std::lower_bound(m_lineEnds.begin(), m_lineEnds.end(), location.Index());
-    if (itrLine != m_lineEnds.end() && location.Index() >= *itrLine) {
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), location.Index());
+    if (itrLine != lineEnds.end() && location.Index() >= *itrLine) {
         itrLine++;
     }
-    long line = long(itrLine - m_lineEnds.begin());
-    line = std::min(std::max(0l, line), long(m_lineEnds.size() - 1));
+    long line = long(itrLine - lineEnds.begin());
+    line = std::min(std::max(0l, line), long(lineEnds.size() - 1));
     return line;
 }
 
@@ -483,27 +483,26 @@ GlyphIterator ZepBuffer::ClampToVisibleLine(GlyphIterator in) const {
 // Method for querying the beginning and end of a line
 bool ZepBuffer::GetLineOffsets(const long line, ByteRange &range) const {
     // Not valid
-    if ((long) m_lineEnds.size() <= line) {
+    if ((long) lineEnds.size() <= line) {
         range.first = 0;
         range.second = 0;
         return false;
     }
 
     // Find the line bounds - we know the end, find the start from the previous
-    range.second = m_lineEnds[line];
-    range.first = line == 0 ? 0 : m_lineEnds[line - 1];
+    range.second = lineEnds[line];
+    range.first = line == 0 ? 0 : lineEnds[line - 1];
     return true;
 }
 
 std::string ZepBuffer::GetFileExtension() const {
     std::string ext;
-    if (GetFilePath().has_filename() && GetFilePath().filename().has_extension()) {
-        ext = string_tolower(GetFilePath().filename().extension().string());
+    if (filePath.has_filename() && filePath.filename().has_extension()) {
+        ext = string_tolower(filePath.filename().extension().string());
     } else {
-        auto str = GetName();
-        size_t dot_pos = str.find_last_of('.');
+        size_t dot_pos = name.find_last_of('.');
         if (dot_pos != std::string::npos) {
-            ext = string_tolower(str.substr(dot_pos, str.length() - dot_pos));
+            ext = string_tolower(name.substr(dot_pos, name.length() - dot_pos));
         }
     }
     return ext;
@@ -513,14 +512,14 @@ std::string ZepBuffer::GetFileExtension() const {
 // the file path in case you want to write later
 void ZepBuffer::Load(const ZepPath &path) {
     // Set the name from the path
-    m_strName = path.has_filename() ? path.filename().string() : m_filePath.string();
+    name = path.has_filename() ? path.filename().string() : filePath.string();
 
     // Must set the syntax before the first buffer change messages
     // TODO: I believe that some of this buffer config should move to Editor.cpp
     editor.SetBufferSyntax(*this);
 
     if (editor.fileSystem->Exists(path)) {
-        m_filePath = editor.fileSystem->Canonical(path);
+        filePath = editor.fileSystem->Canonical(path);
         auto read = editor.fileSystem->Read(path);
 
         // Always set text, to ensure we prepare the buffer with 0 terminator,
@@ -530,14 +529,14 @@ void ZepBuffer::Load(const ZepPath &path) {
         // Can't canonicalize a non-existent path.
         // But we may have a path we haven't save to yet!
         Clear();
-        m_filePath = path;
+        filePath = path;
     }
 }
 
 bool ZepBuffer::Save(int64_t &size) {
-    if (ZTestFlags(m_fileFlags, FileFlags::Locked) || ZTestFlags(m_fileFlags, FileFlags::ReadOnly)) return false;
+    if ((m_fileFlags & FileFlags::Locked) || (m_fileFlags & FileFlags::ReadOnly)) return false;
 
-    auto str = GetWorkingBuffer().string();
+    auto str = workingBuffer.string();
 
     // Put back /r/n if necessary while writing the file
     // At the moment, Zep removes /r/n and just uses /n while modifying text.
@@ -555,7 +554,7 @@ bool ZepBuffer::Save(int64_t &size) {
 
     if (size <= 0) return true;
 
-    if (editor.fileSystem->Write(m_filePath, &str[0], (size_t) size)) {
+    if (editor.fileSystem->Write(filePath, &str[0], (size_t) size)) {
         m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
         return true;
     }
@@ -564,19 +563,16 @@ bool ZepBuffer::Save(int64_t &size) {
 }
 
 std::string ZepBuffer::GetDisplayName() const {
-    return m_filePath.empty() ? m_strName : m_filePath.string();
+    return filePath.empty() ? name : filePath.string();
 }
-
-ZepPath ZepBuffer::GetFilePath() const { return m_filePath; }
 
 void ZepBuffer::SetFilePath(const ZepPath &path) {
     auto testPath = path;
     if (editor.fileSystem->Exists(testPath)) {
         testPath = editor.fileSystem->Canonical(testPath);
     }
-
-    if (!editor.fileSystem->Equivalent(testPath, m_filePath)) {
-        m_filePath = testPath;
+    if (!editor.fileSystem->Equivalent(testPath, filePath)) {
+        filePath = testPath;
     }
     editor.SetBufferSyntax(*this);
 }
@@ -584,8 +580,8 @@ void ZepBuffer::SetFilePath(const ZepPath &path) {
 // Remember that we updated the buffer and dirty the state
 // Clients can use these values to figure out update times and dirty state
 void ZepBuffer::MarkUpdate() {
-    m_updateCount++;
-    m_lastUpdateTime = timer_get_time_now();
+    updateCount++;
+    lastUpdateTime = timer_get_time_now();
     m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::Dirty);
 }
 
@@ -593,23 +589,23 @@ void ZepBuffer::MarkUpdate() {
 // Otherwise it is just reset to default state.  A new buffer is always initially cleared.
 void ZepBuffer::Clear() {
     // A buffer that is empty is brand new; just make it 0 chars and return
-    if (m_workingBuffer.size() <= 1) {
-        m_workingBuffer.clear();
-        m_workingBuffer.push_back(0);
-        m_lineEnds.clear();
+    if (workingBuffer.size() <= 1) {
+        workingBuffer.clear();
+        workingBuffer.push_back(0);
+        lineEnds.clear();
         m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
-        m_lineEnds.push_back(End().Index() + 1);
+        lineEnds.push_back(End().Index() + 1);
         return;
     }
 
     // Inform clients we are about to change the buffer
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, GlyphIterator(this), End()));
 
-    m_workingBuffer.clear();
-    m_workingBuffer.push_back(0);
-    m_lineEnds.clear();
+    workingBuffer.clear();
+    workingBuffer.push_back(0);
+    lineEnds.clear();
     m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
-    m_lineEnds.push_back(End().Index() + 1);
+    lineEnds.push_back(End().Index() + 1);
 
     {
         MarkUpdate();
@@ -628,7 +624,7 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
         // We build the buffer in a separate array and assign it.  Much faster.
         std::vector<uint8_t> input;
 
-        m_lineEnds.clear();
+        lineEnds.clear();
 
         // Update the gap buffer with the text
         // We remove \r, we only care about \n
@@ -638,7 +634,7 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
             } else {
                 input.push_back(ch);
                 if (ch == '\n') {
-                    m_lineEnds.push_back(ByteIndex(input.size()));
+                    lineEnds.push_back(ByteIndex(input.size()));
                     lastWasSpace = false;
                 } else if (ch == '\t') {
                     m_fileFlags |= FileFlags::HasTabs;
@@ -651,7 +647,7 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
                 }
             }
         }
-        m_workingBuffer.assign(input.begin(), input.end());
+        workingBuffer.assign(input.begin(), input.end());
     }
 
     // If file is only tabs, then force tab mode
@@ -659,15 +655,15 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
         m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::InsertTabs);
     }
 
-    if (m_workingBuffer[m_workingBuffer.size() - 1] != 0) {
+    if (workingBuffer[workingBuffer.size() - 1] != 0) {
         m_fileFlags |= FileFlags::TerminatedWithZero;
-        m_workingBuffer.push_back(0);
+        workingBuffer.push_back(0);
     }
 
     // TODO: Why is a line end needed always?
     // TODO: Line ends 1 beyond, or just for end?  Can't remember this detail:
     // understand it, then write a unit test to ensure it.
-    m_lineEnds.push_back(End().Index() + 1);
+    lineEnds.push_back(End().Index() + 1);
 
     MarkUpdate();
 
@@ -693,7 +689,7 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
     }
 
     bufferLocation.Clamp();
-    if (m_workingBuffer.empty()) return bufferLocation;
+    if (workingBuffer.empty()) return bufferLocation;
 
     GlyphIterator itr = bufferLocation;
     GlyphIterator itrBegin = Begin();
@@ -790,7 +786,7 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
 }
 
 std::string ZepBuffer::GetBufferText(const GlyphIterator &start, const GlyphIterator &end) const {
-    return {m_workingBuffer.begin() + start.Index(), m_workingBuffer.begin() + end.Index()};
+    return {workingBuffer.begin() + start.Index(), workingBuffer.begin() + end.Index()};
 }
 
 bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, ChangeRecord &changeRecord) {
@@ -806,8 +802,8 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
 
     // abcdef\r\nabc<insert>dfdf\r\n
-    auto itrLine = std::lower_bound(m_lineEnds.begin(), m_lineEnds.end(), startIndex.Index());;
-    if (itrLine != m_lineEnds.end() && *itrLine <= startIndex.Index()) {
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.Index());;
+    if (itrLine != lineEnds.end() && *itrLine <= startIndex.Index()) {
         itrLine++;
     }
 
@@ -831,18 +827,18 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     // Increment the rest of the line ends
     // We make all the remaning line ends bigger by the fixed_size of the insertion
     auto itrAdd = itrLine;
-    while (itrAdd != m_lineEnds.end()) {
+    while (itrAdd != lineEnds.end()) {
         *itrAdd += long(str.length());
         itrAdd++;
     }
 
     if (!lines.empty()) {
         // Update the atomic line counter so clients can see where we are up to.
-        m_lineEnds.insert(itrLine, lines.begin(), lines.end());
+        lineEnds.insert(itrLine, lines.begin(), lines.end());
     }
 
     changeRecord.strInserted = str;
-    m_workingBuffer.insert(m_workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
+    workingBuffer.insert(workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
 
     MarkUpdate();
 
@@ -874,7 +870,7 @@ bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &en
     for (auto loc = startIndex; loc < endIndex; loc++) {
         // Note we don't support utf8 yet
         // TODO: (0) Broken now we support utf8
-        m_workingBuffer[loc.Index()] = str[0];
+        workingBuffer[loc.Index()] = str[0];
     }
 
     MarkUpdate();
@@ -884,6 +880,7 @@ bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &en
 
     return true;
 }
+
 // A fundamental operation - delete a range of characters
 // Need to update:
 // - m_lineEnds
@@ -904,10 +901,10 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
 
     sigPreDelete(*this, startIndex, endIndex);
 
-    auto itrLine = std::lower_bound(m_lineEnds.begin(), m_lineEnds.end(), startIndex.Index());
-    if (itrLine == m_lineEnds.end()) return false;
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.Index());
+    if (itrLine == lineEnds.end()) return false;
 
-    auto itrLastLine = std::upper_bound(itrLine, m_lineEnds.end(), endIndex.Index());
+    auto itrLastLine = std::upper_bound(itrLine, lineEnds.end(), endIndex.Index());
     auto offsetDiff = endIndex.Index() - startIndex.Index();
 
     if (*itrLine <= startIndex.Index()) {
@@ -915,16 +912,16 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
     }
 
     // Adjust all line offsets beyond us
-    for (auto itr = itrLastLine; itr != m_lineEnds.end(); itr++) {
+    for (auto itr = itrLastLine; itr != lineEnds.end(); itr++) {
         *itr -= offsetDiff;
     }
 
     if (itrLine != itrLastLine) {
-        m_lineEnds.erase(itrLine, itrLastLine);
+        lineEnds.erase(itrLine, itrLastLine);
     }
 
-    m_workingBuffer.erase(m_workingBuffer.begin() + startIndex.Index(), m_workingBuffer.begin() + endIndex.Index());
-    assert(!m_workingBuffer.empty() && m_workingBuffer[m_workingBuffer.size() - 1] == 0);
+    workingBuffer.erase(workingBuffer.begin() + startIndex.Index(), workingBuffer.begin() + endIndex.Index());
+    assert(!workingBuffer.empty() && workingBuffer[workingBuffer.size() - 1] == 0);
 
     MarkUpdate();
 
@@ -936,19 +933,17 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
 
 ZepTheme &ZepBuffer::GetTheme() const { return *editor.theme; }
 
-bool ZepBuffer::HasSelection() const { return m_selection.first != m_selection.second; }
+bool ZepBuffer::HasSelection() const { return selection.first != selection.second; }
 
 void ZepBuffer::ClearSelection() {
-    m_selection.first = Begin();
-    m_selection.second = Begin();
+    selection.first = Begin();
+    selection.second = Begin();
 }
 
-GlyphRange ZepBuffer::GetInclusiveSelection() const { return m_selection; }
-
-void ZepBuffer::SetSelection(const GlyphRange &selection) {
-    m_selection = selection;
-    if (m_selection.first > m_selection.second) {
-        std::swap(m_selection.first, m_selection.second);
+void ZepBuffer::SetSelection(const GlyphRange &sel) {
+    selection = sel;
+    if (selection.first > selection.second) {
+        std::swap(selection.first, selection.second);
     }
 }
 
@@ -1085,35 +1080,13 @@ std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Dire
     return spFound;
 }
 
-void ZepBuffer::SetBufferType(BufferType type) {
-    m_bufferType = type;
-}
-
-BufferType ZepBuffer::GetBufferType() const {
-    return m_bufferType;
-}
-
-void ZepBuffer::SetLastEditLocation(const GlyphIterator &loc) {
-    m_lastEditLocation = loc;
-}
-
 GlyphIterator ZepBuffer::GetLastEditLocation() {
-    if (!m_lastEditLocation.Valid()) {
-        m_lastEditLocation = GlyphIterator(this, 0);
-    }
-    return m_lastEditLocation;
+    if (!lastEditLocation.Valid()) lastEditLocation = GlyphIterator(this, 0);
+    return lastEditLocation;
 }
 
-ZepMode *ZepBuffer::GetMode() const {
-    if (m_spMode) {
-        return m_spMode.get();
-    }
-    return editor.GetGlobalMode();
-}
-
-void ZepBuffer::SetMode(std::shared_ptr<ZepMode> spMode) {
-    m_spMode = std::move(spMode);
-}
+ZepMode *ZepBuffer::GetMode() const { return m_spMode ? m_spMode.get() : editor.GetGlobalMode(); }
+void ZepBuffer::SetMode(std::shared_ptr<ZepMode> spMode) { m_spMode = std::move(spMode); }
 
 tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) const {
     ByteRange range;
@@ -1135,20 +1108,12 @@ bool ZepBuffer::IsHidden() const {
     return windows.empty();
 }
 
-void ZepBuffer::SetFileFlags(uint32_t flags, bool set) {
-    m_fileFlags = ZSetFlags(m_fileFlags, flags, set);
-}
-
-void ZepBuffer::ClearFileFlags(uint32_t flags) {
-    m_fileFlags = ZSetFlags(m_fileFlags, flags, false);
-}
-
-bool ZepBuffer::HasFileFlags(uint32_t flags) const {
-    return ZTestFlags(m_fileFlags, flags);
-}
+void ZepBuffer::SetFileFlags(uint32_t flags, bool set) { m_fileFlags = ZSetFlags(m_fileFlags, flags, set); }
+void ZepBuffer::ClearFileFlags(uint32_t flags) { m_fileFlags = ZSetFlags(m_fileFlags, flags, false); }
+bool ZepBuffer::HasFileFlags(uint32_t flags) const { return m_fileFlags & flags; }
 
 void ZepBuffer::ToggleFileFlag(uint32_t flags) {
-    m_fileFlags = ZSetFlags(m_fileFlags, flags, !ZTestFlags(m_fileFlags, flags));
+    m_fileFlags = ZSetFlags(m_fileFlags, flags, !(m_fileFlags & flags));
 }
 
 GlyphRange ZepBuffer::GetExpression(ExpressionType type, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const {
@@ -1234,19 +1199,11 @@ GlyphRange ZepBuffer::GetExpression(ExpressionType type, const GlyphIterator &lo
 }
 
 GlyphIterator ZepBuffer::End() const {
-    return GlyphIterator(this, std::max(0l, long(m_workingBuffer.size() - 1)));
+    return GlyphIterator(this, std::max(0l, long(workingBuffer.size() - 1)));
 }
 
 GlyphIterator ZepBuffer::Begin() const {
     return GlyphIterator(this);
-}
-
-void ZepBuffer::SetPostKeyNotifier(fnKeyNotifier notifier) {
-    m_postKeyNotifier = std::move(notifier);
-}
-
-fnKeyNotifier ZepBuffer::GetPostKeyNotifier() const {
-    return m_postKeyNotifier;
 }
 
 void ZepBuffer::EndFlash() const {

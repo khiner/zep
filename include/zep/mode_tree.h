@@ -58,12 +58,8 @@ protected:
     uint32_t m_flags = ZepTreeNodeFlags::None;
 };
 
-class ZepTree {
-public:
-    virtual ZepTreeNode *GetRoot() const { return m_spRoot.get(); }
-
-protected:
-    ZepTreeNode::TNode m_spRoot;
+struct ZepTree {
+    ZepTreeNode::TNode root;
 };
 
 class ZepFileNode : public ZepTreeNode {

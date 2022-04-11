@@ -57,8 +57,7 @@ struct Region;
 #define ZEP_UNUSED(var) (void)(var);
 
 // Helpers 
-inline bool ZTestFlags(const uint32_t &flags, uint32_t value) { return ((flags & value) ? true : false); }
-inline uint32_t ZSetFlags(const uint32_t &flags, uint32_t value, bool set = true) { if (set) { return flags | value; } else return flags; }
+inline uint32_t ZSetFlags(const uint32_t &flags, uint32_t value, bool set = true) { return set ? flags | value : flags; }
 inline uint32_t ZClearFlags(const uint32_t &flags, uint32_t value) { return flags & ~value; }
 
 namespace ZepEditorFlags {
@@ -130,11 +129,9 @@ struct Register {
     bool lineWise = false;
 };
 
-using tSyntaxFactory = std::function<std::shared_ptr<ZepSyntax>(ZepBuffer *)>;
-
 struct SyntaxProvider {
     std::string syntaxID;
-    tSyntaxFactory factory = nullptr;
+    std::function<std::shared_ptr<ZepSyntax>(ZepBuffer *)> factory = nullptr;
 };
 
 const float bottomBorder = 2.0f;
@@ -196,17 +193,16 @@ public:
 
     ZepMode *GetGlobalMode();
     void RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode);
-    void RegisterExCommand(const std::shared_ptr<ZepExCommand> &spMode);
-    ZepExCommand *FindExCommand(const std::string &strName);
+    void RegisterExCommand(const std::shared_ptr<ZepExCommand> &command);
+    ZepExCommand *FindExCommand(const std::string &commandName);
     ZepExCommand *FindExCommand(const StringId &strName);
     void SetGlobalMode(const std::string &currentMode);
     std::vector<const KeyMap *> GetGlobalKeyMaps(ZepMode &mode);
 
-    void RegisterBufferMode(const std::string &strExtension, const std::shared_ptr<ZepMode> &spMode);
+    void RegisterBufferMode(const std::string &strExtension, const std::shared_ptr<ZepMode> &mode);
 
     void Display();
 
-    void RegisterSyntaxFactory(const std::vector<std::string> &mappings, const SyntaxProvider &factory);
     bool Broadcast(const std::shared_ptr<ZepMessage> &payload);
     void RegisterCallback(IZepComponent *pClient) { m_notifyClients.insert(pClient); }
     void UnRegisterCallback(IZepComponent *pClient) { m_notifyClients.erase(pClient); }
@@ -215,11 +211,11 @@ public:
     void SaveBuffer(ZepBuffer &buffer);
     ZepBuffer *GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags = 0, bool create = true);
     ZepBuffer *GetEmptyBuffer(const std::string &name, uint32_t fileFlags = 0);
-    void RemoveBuffer(ZepBuffer *pBuffer);
-    std::vector<ZepWindow *> FindBufferWindows(const ZepBuffer *pBuffer) const;
+    void RemoveBuffer(ZepBuffer *buffer);
+    std::vector<ZepWindow *> FindBufferWindows(const ZepBuffer *buffer) const;
 
     void SetRegister(char reg, const Register &val);
-    void SetRegister(char reg, const char *pszText);
+    void SetRegister(char reg, const char *text);
     Register &GetRegister(const std::string &reg);
     Register &GetRegister(char reg);
     const std::map<std::string, Register> &GetRegisters();
@@ -227,20 +223,16 @@ public:
     void ReadClipboard();
     void WriteClipboard();
 
-    void Notify(const std::shared_ptr<ZepMessage> &message);
+    void Notify(const std::shared_ptr<ZepMessage> &msg);
     void SetFlags(uint32_t flags);
-
-    using tTabWindows = std::vector<ZepTabWindow *>;
 
     void NextTabWindow();
     void PreviousTabWindow();
     void SetCurrentTabWindow(ZepTabWindow *pTabWindow);
-    ZepTabWindow *GetActiveTabWindow() const;
     ZepTabWindow *AddTabWindow();
     void RemoveTabWindow(ZepTabWindow *pTabWindow);
-    const tTabWindows &GetTabWindows() const;
 
-    void UpdateTabs();
+    void UpdateTabs() const;
 
     ZepWindow *AddTree();
     ZepWindow *AddSearch();
@@ -254,10 +246,9 @@ public:
     void RequestRefresh();
     bool RefreshRequired();
 
-    void SetCommandText(const std::string &strCommand);
+    void SetCommandText(const std::string &command);
 
     std::string GetCommandText() const;
-    const std::vector<std::string> &GetCommandLines() { return m_commandLines; }
 
     void UpdateWindowState();
 
@@ -289,6 +280,9 @@ public:
     NVec2f mousePos = NVec2f(0.0f);
     std::shared_ptr<Region> editorRegion, tabContentRegion, commandRegion, tabRegion;
     std::map<std::string, SyntaxProvider> syntaxProviders;
+    std::vector<ZepTabWindow *> tabWindows;
+    ZepTabWindow *activeTabWindow = nullptr;
+    std::vector<std::string> commandLines; // Command information, shown under the buffer
 
 private:
     // Call GetBuffer publicly, to stop creation of duplicate buffers referring to the same file
@@ -299,6 +293,7 @@ private:
 
     // Ensure there is a valid tab window and return it
     ZepTabWindow *EnsureTab();
+    void RegisterSyntaxProvider(const std::vector<std::string> &mappings, const SyntaxProvider &provider);
     void RegisterSyntaxProviders();
 
 private:
@@ -310,11 +305,8 @@ private:
     timer m_cursorTimer;
     timer m_lastEditTimer;
     ZepMode *m_pCurrentMode = nullptr;
-    tTabWindows m_tabWindows;
-    ZepTabWindow *m_pActiveTabWindow = nullptr;
     mutable std::atomic_bool m_bPendingRefresh = true;
     mutable bool m_lastCursorBlink = false;
-    std::vector<std::string> m_commandLines; // Command information, shown under the buffer
     bool m_bRegionsChanged = false;
     float m_tabOffsetX = 0.0f;
     std::shared_ptr<Indexer> m_indexer; // Define `IMPLEMENTED_INDEXER` to initialize

@@ -15,7 +15,7 @@ ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer,
 ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer, uint32_t flags) : ZepSyntax_Tree(buffer, {}, {}, flags) {}
 
 void ZepSyntax_Tree::UpdateSyntax() {
-    auto &buffer = m_buffer.GetWorkingBuffer();
+    const auto &buffer = m_buffer.workingBuffer;
     auto itrCurrent = buffer.begin();
     auto itrEnd = buffer.end();
 

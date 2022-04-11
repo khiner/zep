@@ -107,7 +107,6 @@ public:
     void Load(const ZepPath &path);
     bool Save(int64_t &size);
 
-    ZepPath GetFilePath() const;
     std::string GetFileExtension() const;
     void SetFilePath(const ZepPath &path);
 
@@ -139,34 +138,20 @@ public:
     bool Insert(const GlyphIterator &startOffset, const std::string &str, ChangeRecord &changeRecord);
     bool Replace(const GlyphIterator &startOffset, const GlyphIterator &endOffset, /*note; not ref*/ std::string str, ReplaceRangeMode mode, ChangeRecord &changeRecord);
 
-    long GetLineCount() const { return long(m_lineEnds.size()); }
+    long GetLineCount() const { return long(lineEnds.size()); }
     long GetBufferLine(const GlyphIterator &offset) const;
 
     GlyphIterator End() const;
     GlyphIterator Begin() const;
 
-    const GapBuffer<uint8_t> &GetWorkingBuffer() const { return m_workingBuffer; }
-    GapBuffer<uint8_t> &GetMutableWorkingBuffer() { return m_workingBuffer; }
-
-    std::vector<ByteIndex> GetLineEnds() const { return m_lineEnds; }
-
-    void SetSyntax(std::shared_ptr<ZepSyntax> syntax) { m_spSyntax = std::move(syntax); }
-
     void SetSyntaxProvider(const SyntaxProvider &provider) {
         if (provider.syntaxID != m_syntaxProvider.syntaxID) {
-            if (provider.factory) {
-                m_spSyntax = provider.factory(this);
-            } else {
-                m_spSyntax.reset();
-            }
+            if (provider.factory) syntax = provider.factory(this);
+            else syntax.reset();
 
             m_syntaxProvider = provider;
         }
     }
-
-    ZepSyntax *GetSyntax() const { return m_spSyntax.get(); }
-
-    const std::string &GetName() const { return m_strName; }
 
     std::string GetDisplayName() const;
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
@@ -175,7 +160,6 @@ public:
     void SetTheme(std::shared_ptr<ZepTheme> spTheme);
 
     void SetSelection(const GlyphRange &sel);
-    GlyphRange GetInclusiveSelection() const;
     bool HasSelection() const;
     void ClearSelection();
 
@@ -191,17 +175,10 @@ public:
     void ForEachMarker(uint32_t types, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, std::function<bool(const std::shared_ptr<RangeMarker> &)> fnCB) const;
     std::shared_ptr<RangeMarker> FindNextMarker(GlyphIterator start, Direction dir, uint32_t markerType) const;
 
-    void SetBufferType(BufferType type);
-    BufferType GetBufferType() const;
-
-    void SetLastEditLocation(const GlyphIterator &loc);
     GlyphIterator GetLastEditLocation();
 
     ZepMode *GetMode() const;
     void SetMode(std::shared_ptr<ZepMode> spMode);
-
-    uint64_t GetLastUpdateTime() const { return m_lastUpdateTime; }
-    uint64_t GetUpdateCount() const { return m_updateCount; }
 
     bool IsHidden() const;
 
@@ -213,45 +190,41 @@ public:
     GlyphRange GetExpression(ExpressionType type, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const;
     std::string GetBufferText(const GlyphIterator &start, const GlyphIterator &end) const;
 
-    void SetPostKeyNotifier(fnKeyNotifier notifier);
-    fnKeyNotifier GetPostKeyNotifier() const;
-
     void EndFlash() const;
     void BeginFlash(float seconds, FlashType flashType, const GlyphRange &range);
 
     Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const std::string &)> sigPreInsert;
     Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const GlyphIterator &)> sigPreDelete;
 
+    std::string name;
+    GapBuffer<uint8_t> workingBuffer; // Buffer & record of the line end locations
+    std::vector<ByteIndex> lineEnds;
+
+    ZepPath filePath;
+    uint64_t updateCount = 0;
+    uint64_t lastUpdateTime = 0;
+    GlyphIterator lastEditLocation;// = 0;
+
+    std::shared_ptr<ZepSyntax> syntax;
+
+    GlyphRange selection;
+
+    fnKeyNotifier postKeyNotifier;
+    BufferType type = BufferType::Normal;
+
 private:
     void MarkUpdate();
 
 private:
-    // Buffer & record of the line end locations
-    GapBuffer<uint8_t> m_workingBuffer;
-
-    std::vector<ByteIndex> m_lineEnds;
-
-    // File and modification info
-    ZepPath m_filePath;
-    std::string m_strName;
     uint32_t m_fileFlags = 0;
-    BufferType m_bufferType = BufferType::Normal;
-    GlyphIterator m_lastEditLocation;// = 0;
-    uint64_t m_updateCount = 0;
-    uint64_t m_lastUpdateTime = 0;
 
-    // Syntax and theme
-    std::shared_ptr<ZepSyntax> m_spSyntax;
-    std::shared_ptr<ZepTheme> m_spOverrideTheme;
     SyntaxProvider m_syntaxProvider;
 
     // Selections
-    GlyphRange m_selection;
     tRangeMarkers m_rangeMarkers;
 
     // Modes
     std::shared_ptr<ZepMode> m_spMode;
-    fnKeyNotifier m_postKeyNotifier;
 };
 
 // Notification payload

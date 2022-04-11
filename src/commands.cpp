@@ -9,7 +9,7 @@ ZepCommand_DeleteRange::ZepCommand_DeleteRange(ZepBuffer &buffer, const GlyphIte
     assert(m_endIndex.Valid());
 
     // We never allow deletion of the '0' at the end of the buffer
-    if (buffer.GetWorkingBuffer().empty()) m_endIndex = m_startIndex;
+    if (buffer.workingBuffer.empty()) m_endIndex = m_startIndex;
     else m_endIndex.Clamp();
 }
 

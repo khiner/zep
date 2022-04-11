@@ -5,7 +5,7 @@ namespace Zep {
 
 NVec2f FloatSlider::GetSize() const {
     // Make the slider as high as the font, but return non-dpi scale
-    return {60.0f * m_dimension + (m_sliderGap * (m_dimension - 1)), editor.display->GetFont(ZepTextType::Text).GetPixelHeight() / editor.display->GetPixelScale().y};
+    return {60.0f * m_dimension + (m_sliderGap * (m_dimension - 1)), editor.display->GetFont(ZepTextType::Text).GetPixelHeight() / editor.display->pixelScale.y};
 }
 
 void FloatSlider::MouseDown(const NVec2f &pos, ZepMouseButton button) {
@@ -34,7 +34,7 @@ void FloatSlider::Draw(const ZepBuffer &buffer, const NVec2f &loc) {
     for (uint32_t slider = 0; slider < m_dimension; slider++) {
         // Convert to low DPI, then double up on submit
         // We should do it this way more.
-        auto location = loc / editor.display->GetPixelScale().x;
+        auto location = loc / editor.display->pixelScale.x;
         location = NVec2f(location.x + (slider * (60.0f + m_sliderGap)), location.y);
 
         NVec2f size = GetSize();
@@ -52,7 +52,7 @@ void FloatSlider::Draw(const ZepBuffer &buffer, const NVec2f &loc) {
         NRectf rcThumb = rcInner;
         rcThumb.Adjust(padding.x, padding.y, -padding.x, -padding.y);
         rcThumb = NRectf(rcThumb.Left() + 10.0f, rcThumb.Top(), 10.0f, rcThumb.Size().y);
-        display->DrawRectFilled(rcThumb * editor.display->GetPixelScale(), buffer.GetTheme().GetColor(ThemeColor::WidgetActive));
+        display->DrawRectFilled(rcThumb * editor.display->pixelScale, buffer.GetTheme().GetColor(ThemeColor::WidgetActive));
     }
 }
 

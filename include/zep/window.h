@@ -119,13 +119,14 @@ public:
     virtual long GetMaxDisplayLines();
     virtual long GetNumDisplayedLines();
 
-    virtual ZepBuffer &GetBuffer() const;
     virtual void SetBuffer(ZepBuffer *pBuffer);
 
     ZepTabWindow &GetTabWindow() const;
     NVec4f FilterActiveColor(const NVec4f &col, float atten = 1.0f);
 
     void DirtyLayout();
+
+    ZepBuffer *buffer = nullptr;
 
 private:
     void UpdateLayout(bool force = false);
@@ -188,7 +189,6 @@ private:
     std::shared_ptr<Region> m_expandingEditRegion;    // Region containing the text sub-box 
     Airline m_airline;
     ZepTabWindow &m_tabWindow; // Owner tab
-    ZepBuffer *m_pBuffer = nullptr;
     std::shared_ptr<Scroller> m_vScroller; // Scroll bar, if visible
 
     // Wrap ; need horizontal offset for this to be turned on.

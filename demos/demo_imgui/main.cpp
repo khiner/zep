@@ -101,7 +101,7 @@ void main()
 
 std::string startupFile;
 
-Zep::NVec2f GetPixelScale() {
+Zep::NVec2f pixelScale{
     float ddpi = 0.0f;
     float hdpi = 0.0f;
     float vdpi = 0.0f;
@@ -133,7 +133,7 @@ bool ReadCommandLine(int argc, char *argv[], int &exitCode) {
 // A helper struct to init the editor and handle callbacks
 struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     ZepContainerImGui(const std::string &startupFilePath, const std::string &configPath)
-        : spEditor(std::make_unique<ZepEditor_ImGui>(configPath, GetPixelScale()))
+        : spEditor(std::make_unique<ZepEditor_ImGui>(configPath, pixelScale))
     //, fileWatcher(spEditor->fileSystem->GetConfigPath(), std::chrono::seconds(2))
     {
         chibi_init(scheme, SDL_GetBasePath());
@@ -143,7 +143,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         auto fontPath = std::string(SDL_GetBasePath()) + "Cousine-Regular.ttf";
         auto &display = static_cast<ZepDisplay_ImGui &>(spEditor->GetDisplay());
 
-        int fontPixelHeight = (int) dpi_pixel_height_from_point_size(DemoFontPtSize, GetPixelScale().y);
+        int fontPixelHeight = (int) dpi_pixel_height_from_point_size(DemoFontPtSize, pixelScale.y);
 
         auto &io = ImGui::GetIO();
         ImVector<ImWchar> ranges;
@@ -220,7 +220,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         if (range.first >= range.second)
             return "<No Expression>";
 
-        const auto &text = buffer.GetWorkingBuffer();
+        const auto &text = buffer.workingBuffer;
         auto eval = std::string(text.begin() + range.first.Index(), text.begin() + range.second.Index());
 
         // Flash the evaluated expression
@@ -398,7 +398,7 @@ int main(int argc, char *argv[]) {
     // Setup style
     ImGui::StyleColorsDark();
 
-    ZLOG(INFO, "DPI Scale: " << MUtils::NVec2f(GetPixelScale().x, GetPixelScale().y));
+    ZLOG(INFO, "DPI Scale: " << MUtils::NVec2f(pixelScale.x, pixelScale.y));
 
     bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -453,13 +453,13 @@ int main(int argc, char *argv[]) {
                         0);
                     if (openFileName != nullptr) {
                         auto pBuffer = zep.editor.GetFileBuffer(openFileName);
-                        zep.editor.GetActiveTabWindow()->GetActiveWindow()->SetBuffer(pBuffer);
+                        zep.editor.activeTabWindow->GetActiveWindow()->SetBuffer(pBuffer);
                     }
                 }
                 ImGui::EndMenu();
             }
 
-            const auto &buffer = zep.editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+            const auto &buffer = zep.editor.activeTabWindow->GetActiveWindow()->GetBuffer();
 
             if (ImGui::BeginMenu("Settings")) {
                 if (ImGui::BeginMenu("Editor Mode")) {
@@ -488,7 +488,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (ImGui::BeginMenu("Window")) {
-                auto pTabWindow = zep.editor.GetActiveTabWindow();
+                auto pTabWindow = zep.editor.activeTabWindow;
                 if (ImGui::MenuItem("Horizontal Split")) {
                     pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::VBox);
                 } else if (ImGui::MenuItem("Vertical Split")) {

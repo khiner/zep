@@ -19,12 +19,12 @@ void ZepReplEvaluateOuterCommand::Register(ZepEditor &editor, IZepReplProvider *
 
 void ZepReplEvaluateOuterCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!editor.GetActiveTabWindow()) return;
+    if (!editor.activeTabWindow) return;
 
-    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto *buffer = editor.activeTabWindow->GetActiveWindow()->buffer;
+    auto cursor = editor.activeTabWindow->GetActiveWindow()->GetBufferCursor();
 
-    m_pProvider->ReplParse(buffer, cursor, ReplParseType::OuterExpression);
+    m_pProvider->ReplParse(*buffer, cursor, ReplParseType::OuterExpression);
 }
 
 ZepReplEvaluateCommand::ZepReplEvaluateCommand(ZepEditor &editor, IZepReplProvider *pProvider)
@@ -38,12 +38,12 @@ void ZepReplEvaluateCommand::Register(ZepEditor &editor, IZepReplProvider *pProv
 
 void ZepReplEvaluateCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!editor.GetActiveTabWindow()) return;
+    if (!editor.activeTabWindow) return;
 
-    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto *buffer = editor.activeTabWindow->GetActiveWindow()->buffer;
+    auto cursor = editor.activeTabWindow->GetActiveWindow()->GetBufferCursor();
 
-    m_pProvider->ReplParse(buffer, cursor, ReplParseType::All);
+    m_pProvider->ReplParse(*buffer, cursor, ReplParseType::All);
 }
 
 ZepReplEvaluateInnerCommand::ZepReplEvaluateInnerCommand(ZepEditor &editor, IZepReplProvider *pProvider)
@@ -57,14 +57,12 @@ void ZepReplEvaluateInnerCommand::Register(ZepEditor &editor, IZepReplProvider *
 
 void ZepReplEvaluateInnerCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!editor.GetActiveTabWindow()) {
-        return;
-    }
+    if (!editor.activeTabWindow) return;
 
-    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto *buffer = editor.activeTabWindow->GetActiveWindow()->buffer;
+    auto cursor = editor.activeTabWindow->GetActiveWindow()->GetBufferCursor();
 
-    m_pProvider->ReplParse(buffer, cursor, ReplParseType::SubExpression);
+    m_pProvider->ReplParse(*buffer, cursor, ReplParseType::SubExpression);
 }
 const std::string PromptString = ">> ";
 const std::string ContinuationString = ".. ";
@@ -80,18 +78,16 @@ void ZepReplExCommand::Register(ZepEditor &editor, IZepReplProvider *pProvider) 
 
 void ZepReplExCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!editor.GetActiveTabWindow()) return;
+    if (!editor.activeTabWindow) return;
 
     // TODO: Modifiable but not saveable buffer
     m_pReplBuffer = editor.GetEmptyBuffer("Repl.lisp"); // , FileFlags::ReadOnly);
-    m_pReplBuffer->SetBufferType(BufferType::Repl);
-    m_pReplBuffer->GetSyntax()->IgnoreLineHighlight();
-    m_pReplBuffer->SetPostKeyNotifier([&](uint32_t key, uint32_t modifier) {
-        return AddKeyPress(key, modifier);
-    });
+    m_pReplBuffer->type = BufferType::Repl;
+    m_pReplBuffer->syntax->IgnoreLineHighlight();
+    m_pReplBuffer->postKeyNotifier = [&](uint32_t key, uint32_t modifier) { return AddKeyPress(key, modifier); };
 
     // Adding the window will make it active and begin the mode
-    m_pReplWindow = editor.GetActiveTabWindow()->AddWindow(m_pReplBuffer, nullptr, RegionLayoutType::VBox);
+    m_pReplWindow = editor.activeTabWindow->AddWindow(m_pReplBuffer, nullptr, RegionLayoutType::VBox);
     Prompt();
 }
 
@@ -111,11 +107,11 @@ bool ZepReplExCommand::AddKeyPress(uint32_t key, uint32_t modifiers) {
     (void) &modifiers;
     if (key == ExtKeys::RETURN) {
         ChangeRecord record;
-        auto &buffer = m_pReplWindow->GetBuffer();
-        std::string str = std::string(buffer.GetWorkingBuffer().begin() + m_startLocation.Index(), buffer.GetWorkingBuffer().end());
+        auto *buffer = m_pReplWindow->buffer;
+        auto str = std::string(buffer->workingBuffer.begin() + m_startLocation.Index(), buffer->workingBuffer.end());
         if (str.size() <= 1) {
             MoveToEnd();
-            buffer.GetMode()->SwitchMode(EditorMode::Insert);
+            buffer->GetMode()->SwitchMode(EditorMode::Insert);
             return false;
         }
 
@@ -148,21 +144,21 @@ bool ZepReplExCommand::AddKeyPress(uint32_t key, uint32_t modifiers) {
                 // If the indent is < 0, we completed too much of the expression, so don't let the user hit return until they
                 // fix it.  Example in lisp: (+ 2 2))  This expression has 'too many' close brackets.
                 if (indent < 0) {
-                    buffer.Delete(buffer.End() - 1, buffer.End(), record);
-                    m_pReplWindow->SetBufferCursor(buffer.End());
+                    buffer->Delete(buffer->End() - 1, buffer->End(), record);
+                    m_pReplWindow->SetBufferCursor(buffer->End());
                     return true;
                 }
 
                 // New line continuation symbol
-                buffer.Insert(buffer.End(), ContinuationString, record);
+                buffer->Insert(buffer->End(), ContinuationString, record);
 
                 // Indent by how far the repl suggests
                 if (indent > 0) {
                     for (int i = 0; i < indent; i++) {
-                        buffer.Insert(buffer.End(), " ", record);
+                        buffer->Insert(buffer->End(), " ", record);
                     }
                 }
-                m_pReplWindow->SetBufferCursor(buffer.End());
+                m_pReplWindow->SetBufferCursor(buffer->End());
                 return true;
             }
             ret = m_pProvider->ReplParse(str);
@@ -172,7 +168,7 @@ bool ZepReplExCommand::AddKeyPress(uint32_t key, uint32_t modifiers) {
 
         if (!ret.empty() && ret[0] != 0) {
             ret.push_back('\n');
-            buffer.Insert(buffer.End(), ret, record);
+            buffer->Insert(buffer->End(), ret, record);
         }
 
         Prompt();

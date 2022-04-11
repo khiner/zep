@@ -13,7 +13,7 @@ GlyphIterator::GlyphIterator(const GlyphIterator &itr) = default;
 long GlyphIterator::Index() const { return m_index; }
 
 bool GlyphIterator::Valid() const {
-    if (!m_pBuffer || m_index < 0 || m_index >= m_pBuffer->GetWorkingBuffer().size()) return false;
+    if (!m_pBuffer || m_index < 0 || m_index >= m_pBuffer->workingBuffer.size()) return false;
 
     // We should never have a valid buffer index but be outside the start of a 
     // utf8 glyph
@@ -30,14 +30,14 @@ bool GlyphIterator::operator!=(const GlyphIterator &rhs) const { return m_index 
 
 GlyphIterator &GlyphIterator::operator=(const GlyphIterator &rhs) = default;
 
-uint8_t GlyphIterator::Char() const { return !m_pBuffer ? 0 : m_pBuffer->GetWorkingBuffer()[m_index]; }
+uint8_t GlyphIterator::Char() const { return !m_pBuffer ? 0 : m_pBuffer->workingBuffer[m_index]; }
 
-uint8_t GlyphIterator::operator*() const { return !m_pBuffer ? 0 : m_pBuffer->GetWorkingBuffer()[m_index]; }
+uint8_t GlyphIterator::operator*() const { return !m_pBuffer ? 0 : m_pBuffer->workingBuffer[m_index]; }
 
 GlyphIterator &GlyphIterator::MoveClamped(long count, LineLocation clamp) {
     if (!m_pBuffer) return *this;
 
-    auto &gapBuffer = m_pBuffer->GetWorkingBuffer();
+    const auto &gapBuffer = m_pBuffer->workingBuffer;
 
     if (count >= 0) {
         auto lineEnd = m_pBuffer->GetLinePos(*this, clamp);
@@ -62,7 +62,7 @@ GlyphIterator &GlyphIterator::MoveClamped(long count, LineLocation clamp) {
 GlyphIterator &GlyphIterator::Move(long count) {
     if (!m_pBuffer) return *this;
 
-    auto &gapBuffer = m_pBuffer->GetWorkingBuffer();
+    const auto &gapBuffer = m_pBuffer->workingBuffer;
     if (count >= 0) {
         for (long c = 0; c < count; c++) {
             m_index += utf8_codepoint_length(gapBuffer[m_index]);
@@ -88,7 +88,7 @@ GlyphIterator &GlyphIterator::Clamp() {
 
     // Clamp to the 0 on the end of the buffer 
     // Since indices are usually exclusive, this allows selection of everything but the 0
-    m_index = std::min(m_index, long(m_pBuffer->GetWorkingBuffer().size()) - 1);
+    m_index = std::min(m_index, long(m_pBuffer->workingBuffer.size()) - 1);
     m_index = std::max(m_index, 0l);
     return *this;
 }

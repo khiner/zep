@@ -29,7 +29,7 @@ TEST_F(BufferTest, CreatedProperly
 {
 ASSERT_TRUE(pBuffer
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 size()
 == 1);
@@ -41,7 +41,7 @@ TEST_F(BufferTest, DefaultConstructedWith0
 auto pNew = std::make_shared<ZepBuffer>(*spEditor, std::string("empty"));
 ASSERT_TRUE(pNew
 ->
-GetWorkingBuffer()
+workingBuffer
 .
 size()
 == 1);
