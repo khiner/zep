@@ -23,8 +23,7 @@ bool Zep::ZLog::disabled = false;
 
 namespace Zep {
 
-ZepComponent::ZepComponent(ZepEditor &editor)
-    : editor(editor) {
+ZepComponent::ZepComponent(ZepEditor &editor) : editor(editor) {
     editor.RegisterCallback(this);
 }
 
@@ -586,19 +585,19 @@ void ZepEditor::SetBufferSyntax(ZepBuffer &buffer) const {
 
     // first check file name
     if (!fileName.empty()) {
-        auto itr = m_mapSyntax.find(fileName);
-        if (itr != m_mapSyntax.end()) {
+        auto itr = syntaxProviders.find(fileName);
+        if (itr != syntaxProviders.end()) {
             buffer.SetSyntaxProvider(itr->second);
             return;
         }
     }
 
-    auto itr = m_mapSyntax.find(ext);
-    if (itr != m_mapSyntax.end()) {
+    auto itr = syntaxProviders.find(ext);
+    if (itr != syntaxProviders.end()) {
         buffer.SetSyntaxProvider(itr->second);
     } else {
-        itr = m_mapSyntax.find(string_tolower(buffer.GetName()));
-        buffer.SetSyntaxProvider(itr != m_mapSyntax.end() ? itr->second : SyntaxProvider{});
+        itr = syntaxProviders.find(string_tolower(buffer.GetName()));
+        buffer.SetSyntaxProvider(itr != syntaxProviders.end() ? itr->second : SyntaxProvider{});
     }
 }
 
@@ -609,7 +608,7 @@ NRectf ZepEditor::Dpi(NRectf value) const { return value * display->GetPixelScal
 
 void ZepEditor::RegisterSyntaxFactory(const std::vector<std::string> &mappings, const SyntaxProvider &provider) {
     for (auto &m: mappings) {
-        m_mapSyntax[string_tolower(m)] = provider;
+        syntaxProviders[string_tolower(m)] = provider;
     }
 }
 

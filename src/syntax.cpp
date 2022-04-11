@@ -10,11 +10,16 @@
 
 namespace Zep {
 
-ZepSyntax::ZepSyntax(ZepBuffer &buffer, std::unordered_set<std::string> keywords, std::unordered_set<std::string> identifiers, uint32_t flags)
-    : ZepComponent(buffer.editor), m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_stop(false), m_flags(flags) {
+ZepSyntax::ZepSyntax(ZepBuffer &buffer,
+                     std::unordered_set<std::string> keywords,
+                     std::unordered_set<std::string> identifiers,
+                     uint32_t flags) : ZepComponent(buffer.editor),
+                                       m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_flags(flags) {
     m_syntax.resize(m_buffer.GetWorkingBuffer().size());
     m_adornments.push_back(std::make_shared<ZepSyntaxAdorn_RainbowBrackets>(*this, m_buffer));
 }
+
+ZepSyntax::ZepSyntax(ZepBuffer &buffer, uint32_t flags) : ZepSyntax(buffer, {}, {}, flags) {}
 
 ZepSyntax::~ZepSyntax() {
     Interrupt();

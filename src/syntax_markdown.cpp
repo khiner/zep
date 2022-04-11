@@ -10,6 +10,8 @@ ZepSyntax_Markdown::ZepSyntax_Markdown(ZepBuffer &buffer, const std::unordered_s
     m_adornments.clear(); // Don't need default
 }
 
+ZepSyntax_Markdown::ZepSyntax_Markdown(ZepBuffer &buffer, uint32_t flags) : ZepSyntax_Markdown(buffer, {}, {}, flags) {}
+
 void ZepSyntax_Markdown::UpdateSyntax() {
     auto &buffer = m_buffer.GetWorkingBuffer();
     auto itrCurrent = buffer.begin();

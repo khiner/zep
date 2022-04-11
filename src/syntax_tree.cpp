@@ -5,10 +5,14 @@
 
 namespace Zep {
 
-ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer, const std::unordered_set<std::string> &keywords, const std::unordered_set<std::string> &identifiers, uint32_t flags)
-    : ZepSyntax(buffer, keywords, identifiers, flags) {
+ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer,
+                               const std::unordered_set<std::string> &keywords,
+                               const std::unordered_set<std::string> &identifiers,
+                               uint32_t flags) : ZepSyntax(buffer, keywords, identifiers, flags) {
     m_adornments.clear(); // Don't need default
 }
+
+ZepSyntax_Tree::ZepSyntax_Tree(ZepBuffer &buffer, uint32_t flags) : ZepSyntax_Tree(buffer, {}, {}, flags) {}
 
 void ZepSyntax_Tree::UpdateSyntax() {
     auto &buffer = m_buffer.GetWorkingBuffer();

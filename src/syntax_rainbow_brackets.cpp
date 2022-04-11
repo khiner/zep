@@ -6,15 +6,12 @@
 // A Simple adornment to add rainbow brackets to the syntax
 namespace Zep {
 
-ZepSyntaxAdorn_RainbowBrackets::ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer)
-    : ZepSyntaxAdorn(syntax, buffer) {
+ZepSyntaxAdorn_RainbowBrackets::ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer) : ZepSyntaxAdorn(syntax, buffer) {
     syntax.editor.RegisterCallback(this);
-
     Update(buffer.Begin(), buffer.End());
 }
 
-ZepSyntaxAdorn_RainbowBrackets::~ZepSyntaxAdorn_RainbowBrackets() {
-}
+ZepSyntaxAdorn_RainbowBrackets::~ZepSyntaxAdorn_RainbowBrackets() = default;
 
 void ZepSyntaxAdorn_RainbowBrackets::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
     // Handle any interesting buffer messages

@@ -288,6 +288,7 @@ public:
     uint32_t flags = 0;
     NVec2f mousePos = NVec2f(0.0f);
     std::shared_ptr<Region> editorRegion, tabContentRegion, commandRegion, tabRegion;
+    std::map<std::string, SyntaxProvider> syntaxProviders;
 
 private:
     // Call GetBuffer publicly, to stop creation of duplicate buffers referring to the same file
@@ -302,7 +303,6 @@ private:
 private:
     std::set<IZepComponent *> m_notifyClients;
     mutable std::map<std::string, Register> m_registers;
-    std::map<std::string, SyntaxProvider> m_mapSyntax;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;

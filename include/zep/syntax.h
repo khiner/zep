@@ -41,6 +41,9 @@ public:
                        std::unordered_set<std::string> keywords = std::unordered_set<std::string>{},
                        std::unordered_set<std::string> identifiers = std::unordered_set<std::string>{},
                        uint32_t flags = 0);
+
+    explicit ZepSyntax(ZepBuffer &buffer, uint32_t flags);
+
     ~ZepSyntax() override;
 
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &index) const;
@@ -68,7 +71,7 @@ protected:
     std::vector<uint32_t> m_multiCommentEnds;
     std::unordered_set<std::string> m_keywords;
     std::unordered_set<std::string> m_identifiers;
-    std::atomic<bool> m_stop;
+    std::atomic<bool> m_stop = false;
     std::vector<std::shared_ptr<ZepSyntaxAdorn>> m_adornments;
     uint32_t m_flags;
 };

@@ -96,11 +96,6 @@ static std::unordered_set<std::string> c_identifiers = {
     "tolower", "toupper"
 };
 
-static std::unordered_set<std::string> tree_keywords = {};
-static std::unordered_set<std::string> tree_identifiers = {};
-static std::unordered_set<std::string> markdown_keywords = {};
-static std::unordered_set<std::string> markdown_identifiers = {};
-
 void RegisterSyntaxProviders(ZepEditor &editor) {
     editor.RegisterSyntaxFactory({".vert", ".frag"}, SyntaxProvider{"gl_shader", tSyntaxFactory([](ZepBuffer *pBuffer) {
         return std::make_shared<ZepSyntax>(*pBuffer, glsl_keywords, glsl_identifiers);
@@ -123,13 +118,13 @@ void RegisterSyntaxProviders(ZepEditor &editor) {
     editor.RegisterSyntaxFactory(
         {".tree"},
         SyntaxProvider{"tree", tSyntaxFactory([](ZepBuffer *pBuffer) {
-            return std::make_shared<ZepSyntax_Tree>(*pBuffer, tree_keywords, tree_identifiers, ZepSyntaxFlags::CaseInsensitive);
+            return std::make_shared<ZepSyntax_Tree>(*pBuffer, ZepSyntaxFlags::CaseInsensitive);
         })});
 
     editor.RegisterSyntaxFactory(
         {".md", ".markdown"},
         SyntaxProvider{"markdown", tSyntaxFactory([](ZepBuffer *pBuffer) {
-            return std::make_shared<ZepSyntax_Markdown>(*pBuffer, markdown_keywords, markdown_identifiers, ZepSyntaxFlags::CaseInsensitive);
+            return std::make_shared<ZepSyntax_Markdown>(*pBuffer, ZepSyntaxFlags::CaseInsensitive);
         })});
 }
 
