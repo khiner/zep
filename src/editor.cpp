@@ -6,6 +6,8 @@
 #include "zep/regress.h"
 #include "zep/syntax.h"
 #include "zep/syntax_providers.h"
+#include "zep/syntax_tree.h"
+#include "zep/syntax_markdown.h"
 #include "zep/tab_window.h"
 
 #include "config_app.h"
@@ -31,6 +33,24 @@ ZepComponent::~ZepComponent() {
     editor.UnRegisterCallback(this);
 }
 
+void ZepEditor::RegisterSyntaxProviders() {
+    RegisterSyntaxFactory({".vert", ".frag"},
+        {"gl_shader", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax>(*pBuffer, glsl_keywords, glsl_identifiers); })});
+    RegisterSyntaxFactory({".hlsl", ".hlsli", ".vs", ".ps"},
+        {"hlsl_shader", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax>(*pBuffer, hlsl_keywords, hlsl_identifiers); })});
+    RegisterSyntaxFactory({".cpp", ".cxx", ".h", ".c"},
+        {"cpp", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax>(*pBuffer, cpp_keywords, cpp_identifiers); })});
+    RegisterSyntaxFactory(
+        {".toml"},
+        {"cpp", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax>(*pBuffer, toml_keywords, toml_identifiers, ZepSyntaxFlags::CaseInsensitive); })});
+    RegisterSyntaxFactory(
+        {".tree"},
+        {"tree", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax_Tree>(*pBuffer, ZepSyntaxFlags::CaseInsensitive); })});
+    RegisterSyntaxFactory(
+        {".md", ".markdown"},
+        {"markdown", tSyntaxFactory([](ZepBuffer *pBuffer) { return std::make_shared<ZepSyntax_Markdown>(*pBuffer, ZepSyntaxFlags::CaseInsensitive); })});
+}
+
 ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, IZepFileSystem *pFileSystem)
     : display(pDisplay), fileSystem(pFileSystem), flags(flags) {
 
@@ -51,7 +71,7 @@ ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t f
     timer_restart(m_lastEditTimer);
     m_commandLines.emplace_back("");
 
-    RegisterSyntaxProviders(*this);
+    RegisterSyntaxProviders();
 
     editorRegion = std::make_shared<Region>();
     editorRegion->layoutType = RegionLayoutType::VBox;

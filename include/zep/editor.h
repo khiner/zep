@@ -299,6 +299,7 @@ private:
 
     // Ensure there is a valid tab window and return it
     ZepTabWindow *EnsureTab();
+    void RegisterSyntaxProviders();
 
 private:
     std::set<IZepComponent *> m_notifyClients;

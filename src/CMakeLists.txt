@@ -57,7 +57,6 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/src/scroller.cpp
     ${ZEP_ROOT}/src/splits.cpp
     ${ZEP_ROOT}/src/syntax.cpp
-    ${ZEP_ROOT}/src/syntax_providers.cpp
     ${ZEP_ROOT}/src/syntax_rainbow_brackets.cpp
     ${ZEP_ROOT}/src/syntax_tree.cpp
     ${ZEP_ROOT}/src/syntax_markdown.cpp
