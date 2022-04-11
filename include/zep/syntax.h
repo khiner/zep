@@ -75,7 +75,7 @@ protected:
 
 class ZepSyntaxAdorn : public ZepComponent {
 public:
-    ZepSyntaxAdorn(ZepSyntax &syntax, ZepBuffer &buffer) : ZepComponent(syntax.GetEditor()), m_buffer(buffer) {}
+    ZepSyntaxAdorn(ZepSyntax &syntax, ZepBuffer &buffer) : ZepComponent(syntax.editor), m_buffer(buffer) {}
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const = 0;
 
 protected:

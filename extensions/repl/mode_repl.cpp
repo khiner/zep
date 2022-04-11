@@ -19,10 +19,10 @@ void ZepReplEvaluateOuterCommand::Register(ZepEditor &editor, IZepReplProvider *
 
 void ZepReplEvaluateOuterCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!GetEditor().GetActiveTabWindow()) return;
+    if (!editor.GetActiveTabWindow()) return;
 
-    auto &buffer = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
 
     m_pProvider->ReplParse(buffer, cursor, ReplParseType::OuterExpression);
 }
@@ -38,10 +38,10 @@ void ZepReplEvaluateCommand::Register(ZepEditor &editor, IZepReplProvider *pProv
 
 void ZepReplEvaluateCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!GetEditor().GetActiveTabWindow()) return;
+    if (!editor.GetActiveTabWindow()) return;
 
-    auto &buffer = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
 
     m_pProvider->ReplParse(buffer, cursor, ReplParseType::All);
 }
@@ -57,12 +57,12 @@ void ZepReplEvaluateInnerCommand::Register(ZepEditor &editor, IZepReplProvider *
 
 void ZepReplEvaluateInnerCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!GetEditor().GetActiveTabWindow()) {
+    if (!editor.GetActiveTabWindow()) {
         return;
     }
 
-    auto &buffer = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
-    auto cursor = GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
+    auto &buffer = editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+    auto cursor = editor.GetActiveTabWindow()->GetActiveWindow()->GetBufferCursor();
 
     m_pProvider->ReplParse(buffer, cursor, ReplParseType::SubExpression);
 }
@@ -80,10 +80,10 @@ void ZepReplExCommand::Register(ZepEditor &editor, IZepReplProvider *pProvider) 
 
 void ZepReplExCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
-    if (!GetEditor().GetActiveTabWindow()) return;
+    if (!editor.GetActiveTabWindow()) return;
 
     // TODO: Modifiable but not saveable buffer
-    m_pReplBuffer = GetEditor().GetEmptyBuffer("Repl.lisp"); // , FileFlags::ReadOnly);
+    m_pReplBuffer = editor.GetEmptyBuffer("Repl.lisp"); // , FileFlags::ReadOnly);
     m_pReplBuffer->SetBufferType(BufferType::Repl);
     m_pReplBuffer->GetSyntax()->IgnoreLineHighlight();
     m_pReplBuffer->SetPostKeyNotifier([&](uint32_t key, uint32_t modifier) {
@@ -91,7 +91,7 @@ void ZepReplExCommand::Run(const std::vector<std::string> &tokens) {
     });
 
     // Adding the window will make it active and begin the mode
-    m_pReplWindow = GetEditor().GetActiveTabWindow()->AddWindow(m_pReplBuffer, nullptr, RegionLayoutType::VBox);
+    m_pReplWindow = editor.GetActiveTabWindow()->AddWindow(m_pReplBuffer, nullptr, RegionLayoutType::VBox);
     Prompt();
 }
 
@@ -106,7 +106,6 @@ void ZepReplExCommand::MoveToEnd() {
     m_pReplWindow->SetBufferCursor(m_pReplBuffer->End());
     m_startLocation = m_pReplWindow->GetBufferCursor();
 }
-
 
 bool ZepReplExCommand::AddKeyPress(uint32_t key, uint32_t modifiers) {
     (void) &modifiers;

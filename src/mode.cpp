@@ -15,7 +15,7 @@ CommandContext::CommandContext(std::string commandIn, ZepMode &md, EditorMode ed
     pRegister = &tempReg;
 
     bool needMore = false;
-    auto extraMaps = md.GetEditor().GetGlobalKeyMaps(md);
+    auto extraMaps = md.editor.GetGlobalKeyMaps(md);
     for (auto &extra: extraMaps) {
         keymap_find(*extra, fullCommand, keymap);
         if (keymap.foundMapping.id != 0) break;
@@ -48,14 +48,14 @@ void CommandContext::UpdateRegisters() {
         // Delete commands fill up 1-9 registers
         if (keymap.commandWithoutGroups[0] == 'd' || keymap.commandWithoutGroups[0] == 'D') {
             for (int i = 9; i > 1; i--) {
-                owner.GetEditor().SetRegister('0' + (char) i, owner.GetEditor().GetRegister('0' + (char) i - 1));
+                owner.editor.SetRegister('0' + (char) i, owner.editor.GetRegister('0' + (char) i - 1));
             }
-            owner.GetEditor().SetRegister('1', Register(str, (op == CommandOperation::DeleteLines)));
+            owner.editor.SetRegister('1', Register(str, (op == CommandOperation::DeleteLines)));
         }
 
         // Fill up any other required registers
         while (!registers.empty()) {
-            owner.GetEditor().SetRegister(registers.top(), Register(str, (op == CommandOperation::DeleteLines)));
+            owner.editor.SetRegister(registers.top(), Register(str, (op == CommandOperation::DeleteLines)));
             registers.pop();
         }
     } else if (op == CommandOperation::Copy || op == CommandOperation::CopyLines) {
@@ -67,7 +67,7 @@ void CommandContext::UpdateRegisters() {
 
         std::string str = std::string(buffer.GetWorkingBuffer().begin() + beginRange.Index(), buffer.GetWorkingBuffer().begin() + endRange.Index());
         while (!registers.empty()) {
-            auto &ed = owner.GetEditor();
+            auto &ed = owner.editor;
 
             // Capital letters append to registers instead of replacing them
             if (registers.top() >= 'A' && registers.top() <= 'Z') {
@@ -99,15 +99,15 @@ void CommandContext::GetCommandRegisters() {
                 reg = (char) std::tolower((char) reg);
             }
 
-            if (owner.GetEditor().GetRegisters().find(std::string({reg})) != owner.GetEditor().GetRegisters().end()) {
-                pRegister = &owner.GetEditor().GetRegister(reg);
+            if (owner.editor.GetRegisters().find(std::string({reg})) != owner.editor.GetRegisters().end()) {
+                pRegister = &owner.editor.GetRegister(reg);
             }
         }
     }
 
     // Default register
     if (!pRegister || pRegister->text.empty()) {
-        pRegister = &owner.GetEditor().GetRegister('"');
+        pRegister = &owner.editor.GetRegister('"');
     }
 }
 
@@ -200,7 +200,7 @@ void ZepMode::SwitchMode(EditorMode currentMode) {
         case EditorMode::Ex: {
             m_exCommandStartLocation = cursor;
             // Ensure we show the command at the bottom
-            GetEditor().SetCommandText(m_currentCommand);
+            editor.SetCommandText(m_currentCommand);
         }
             break;
         default:
@@ -326,21 +326,21 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     m_currentCommand += input;
 
     // Reset the timer for the last edit, for time-sensitive keystrokes
-    GetEditor().ResetLastEditTimer();
+    editor.ResetLastEditTimer();
 
     // Reset the cursor to keep it visible during typing, and not flashing
-    GetEditor().ResetCursorTimer();
+    editor.ResetCursorTimer();
 
     // Reset command text - it may get updated later.
-    GetEditor().SetCommandText("");
+    editor.SetCommandText("");
 
     // Figure out the command we have typed. foundCommand means that the command was interpreted and understood.
     // If spCommand is returned, then there is an atomic command operation that needs to be done.
     auto spContext = std::make_shared<CommandContext>(m_currentCommand, *this, m_currentMode);
 
     // Before handling the command, change the command text, since the command might override it
-    if (GetEditor().config.showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual)) {
-        GetEditor().SetCommandText(spContext->keymap.searchPath);
+    if (editor.config.showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual)) {
+        editor.SetCommandText(spContext->keymap.searchPath);
     }
 
     spContext->foundCommand = GetCommand(*spContext);
@@ -528,7 +528,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             return true;
         }
 
-        GetEditor().SetCommandText(m_currentCommand);
+        editor.SetCommandText(m_currentCommand);
         return false;
     }
 
@@ -543,7 +543,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
 
     auto mappedCommand = context.keymap.foundMapping;
 
-    auto pEx = GetEditor().FindExCommand(mappedCommand);
+    auto pEx = editor.FindExCommand(mappedCommand);
     if (pEx) {
         pEx->Run();
         return true;
@@ -593,7 +593,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         // It also only looks for a file with the same name and different extension!
         // it is good enough for my current needs...
         auto path = buffer.GetFilePath();
-        if (!path.empty() && GetEditor().fileSystem->Exists(path)) {
+        if (!path.empty() && editor.fileSystem->Exists(path)) {
             auto ext = path.extension();
             auto searchPaths = std::vector<ZepPath>{
                 path.parent_path(),
@@ -613,9 +613,9 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 // Look for the priority folder locations
                 std::vector<ZepPath> searchFolders{path.parent_path()};
                 for (auto &priorityFolder: priorityFolders) {
-                    GetEditor().fileSystem->ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
+                    editor.fileSystem->ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = false;
-                        if (GetEditor().fileSystem->IsDirectory(currentPath)) {
+                        if (editor.fileSystem->IsDirectory(currentPath)) {
                             auto lower = string_tolower(currentPath.filename().string());
                             if (std::find(ignoreFolders.begin(), ignoreFolders.end(), lower) != ignoreFolders.end()) {
                                 return true;
@@ -632,10 +632,10 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 for (auto &folder: searchFolders) {
                     ZLOG(INFO, "Searching: " << folder.string());
 
-                    GetEditor().fileSystem->ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
+                    editor.fileSystem->ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = true;
                         if (path.stem() == currentPath.stem() && !(currentPath.extension() == path.extension())) {
-                            auto load = GetEditor().GetFileBuffer(currentPath, 0, true);
+                            auto load = editor.GetFileBuffer(currentPath, 0, true);
                             if (load != nullptr) {
                                 GetCurrentWindow()->SetBuffer(load);
                                 found = true;
@@ -649,10 +649,10 @@ bool ZepMode::GetCommand(CommandContext &context) {
             }
         }
     } else if (mappedCommand == id_FontBigger) {
-        GetEditor().display->Bigger();
+        editor.display->Bigger();
         return true;
     } else if (mappedCommand == id_FontSmaller) {
-        GetEditor().display->Smaller();
+        editor.display->Smaller();
         return true;
     }
         // Moving between splits
@@ -671,7 +671,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     }
         // global search
     else if (mappedCommand == id_QuickSearch) {
-        GetEditor().AddSearch();
+        editor.AddSearch();
         return true;
     } else if (mappedCommand == id_Redo) {
         context.commandResult.modeSwitch = DefaultMode();
@@ -703,10 +703,10 @@ bool ZepMode::GetCommand(CommandContext &context) {
     }
         // Moving between tabs
     else if (mappedCommand == id_PreviousTabWindow) {
-        GetEditor().PreviousTabWindow();
+        editor.PreviousTabWindow();
         return true;
     } else if (mappedCommand == id_NextTabWindow) {
-        GetEditor().NextTabWindow();
+        editor.NextTabWindow();
         return true;
     } else if (mappedCommand == id_MotionDown) {
         GetCurrentWindow()->MoveCursorY(context.keymap.TotalCount());
@@ -1011,7 +1011,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         if (context.currentMode == EditorMode::Visual) {
             context.replaceRangeMode = ReplaceRangeMode::Replace;
             context.op = CommandOperation::Replace;
-            context.pRegister = &GetEditor().GetRegister('"');
+            context.pRegister = &editor.GetRegister('"');
             auto range = GetInclusiveVisualRange();
             context.beginRange = range.first;
             context.endRange = range.second.Peek(1);
@@ -1028,7 +1028,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             if (context.currentMode == EditorMode::Visual) {
                 context.replaceRangeMode = ReplaceRangeMode::Replace;
                 context.op = CommandOperation::Replace;
-                context.pRegister = &GetEditor().GetRegister('"');
+                context.pRegister = &editor.GetRegister('"');
                 auto range = GetInclusiveVisualRange();
                 context.beginRange = range.first;
                 context.endRange = range.second.Peek(1);
@@ -1049,7 +1049,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         if (!context.pRegister->text.empty()) {
             // Already in visual mode, so replace the selection with whatever we copied
             if (context.currentMode == EditorMode::Visual) {
-                context.pRegister = &GetEditor().GetRegister('"');
+                context.pRegister = &editor.GetRegister('"');
                 auto range = GetInclusiveVisualRange();
                 context.beginRange = range.first;
                 context.endRange = range.second.Peek(1);
@@ -1565,16 +1565,16 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         eraseExtKey(strCommand);
         if (strCommand.empty()) return false;
 
-        if (GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::HandleCommand, strCommand))) return true;
+        if (editor.Broadcast(std::make_shared<ZepMessage>(Msg::HandleCommand, strCommand))) return true;
 
-        auto pCommand = GetEditor().FindExCommand(strCommand.substr(1));
+        auto pCommand = editor.FindExCommand(strCommand.substr(1));
         if (pCommand) {
             auto strTok = string_split(strCommand, " ");
             pCommand->Run(strTok);
         } else if (strCommand == ":reg") {
             std::ostringstream str;
             str << "--- Registers ---" << '\n';
-            for (auto &reg: GetEditor().GetRegisters()) {
+            for (auto &reg: editor.GetRegisters()) {
                 if (!reg.second.text.empty()) {
                     std::string displayText = reg.second.text;
                     displayText = string_replace(displayText, "\n", "^J");
@@ -1582,7 +1582,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     str << "\"" << reg.first << "   " << displayText << '\n';
                 }
             }
-            GetEditor().SetCommandText(str.str());
+            editor.SetCommandText(str.str());
         } else if (strCommand == ":map") {
             std::ostringstream str;
 
@@ -1595,49 +1595,49 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             str << "Visual Maps:" << std::endl;
             keymap_dump(m_visualMap, str);
 
-            auto pMapBuffer = GetEditor().GetEmptyBuffer("Mappings");
+            auto pMapBuffer = editor.GetEmptyBuffer("Mappings");
 
             pMapBuffer->SetFileFlags(FileFlags::Locked | FileFlags::ReadOnly);
             pMapBuffer->SetText(str.str());
-            GetEditor().GetActiveTabWindow()->AddWindow(pMapBuffer, nullptr, RegionLayoutType::VBox);
+            editor.GetActiveTabWindow()->AddWindow(pMapBuffer, nullptr, RegionLayoutType::VBox);
         } else if (strCommand.find(":tabedit") == 0) {
-            auto pTab = GetEditor().AddTabWindow();
+            auto pTab = editor.AddTabWindow();
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 if (strTok[1] == "%") {
                     pTab->AddWindow(&buffer, nullptr, RegionLayoutType::HBox);
                 } else {
                     auto fname = strTok[1];
-                    auto pBuffer = GetEditor().GetFileBuffer(fname);
+                    auto pBuffer = editor.GetFileBuffer(fname);
                     pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
                 }
             }
-            GetEditor().SetCurrentTabWindow(pTab);
+            editor.SetCurrentTabWindow(pTab);
         } else if (strCommand.find(":tree") == 0) {
-            GetEditor().AddTree();
+            editor.AddTree();
         } else if (strCommand.find(":vsplit") == 0) {
-            auto pTab = GetEditor().GetActiveTabWindow();
+            auto pTab = editor.GetActiveTabWindow();
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 if (strTok[1] == "%") {
                     pTab->AddWindow(&GetCurrentWindow()->GetBuffer(), GetCurrentWindow(), RegionLayoutType::HBox);
                 } else {
                     auto fname = strTok[1];
-                    auto pBuffer = GetEditor().GetFileBuffer(fname);
+                    auto pBuffer = editor.GetFileBuffer(fname);
                     pTab->AddWindow(pBuffer, GetCurrentWindow(), RegionLayoutType::HBox);
                 }
             } else {
                 pTab->AddWindow(&GetCurrentWindow()->GetBuffer(), GetCurrentWindow(), RegionLayoutType::HBox);
             }
         } else if (strCommand.find(":hsplit") == 0 || strCommand.find(":split") == 0) {
-            auto pTab = GetEditor().GetActiveTabWindow();
+            auto pTab = editor.GetActiveTabWindow();
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 if (strTok[1] == "%") {
                     pTab->AddWindow(&GetCurrentWindow()->GetBuffer(), GetCurrentWindow(), RegionLayoutType::VBox);
                 } else {
                     auto fname = strTok[1];
-                    auto pBuffer = GetEditor().GetFileBuffer(fname);
+                    auto pBuffer = editor.GetFileBuffer(fname);
                     pTab->AddWindow(pBuffer, GetCurrentWindow(), RegionLayoutType::VBox);
                 }
             } else {
@@ -1647,7 +1647,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 auto fname = strTok[1];
-                auto pBuffer = GetEditor().GetFileBuffer(fname);
+                auto pBuffer = editor.GetFileBuffer(fname);
                 GetCurrentWindow()->SetBuffer(pBuffer);
             }
         } else if (strCommand.find(":w") == 0) {
@@ -1656,23 +1656,23 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 auto fname = strTok[1];
                 GetCurrentWindow()->GetBuffer().SetFilePath(fname);
             }
-            GetEditor().SaveBuffer(GetCurrentWindow()->GetBuffer());
+            editor.SaveBuffer(GetCurrentWindow()->GetBuffer());
         } else if (strCommand == ":close" || strCommand == ":clo") {
-            GetEditor().GetActiveTabWindow()->CloseActiveWindow();
+            editor.GetActiveTabWindow()->CloseActiveWindow();
         } else if (strCommand[1] == 'q') {
             if (strCommand == ":q") {
-                GetEditor().GetActiveTabWindow()->CloseActiveWindow();
+                editor.GetActiveTabWindow()->CloseActiveWindow();
             }
         } else if (strCommand.find(":ZConfigPath") == 0) {
-            GetEditor().SetCommandText(GetEditor().fileSystem->GetConfigPath().string());
+            editor.SetCommandText(editor.fileSystem->GetConfigPath().string());
         } else if (strCommand.find(":ZConfig") == 0) {
-            auto pBuffer = GetEditor().GetFileBuffer(GetEditor().fileSystem->GetConfigPath() / "zep.cfg");
+            auto pBuffer = editor.GetFileBuffer(editor.fileSystem->GetConfigPath() / "zep.cfg");
             GetCurrentWindow()->SetBuffer(pBuffer);
         } else if (strCommand.find(":cd") == 0) {
-            GetEditor().SetCommandText(GetEditor().fileSystem->GetWorkingDirectory().string());
+            editor.SetCommandText(editor.fileSystem->GetWorkingDirectory().string());
         } else if (strCommand.find(":ZTestFloatSlider") == 0) {
             // auto line = buffer.GetBufferLine(bufferCursor);
-            auto pSlider = std::make_shared<FloatSlider>(GetEditor(), 4);
+            auto pSlider = std::make_shared<FloatSlider>(editor, 4);
 
             auto spMarker = std::make_shared<RangeMarker>(buffer);
             spMarker->SetRange(ByteRange(bufferCursor.Index(), bufferCursor.Peek(1).Index()));
@@ -1681,7 +1681,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             spMarker->displayType = RangeMarkerDisplayType::Hidden;
         } else if (strCommand.find(":ZTestColorPicker") == 0) {
             // auto line = buffer.GetBufferLine(bufferCursor);
-            auto pPicker = std::make_shared<ColorPicker>(GetEditor());
+            auto pPicker = std::make_shared<ColorPicker>(editor);
             auto spMarker = std::make_shared<RangeMarker>(buffer);
             spMarker->SetRange(ByteRange(bufferCursor.Index(), bufferCursor.Peek(1).Index()));
             spMarker->spWidget = pPicker;
@@ -1737,7 +1737,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
                     spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::Indicator | RangeMarkerDisplayType::Background;
                     break;
-                case 3:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, GetEditor().theme->GetUniqueColor(unique++));
+                case 3:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, editor.theme->GetUniqueColor(unique++));
                     spMarker->SetName("Underline Marker");
                     spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
                     spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::CursorTip;
@@ -1770,12 +1770,12 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         } else if (strCommand == ":ZShowIndicators") {
             GetCurrentWindow()->ToggleFlag(WindowFlags::ShowIndicators);
         } else if (strCommand == ":ZShowInput") {
-            GetEditor().config.showNormalModeKeyStrokes = !GetEditor().config.showNormalModeKeyStrokes;
+            editor.config.showNormalModeKeyStrokes = !editor.config.showNormalModeKeyStrokes;
         } else if (strCommand == ":ls") {
             std::ostringstream str;
             str << "--- buffers ---" << '\n';
             int index = 0;
-            for (auto &editor_buffer: GetEditor().buffers) {
+            for (auto &editor_buffer: editor.buffers) {
                 if (!editor_buffer->GetName().empty()) {
                     std::string displayText = editor_buffer->GetName();
                     displayText = string_replace(displayText, "\n", "^J");
@@ -1785,7 +1785,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     str << index++ << " : " << displayText << '\n';
                 }
             }
-            GetEditor().SetCommandText(str.str());
+            editor.SetCommandText(str.str());
         } else if (strCommand.find(":bu") == 0) {
             auto strTok = string_split(strCommand, " ");
 
@@ -1793,7 +1793,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 try {
                     auto index = std::stoi(strTok[1]);
                     auto current = 0;
-                    for (auto &editor_buffer: GetEditor().buffers) {
+                    for (auto &editor_buffer: editor.buffers) {
                         if (index == current) {
                             GetCurrentWindow()->SetBuffer(editor_buffer.get());
                         }
@@ -1804,7 +1804,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 }
             }
         } else {
-            GetEditor().SetCommandText("Not a command");
+            editor.SetCommandText("Not a command");
         }
         return true;
     } else if (!m_currentCommand.empty() && (m_currentCommand[0] == '/' || m_currentCommand[0] == '?')) {
@@ -1974,8 +1974,8 @@ void ZepMode::Begin(ZepWindow *pWindow) {
     }
 
     // If we are an overlay mode, make sure that the global mode is also begun on the new window
-    if (GetEditor().GetGlobalMode() != this) {
-        GetEditor().GetGlobalMode()->Begin(pWindow);
+    if (editor.GetGlobalMode() != this) {
+        editor.GetGlobalMode()->Begin(pWindow);
     }
 }
 

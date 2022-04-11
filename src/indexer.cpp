@@ -167,7 +167,7 @@ void Indexer::Notify(const std::shared_ptr<ZepMessage> &message) {
 
             m_spFilePaths = m_indexResult.get();
             if (!m_spFilePaths->errors.empty()) {
-                GetEditor().SetCommandText(m_spFilePaths->errors);
+                editor.SetCommandText(m_spFilePaths->errors);
                 return;
             }
 
@@ -185,7 +185,7 @@ void Indexer::Notify(const std::shared_ptr<ZepMessage> &message) {
 }
 
 void Indexer::StartSymbolSearch() {
-    GetEditor().threadPool->enqueue([=]() {
+    editor.threadPool->enqueue([=]() {
         for (;;) {
             ZepPath path;
             {
@@ -196,12 +196,12 @@ void Indexer::StartSymbolSearch() {
                 m_searchQueue.pop_front();
             }
 
-            auto *fs = GetEditor().fileSystem;
+            auto *fs = editor.fileSystem;
             std::string strLast;
             auto fullPath = m_searchRoot / path;
             if (fs->Exists(fullPath)) {
                 ZLOG(DBG, "Parsing: " << fullPath.c_str());
-                auto strFile = GetEditor().fileSystem->Read(fullPath);
+                auto strFile = editor.fileSystem->Read(fullPath);
 
                 std::vector<std::string> tokens;
                 string_split(strFile, ";()[] \t\n\r&!\"\'*:,<>", tokens);
@@ -212,13 +212,13 @@ void Indexer::StartSymbolSearch() {
 
 bool Indexer::StartIndexing() {
     bool foundGit = false;
-    m_searchRoot = GetEditor().fileSystem->GetSearchRoot(GetEditor().fileSystem->GetWorkingDirectory(), foundGit);
+    m_searchRoot = editor.fileSystem->GetSearchRoot(editor.fileSystem->GetWorkingDirectory(), foundGit);
     if (!foundGit) {
         ZLOG(INFO, "Not a git project");
         return false;
     }
 
-    auto *fs = GetEditor().fileSystem;
+    auto *fs = editor.fileSystem;
     auto indexDBRoot = m_searchRoot / ".zep";
     if (!fs->IsDirectory(indexDBRoot)) {
         if (!fs->MakeDirectories(indexDBRoot)) {
@@ -231,7 +231,7 @@ bool Indexer::StartIndexing() {
     fs->Write(indexDBRoot / "indexdb", &v, 1);
 
     m_fileSearchActive = true;
-    m_indexResult = Indexer::IndexPaths(GetEditor(), m_searchRoot);
+    m_indexResult = Indexer::IndexPaths(editor, m_searchRoot);
 
     return true;
 }

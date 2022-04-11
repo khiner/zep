@@ -33,9 +33,9 @@ void ZepMode_Standard::Init() {
     m_modeFlags |= ModeFlags::InsertModeGroupUndo | ModeFlags::StayInInsertMode;
 
     for (int i = 0; i <= 9; i++) {
-        GetEditor().SetRegister('0' + (const char) i, "");
+        editor.SetRegister('0' + (const char) i, "");
     }
-    GetEditor().SetRegister('"', "");
+    editor.SetRegister('"', "");
 
     // Insert Mode
     keymap_add({&m_insertMap}, {"<Backspace>"}, id_Backspace);

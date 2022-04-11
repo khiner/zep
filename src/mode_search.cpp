@@ -32,9 +32,9 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
         // does not currently maintain a list of window orderings; so this is a second best for now.
         // TODO: Add window order tracking along with cursors for CTRL+i/o support
         auto &buffer = m_window.GetBuffer();
-        GetEditor().GetActiveTabWindow()->RemoveWindow(&m_window);
-        GetEditor().GetActiveTabWindow()->SetActiveWindow(&m_launchWindow);
-        GetEditor().RemoveBuffer(&buffer);
+        editor.GetActiveTabWindow()->RemoveWindow(&m_window);
+        editor.GetActiveTabWindow()->SetActiveWindow(&m_launchWindow);
+        editor.RemoveBuffer(&buffer);
         return;
     } else if (key == ExtKeys::RETURN) {
         OpenSelection(OpenType::Replace);
@@ -79,7 +79,7 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
         str << " (" << m_indexTree[m_indexTree.size() - 1]->indices.size() << " / " << m_indexTree[0]->indices.size() << ")";
     }
 
-    GetEditor().SetCommandText(str.str());
+    editor.SetCommandText(str.str());
 }
 
 
@@ -87,9 +87,9 @@ void ZepMode_Search::Begin(ZepWindow *pWindow) {
     ZepMode::Begin(pWindow);
 
     m_searchTerm = "";
-    GetEditor().SetCommandText(">>> ");
+    editor.SetCommandText(">>> ");
 
-    m_indexResult = Indexer::IndexPaths(GetEditor(), m_startPath);
+    m_indexResult = Indexer::IndexPaths(editor, m_startPath);
     m_window.GetBuffer().SetText(std::string("Indexing: ") + m_startPath.string());
 
     fileSearchActive = true;
@@ -107,7 +107,7 @@ void ZepMode_Search::Notify(const std::shared_ptr<ZepMessage> &message) {
 
             m_spFilePaths = m_indexResult.get();
             if (!m_spFilePaths->errors.empty()) {
-                GetEditor().SetCommandText(m_spFilePaths->errors);
+                editor.SetCommandText(m_spFilePaths->errors);
                 return;
             }
 
@@ -115,7 +115,7 @@ void ZepMode_Search::Notify(const std::shared_ptr<ZepMessage> &message) {
             ShowTreeResult();
             UpdateTree();
 
-            GetEditor().RequestRefresh();
+            editor.RequestRefresh();
         }
 
         if (treeSearchActive) {
@@ -157,23 +157,23 @@ void ZepMode_Search::OpenSelection(OpenType type) {
 
     auto &buffer = m_window.GetBuffer();
 
-    GetEditor().GetActiveTabWindow()->SetActiveWindow(&m_launchWindow);
+    editor.GetActiveTabWindow()->SetActiveWindow(&m_launchWindow);
 
     long count = 0;
     for (auto &index: m_indexTree.back()->indices) {
         if (count == line) {
             auto path = m_spFilePaths->paths[index.second.index];
             auto full_path = m_spFilePaths->root / path;
-            auto pBuffer = GetEditor().GetFileBuffer(full_path, 0, true);
+            auto pBuffer = editor.GetFileBuffer(full_path, 0, true);
             if (pBuffer != nullptr) {
                 switch (type) {
                     case OpenType::Replace:m_launchWindow.SetBuffer(pBuffer);
                         break;
-                    case OpenType::VSplit:GetEditor().GetActiveTabWindow()->AddWindow(pBuffer, &m_launchWindow, RegionLayoutType::HBox);
+                    case OpenType::VSplit:editor.GetActiveTabWindow()->AddWindow(pBuffer, &m_launchWindow, RegionLayoutType::HBox);
                         break;
-                    case OpenType::HSplit:GetEditor().GetActiveTabWindow()->AddWindow(pBuffer, &m_launchWindow, RegionLayoutType::VBox);
+                    case OpenType::HSplit:editor.GetActiveTabWindow()->AddWindow(pBuffer, &m_launchWindow, RegionLayoutType::VBox);
                         break;
-                    case OpenType::Tab:GetEditor().AddTabWindow()->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
+                    case OpenType::Tab:editor.AddTabWindow()->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
                         break;
                 }
             }
@@ -182,7 +182,7 @@ void ZepMode_Search::OpenSelection(OpenType type) {
     }
 
     // Removing the buffer will also kill this mode and its window; this is the last thing we can do here
-    GetEditor().RemoveBuffer(&buffer);
+    editor.RemoveBuffer(&buffer);
 }
 
 void ZepMode_Search::UpdateTree() {
@@ -216,7 +216,7 @@ void ZepMode_Search::UpdateTree() {
         char startChar = m_searchTerm[m_indexTree.size() - 1];
 
         // Search for a match at the next level of the search tree
-        m_searchResult = GetEditor().threadPool->enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
+        m_searchResult = editor.threadPool->enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
                 auto spResult = std::make_shared<IndexSet>();
                 for (auto &searchPair: spStartSet->indices) {
                     auto index = searchPair.second.index;
@@ -255,7 +255,7 @@ void ZepMode_Search::UpdateTree() {
     }
 
     ShowTreeResult();
-    GetEditor().RequestRefresh();
+    editor.RequestRefresh();
 }
 
 CursorType ZepMode_Search::GetCursorType() const {

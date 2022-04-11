@@ -517,11 +517,11 @@ void ZepBuffer::Load(const ZepPath &path) {
 
     // Must set the syntax before the first buffer change messages
     // TODO: I believe that some of this buffer config should move to Editor.cpp
-    GetEditor().SetBufferSyntax(*this);
+    editor.SetBufferSyntax(*this);
 
-    if (GetEditor().fileSystem->Exists(path)) {
-        m_filePath = GetEditor().fileSystem->Canonical(path);
-        auto read = GetEditor().fileSystem->Read(path);
+    if (editor.fileSystem->Exists(path)) {
+        m_filePath = editor.fileSystem->Canonical(path);
+        auto read = editor.fileSystem->Read(path);
 
         // Always set text, to ensure we prepare the buffer with 0 terminator,
         // even if string is empty
@@ -555,7 +555,7 @@ bool ZepBuffer::Save(int64_t &size) {
 
     if (size <= 0) return true;
 
-    if (GetEditor().fileSystem->Write(m_filePath, &str[0], (size_t) size)) {
+    if (editor.fileSystem->Write(m_filePath, &str[0], (size_t) size)) {
         m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
         return true;
     }
@@ -571,14 +571,14 @@ ZepPath ZepBuffer::GetFilePath() const { return m_filePath; }
 
 void ZepBuffer::SetFilePath(const ZepPath &path) {
     auto testPath = path;
-    if (GetEditor().fileSystem->Exists(testPath)) {
-        testPath = GetEditor().fileSystem->Canonical(testPath);
+    if (editor.fileSystem->Exists(testPath)) {
+        testPath = editor.fileSystem->Canonical(testPath);
     }
 
-    if (!GetEditor().fileSystem->Equivalent(testPath, m_filePath)) {
+    if (!editor.fileSystem->Equivalent(testPath, m_filePath)) {
         m_filePath = testPath;
     }
-    GetEditor().SetBufferSyntax(*this);
+    editor.SetBufferSyntax(*this);
 }
 
 // Remember that we updated the buffer and dirty the state
@@ -603,7 +603,7 @@ void ZepBuffer::Clear() {
     }
 
     // Inform clients we are about to change the buffer
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, GlyphIterator(this), End()));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, GlyphIterator(this), End()));
 
     m_workingBuffer.clear();
     m_workingBuffer.push_back(0);
@@ -613,7 +613,7 @@ void ZepBuffer::Clear() {
 
     {
         MarkUpdate();
-        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextDeleted, GlyphIterator(this), End()));
+        editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextDeleted, GlyphIterator(this), End()));
     }
 }
 
@@ -673,12 +673,12 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
 
     // When loading a file, send the Loaded message to distinguish it from adding to a buffer, and remember that the buffer is not dirty in this case
     if (initFromFile) {
-        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::Loaded, Begin(), End()));
+        editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::Loaded, Begin(), End()));
 
         // Doc is not dirty
         m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
     } else {
-        GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, Begin(), End()));
+        editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, Begin(), End()));
     }
 }
 
@@ -803,7 +803,7 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     // We are about to modify this range
     // TODO: Is this correct, and/or useful in any way??
     // We aren't changing this range at all; we are shifting those characters forward and replacing the area
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
 
     // abcdef\r\nabc<insert>dfdf\r\n
     auto itrLine = std::lower_bound(m_lineEnds.begin(), m_lineEnds.end(), startIndex.Index());;
@@ -847,7 +847,7 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, startIndex, endIndex));
 
     return true;
 }
@@ -868,7 +868,7 @@ bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &en
     changeRecord.strDeleted = GetBufferText(startIndex, endIndex);
 
     // We are about to modify this range
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
 
     // Perform a fill
     for (auto loc = startIndex; loc < endIndex; loc++) {
@@ -880,7 +880,7 @@ bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &en
     MarkUpdate();
 
     // This is the range we added (not valid any more in the buffer)
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextChanged, startIndex, endIndex));
 
     return true;
 }
@@ -898,7 +898,7 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
     assert(endIndex.Valid());
 
     // We are about to modify this range
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
 
     changeRecord.strDeleted = GetBufferText(startIndex, endIndex);
 
@@ -929,12 +929,12 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
     MarkUpdate();
 
     // This is the range we deleted (not valid any more in the buffer)
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextDeleted, startIndex, endIndex));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextDeleted, startIndex, endIndex));
 
     return true;
 }
 
-ZepTheme &ZepBuffer::GetTheme() const { return *GetEditor().theme; }
+ZepTheme &ZepBuffer::GetTheme() const { return *editor.theme; }
 
 bool ZepBuffer::HasSelection() const { return m_selection.first != m_selection.second; }
 
@@ -956,7 +956,7 @@ void ZepBuffer::AddRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
     m_rangeMarkers[spMarker->GetRange().first].insert(spMarker);
 
     // TODO: Why is this necessary; marks the whole buffer
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
@@ -969,14 +969,14 @@ void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
     }
 
     // TODO: Why is this necessary; marks the whole buffer
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 void ZepBuffer::ClearRangeMarkers(const std::set<std::shared_ptr<RangeMarker>> &markers) {
     for (auto &marker: markers) {
         ClearRangeMarker(marker);
     }
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 void ZepBuffer::ClearRangeMarkers(uint32_t markerType) {
@@ -990,7 +990,7 @@ void ZepBuffer::ClearRangeMarkers(uint32_t markerType) {
         ClearRangeMarker(victim);
     }
 
-    GetEditor().Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
+    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 bool OverlapInclusive(ByteRange r1, ByteRange r2) {
@@ -1108,7 +1108,7 @@ ZepMode *ZepBuffer::GetMode() const {
     if (m_spMode) {
         return m_spMode.get();
     }
-    return GetEditor().GetGlobalMode();
+    return editor.GetGlobalMode();
 }
 
 void ZepBuffer::SetMode(std::shared_ptr<ZepMode> spMode) {
@@ -1131,7 +1131,7 @@ tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) 
 }
 
 bool ZepBuffer::IsHidden() const {
-    auto windows = GetEditor().FindBufferWindows(this);
+    auto windows = editor.FindBufferWindows(this);
     return windows.empty();
 }
 
@@ -1250,7 +1250,7 @@ fnKeyNotifier ZepBuffer::GetPostKeyNotifier() const {
 }
 
 void ZepBuffer::EndFlash() const {
-    GetEditor().SetFlags(ZClearFlags(GetEditor().GetFlags(), ZepEditorFlags::FastUpdate));
+    editor.SetFlags(ZClearFlags(editor.GetFlags(), ZepEditorFlags::FastUpdate));
 }
 
 void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange &range) {
@@ -1264,7 +1264,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange 
     spMarker->duration = seconds;
     timer_restart(spMarker->timer);
 
-    GetEditor().SetFlags(ZSetFlags(GetEditor().GetFlags(), ZepEditorFlags::FastUpdate));
+    editor.SetFlags(ZSetFlags(editor.GetFlags(), ZepEditorFlags::FastUpdate));
 }
 
 } // namespace Zep

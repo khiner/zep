@@ -104,7 +104,7 @@ void ZepTabWindow::SetActiveWindow(ZepWindow *pBuffer) {
     if (m_pActiveWindow) {
         m_pActiveWindow->GetBuffer().GetMode()->Begin(m_pActiveWindow);
     }
-    GetEditor().UpdateTabs();
+    editor.UpdateTabs();
 }
 
 // The region management is in theory dirt-simple.
@@ -320,7 +320,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
     if (m_windows.empty()) {
         SetActiveWindow(nullptr);
         m_spRootRegion.reset();
-        GetEditor().RemoveTabWindow(this);
+        editor.RemoveTabWindow(this);
     } else {
         if (m_pActiveWindow == pWindow) {
             // TODO: Active window ordering - remember the last active and switch to it when this one is closed

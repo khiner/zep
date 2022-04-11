@@ -52,34 +52,34 @@ void Scroller::CheckState() {
             break;
     }
 
-    GetEditor().RequestRefresh();
+    editor.RequestRefresh();
 }
 
 void Scroller::ClickUp() {
     vScrollPosition -= vScrollLinePercent;
     vScrollPosition = std::max(0.0f, vScrollPosition);
-    GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
+    editor.Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
     m_scrollState = ScrollState::ScrollUp;
 }
 
 void Scroller::ClickDown() {
     vScrollPosition += vScrollLinePercent;
     vScrollPosition = std::min(1.0f - vScrollVisiblePercent, vScrollPosition);
-    GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
+    editor.Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
     m_scrollState = ScrollState::ScrollDown;
 }
 
 void Scroller::PageUp() {
     vScrollPosition -= vScrollPagePercent;
     vScrollPosition = std::max(0.0f, vScrollPosition);
-    GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
+    editor.Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
     m_scrollState = ScrollState::PageUp;
 }
 
 void Scroller::PageDown() {
     vScrollPosition += vScrollPagePercent;
     vScrollPosition = std::min(1.0f - vScrollVisiblePercent, vScrollPosition);
-    GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
+    editor.Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
     m_scrollState = ScrollState::PageDown;
 }
 
@@ -91,7 +91,7 @@ void Scroller::DoMove(NVec2f pos) {
         vScrollPosition = m_mouseDownPercent + (percentPerPixel * dist);
         vScrollPosition = std::min(1.0f - vScrollVisiblePercent, vScrollPosition);
         vScrollPosition = std::max(0.0f, vScrollPosition);
-        GetEditor().Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
+        editor.Broadcast(std::make_shared<ZepMessage>(Msg::ComponentChanged, this));
     }
 }
 
@@ -153,10 +153,10 @@ void Scroller::Notify(const std::shared_ptr<ZepMessage> &message) {
 }
 
 void Scroller::Display(ZepTheme &theme) {
-    auto *display = GetEditor().display;
+    auto *display = editor.display;
     display->SetClipRect(m_region->rect);
 
-    auto mousePos = GetEditor().GetMousePos();
+    auto mousePos = editor.GetMousePos();
     auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
     auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
 

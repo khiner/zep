@@ -19,7 +19,7 @@ using fnWidgetValueChanged = std::function<void(IWidget *pWidget)>;
 class FloatSlider : public IWidget {
 public:
     FloatSlider(ZepEditor &editor, uint32_t dimension, fnWidgetValueChanged fnChanged = nullptr)
-        : m_editor(editor),
+        : editor(editor),
           m_dimension(dimension),
           m_fnChanged(std::move(std::move(fnChanged))) {
 
@@ -34,12 +34,7 @@ public:
     const NVec4f &Get() const override;
 
 private:
-    virtual ZepEditor &GetEditor() const {
-        return m_editor;
-    };
-
-private:
-    ZepEditor &m_editor;
+    ZepEditor &editor;
     uint32_t m_dimension = 1;
     NVec2f m_range = NVec2f(0.0f, 1.0f);
     NVec4f m_value = NVec4f(0.0f, 0.0f, 0.0f, 0.0f);
@@ -49,7 +44,7 @@ private:
 
 class ColorPicker : public IWidget {
 public:
-    explicit ColorPicker(ZepEditor &editor) : m_editor(editor) {}
+    explicit ColorPicker(ZepEditor &editor) : editor(editor) {}
 
     NVec2f GetSize() const override;
     void MouseDown(const NVec2f &pos, ZepMouseButton button) override;
@@ -60,13 +55,8 @@ public:
     void Set(const NVec4f &value) override;
     const NVec4f &Get() const override;
 
+    ZepEditor &editor;
 private:
-    virtual ZepEditor &GetEditor() const {
-        return m_editor;
-    };
-
-private:
-    ZepEditor &m_editor;
     NVec4f m_color;
 };
 } // Zep

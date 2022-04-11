@@ -108,17 +108,14 @@ public:
 
 struct IZepComponent {
     virtual void Notify(const std::shared_ptr<ZepMessage> &message) { ZEP_UNUSED(message); };
-    virtual ZepEditor &GetEditor() const = 0;
 };
 
 class ZepComponent : public IZepComponent {
 public:
     explicit ZepComponent(ZepEditor &editor);
     virtual ~ZepComponent();
-    ZepEditor &GetEditor() const override { return m_editor; }
 
-private:
-    ZepEditor &m_editor;
+    ZepEditor &editor;
 };
 
 // Registers are used by the editor to store/retrieve text fragments
@@ -145,11 +142,6 @@ const float bottomBorder = 2.0f;
 const float textBorder = 2.0f;
 const float tabSpacing = 1.0f;
 const float leftBorderChars = 3;
-
-#define DPI_VEC2(value) ((value) * GetEditor().display->GetPixelScale())
-#define DPI_Y(value) (GetEditor().display->GetPixelScale().y * (value))
-#define DPI_X(value) (GetEditor().display->GetPixelScale().x * (value))
-#define DPI_RECT(value) ((value) * GetEditor().display->GetPixelScale())
 
 enum class EditorStyle { Normal = 0, Minimal };
 
@@ -282,7 +274,10 @@ public:
     void SetBufferSyntax(ZepBuffer &buffer) const;
     void SetBufferMode(ZepBuffer &buffer) const;
 
-    ZepEditor &GetEditor() { return *this; } // Helper for macros
+    float DpiX(float value) const;
+    float DpiY(float value) const;
+    NVec2f Dpi(NVec2f value) const;
+    NRectf Dpi(NRectf value) const;
 
     // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
     virtual void OnFileChanged(const ZepPath &path);

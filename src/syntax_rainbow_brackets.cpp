@@ -8,7 +8,7 @@ namespace Zep {
 
 ZepSyntaxAdorn_RainbowBrackets::ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer)
     : ZepSyntaxAdorn(syntax, buffer) {
-    syntax.GetEditor().RegisterCallback(this);
+    syntax.editor.RegisterCallback(this);
 
     Update(buffer.Begin(), buffer.End());
 }

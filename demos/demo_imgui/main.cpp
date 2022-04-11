@@ -231,7 +231,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         auto ret = chibi_repl(scheme, NULL, eval);
         ret = RTrim(ret);
 
-        GetEditor().SetCommandText(ret);
+        editor.SetCommandText(ret);
         return ret;
     }
 
@@ -305,10 +305,6 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
                 }
             }
         }
-    }
-
-    virtual ZepEditor &GetEditor() const override {
-        return *spEditor;
     }
 
     bool quit = false;
@@ -456,35 +452,35 @@ int main(int argc, char *argv[]) {
                         nullptr,
                         0);
                     if (openFileName != nullptr) {
-                        auto pBuffer = zep.GetEditor().GetFileBuffer(openFileName);
-                        zep.GetEditor().GetActiveTabWindow()->GetActiveWindow()->SetBuffer(pBuffer);
+                        auto pBuffer = zep.editor.GetFileBuffer(openFileName);
+                        zep.editor.GetActiveTabWindow()->GetActiveWindow()->SetBuffer(pBuffer);
                     }
                 }
                 ImGui::EndMenu();
             }
 
-            const auto &buffer = zep.GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
+            const auto &buffer = zep.editor.GetActiveTabWindow()->GetActiveWindow()->GetBuffer();
 
             if (ImGui::BeginMenu("Settings")) {
                 if (ImGui::BeginMenu("Editor Mode")) {
                     bool enabledVim = strcmp(buffer.GetMode()->Name(), Zep::ZepMode_Vim::StaticName()) == 0;
                     bool enabledNormal = !enabledVim;
                     if (ImGui::MenuItem("Vim", "CTRL+2", &enabledVim)) {
-                        zep.GetEditor().SetGlobalMode(Zep::ZepMode_Vim::StaticName());
+                        zep.editor.SetGlobalMode(Zep::ZepMode_Vim::StaticName());
                     } else if (ImGui::MenuItem("Standard", "CTRL+1", &enabledNormal)) {
-                        zep.GetEditor().SetGlobalMode(Zep::ZepMode_Standard::StaticName());
+                        zep.editor.SetGlobalMode(Zep::ZepMode_Standard::StaticName());
                     }
                     ImGui::EndMenu();
                 }
 
                 if (ImGui::BeginMenu("Theme")) {
-                    bool enabledDark = zep.GetEditor().theme->GetThemeType() == ThemeType::Dark ? true : false;
+                    bool enabledDark = zep.editor.theme->GetThemeType() == ThemeType::Dark ? true : false;
                     bool enabledLight = !enabledDark;
 
                     if (ImGui::MenuItem("Dark", "", &enabledDark)) {
-                        zep.GetEditor().theme->SetThemeType(ThemeType::Dark);
+                        zep.editor.theme->SetThemeType(ThemeType::Dark);
                     } else if (ImGui::MenuItem("Light", "", &enabledLight)) {
-                        zep.GetEditor().theme->SetThemeType(ThemeType::Light);
+                        zep.editor.theme->SetThemeType(ThemeType::Light);
                     }
                     ImGui::EndMenu();
                 }
@@ -492,7 +488,7 @@ int main(int argc, char *argv[]) {
             }
 
             if (ImGui::BeginMenu("Window")) {
-                auto pTabWindow = zep.GetEditor().GetActiveTabWindow();
+                auto pTabWindow = zep.editor.GetActiveTabWindow();
                 if (ImGui::MenuItem("Horizontal Split")) {
                     pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::VBox);
                 } else if (ImGui::MenuItem("Vertical Split")) {

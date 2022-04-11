@@ -87,9 +87,9 @@ void ZepMode_Vim::AddPasteMaps() {
 
 void ZepMode_Vim::Init() {
     for (int i = 0; i <= 9; i++) {
-        GetEditor().SetRegister('0' + (const char) i, "");
+        editor.SetRegister('0' + (const char) i, "");
     }
-    GetEditor().SetRegister('"', "");
+    editor.SetRegister('"', "");
 
     SetupKeyMaps();
 }
@@ -172,7 +172,7 @@ void ZepMode_Vim::SetupKeyMaps() {
 void ZepMode_Vim::Begin(ZepWindow *pWindow) {
     ZepMode::Begin(pWindow);
 
-    GetEditor().SetCommandText(m_currentCommand);
+    editor.SetCommandText(m_currentCommand);
     m_currentMode = EditorMode::Normal;
     m_currentCommand.clear();
     m_dotCommand.clear();
