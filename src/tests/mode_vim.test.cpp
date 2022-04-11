@@ -33,7 +33,7 @@ public:
         spMode->Begin(pWindow);
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
-        spEditor->SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f));
+        spEditor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
 
         pWindow->SetBufferCursor(pBuffer->Begin());
 
@@ -114,7 +114,7 @@ TEST_F(VimTest, CheckDisplaySucceeds
 {
 pBuffer->SetText("Some text to display\nThis is a test.");
 spEditor->
-SetDisplayRegion(NVec2f(0.0f, 0.0f), NVec2f(1024.0f, 1024.0f)
+SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f})
 );
 ASSERT_NO_FATAL_FAILURE(spEditor
 ->

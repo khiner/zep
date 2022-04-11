@@ -525,7 +525,8 @@ int main(int argc, char *argv[]) {
         // Fill the window
         max.x = min.x + max.x;
         max.y = min.y + max.y;
-        zep.spEditor->SetDisplayRegion(Zep::NVec2f(min.x, min.y), Zep::NVec2f(max.x, max.y));
+        zep.spEditor->SetDisplayRegion({{min.x, min.y},
+                                        {max.x, max.y}});
 
         // Display the editor inside this window
         zep.spEditor->Display();

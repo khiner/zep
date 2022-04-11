@@ -679,7 +679,7 @@ void ZepWindow::UpdateMarkers() {
     }
 
     if (!foundFlash) {
-        editor.SetFlags(ZClearFlags(editor.GetFlags(), ZepEditorFlags::FastUpdate));
+        editor.SetFlags(ZClearFlags(editor.flags, ZepEditorFlags::FastUpdate));
     }
 }
 

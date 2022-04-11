@@ -1250,7 +1250,7 @@ fnKeyNotifier ZepBuffer::GetPostKeyNotifier() const {
 }
 
 void ZepBuffer::EndFlash() const {
-    editor.SetFlags(ZClearFlags(editor.GetFlags(), ZepEditorFlags::FastUpdate));
+    editor.SetFlags(ZClearFlags(editor.flags, ZepEditorFlags::FastUpdate));
 }
 
 void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange &range) {
@@ -1264,7 +1264,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange 
     spMarker->duration = seconds;
     timer_restart(spMarker->timer);
 
-    editor.SetFlags(ZSetFlags(editor.GetFlags(), ZepEditorFlags::FastUpdate));
+    editor.SetFlags(ZSetFlags(editor.flags, ZepEditorFlags::FastUpdate));
 }
 
 } // namespace Zep

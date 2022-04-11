@@ -130,7 +130,6 @@ struct Register {
     bool lineWise = false;
 };
 
-using tRegisters = std::map<std::string, Register>;
 using tSyntaxFactory = std::function<std::shared_ptr<ZepSyntax>(ZepBuffer *)>;
 
 struct SyntaxProvider {
@@ -223,13 +222,12 @@ public:
     void SetRegister(char reg, const char *pszText);
     Register &GetRegister(const std::string &reg);
     Register &GetRegister(char reg);
-    const tRegisters &GetRegisters();
+    const std::map<std::string, Register> &GetRegisters();
 
     void ReadClipboard();
     void WriteClipboard();
 
     void Notify(const std::shared_ptr<ZepMessage> &message);
-    uint32_t GetFlags() const;
     void SetFlags(uint32_t flags);
 
     using tTabWindows = std::vector<ZepTabWindow *>;
@@ -263,13 +261,12 @@ public:
 
     void UpdateWindowState();
 
-    void SetDisplayRegion(const NVec2f &topLeft, const NVec2f &bottomRight);
+    void SetDisplayRegion(const NRectf &rect);
     void UpdateSize();
 
-    bool OnMouseMove(const NVec2f &mousePos);
-    bool OnMouseDown(const NVec2f &mousePos, ZepMouseButton button);
-    bool OnMouseUp(const NVec2f &mousePos, ZepMouseButton button);
-    NVec2f GetMousePos() const;
+    bool OnMouseMove(const NVec2f &pos);
+    bool OnMouseDown(const NVec2f &pos, ZepMouseButton button);
+    bool OnMouseUp(const NVec2f &pos, ZepMouseButton button);
 
     void SetBufferSyntax(ZepBuffer &buffer) const;
     void SetBufferMode(ZepBuffer &buffer) const;
@@ -288,6 +285,9 @@ public:
     EditorConfig config;
     IZepFileSystem *fileSystem;
     std::unique_ptr<ThreadPool> threadPool;
+    uint32_t flags = 0;
+    NVec2f mousePos = NVec2f(0.0f);
+    std::shared_ptr<Region> editorRegion, tabContentRegion, commandRegion, tabRegion;
 
 private:
     // Call GetBuffer publicly, to stop creation of duplicate buffers referring to the same file
@@ -301,7 +301,7 @@ private:
 
 private:
     std::set<IZepComponent *> m_notifyClients;
-    mutable tRegisters m_registers;
+    mutable std::map<std::string, Register> m_registers;
     std::map<std::string, SyntaxProvider> m_mapSyntax;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
@@ -311,14 +311,11 @@ private:
     ZepMode *m_pCurrentMode = nullptr;
     tTabWindows m_tabWindows;
     ZepTabWindow *m_pActiveTabWindow = nullptr;
-    uint32_t m_flags = 0;
     mutable std::atomic_bool m_bPendingRefresh = true;
     mutable bool m_lastCursorBlink = false;
     std::vector<std::string> m_commandLines; // Command information, shown under the buffer
-    std::shared_ptr<Region> m_editorRegion, m_tabContentRegion, m_commandRegion, m_tabRegion;
     bool m_bRegionsChanged = false;
     float m_tabOffsetX = 0.0f;
-    NVec2f m_mousePos = NVec2f(0.0f);
     std::shared_ptr<Indexer> m_indexer; // Define `IMPLEMENTED_INDEXER` to initialize
 };
 

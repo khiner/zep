@@ -156,7 +156,7 @@ void Scroller::Display(ZepTheme &theme) {
     auto *display = editor.display;
     display->SetClipRect(m_region->rect);
 
-    auto mousePos = editor.GetMousePos();
+    auto mousePos = editor.mousePos;
     auto activeColor = theme.GetColor(ThemeColor::WidgetActive);
     auto inactiveColor = theme.GetColor(ThemeColor::WidgetInactive);
 

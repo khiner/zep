@@ -33,11 +33,11 @@ ZepComponent::~ZepComponent() {
 }
 
 ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, IZepFileSystem *pFileSystem)
-    : display(pDisplay), fileSystem(pFileSystem), m_flags(flags) {
+    : display(pDisplay), fileSystem(pFileSystem), flags(flags) {
 
     if (fileSystem == nullptr) fileSystem = new ZepFileSystemCPP(configRoot);
 
-    threadPool = m_flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
+    threadPool = flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
 
     LoadConfig(fileSystem->GetConfigPath() / "zep.cfg");
 
@@ -54,19 +54,19 @@ ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t f
 
     RegisterSyntaxProviders(*this);
 
-    m_editorRegion = std::make_shared<Region>();
-    m_editorRegion->layoutType = RegionLayoutType::VBox;
+    editorRegion = std::make_shared<Region>();
+    editorRegion->layoutType = RegionLayoutType::VBox;
 
-    m_tabRegion = std::make_shared<Region>();
-    m_tabRegion->layoutType = RegionLayoutType::HBox;
-    m_tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
+    tabRegion = std::make_shared<Region>();
+    tabRegion->layoutType = RegionLayoutType::HBox;
+    tabRegion->margin = NVec4f(0, textBorder, 0, textBorder);
 
-    m_tabContentRegion = std::make_shared<Region>();
-    m_commandRegion = std::make_shared<Region>();
+    tabContentRegion = std::make_shared<Region>();
+    commandRegion = std::make_shared<Region>();
 
-    m_editorRegion->children.push_back(m_tabRegion);
-    m_editorRegion->children.push_back(m_tabContentRegion);
-    m_editorRegion->children.push_back(m_commandRegion);
+    editorRegion->children.push_back(tabRegion);
+    editorRegion->children.push_back(tabContentRegion);
+    editorRegion->children.push_back(commandRegion);
 
 #ifdef IMPLEMENTED_INDEXER
     m_indexer = std::make_shared<Indexer>(*this);
@@ -410,7 +410,7 @@ void ZepEditor::SetCurrentTabWindow(ZepTabWindow *pTabWindow) {
 ZepTabWindow *ZepEditor::GetActiveTabWindow() const { return m_pActiveTabWindow; }
 
 void ZepEditor::UpdateTabs() {
-    m_tabRegion->children.clear();
+    tabRegion->children.clear();
     if (GetTabWindows().size() > 1) {
         // Tab region
         for (auto &window: GetTabWindows()) {
@@ -451,12 +451,12 @@ void ZepEditor::UpdateTabs() {
             spTabRegionTab->layoutType = RegionLayoutType::HBox;
             spTabRegionTab->padding = Dpi(NVec2f(textBorder, textBorder));
             spTabRegionTab->flags = RegionFlags::Fixed;
-            m_tabRegion->children.push_back(spTabRegionTab);
-            spTabRegionTab->pParent = m_tabRegion.get();
+            tabRegion->children.push_back(spTabRegionTab);
+            spTabRegionTab->pParent = tabRegion.get();
         }
     }
 
-    LayoutRegion(*m_tabRegion);
+    LayoutRegion(*tabRegion);
 }
 
 ZepTabWindow *ZepEditor::AddTabWindow() {
@@ -686,7 +686,7 @@ Register &ZepEditor::GetRegister(const char reg) {
     std::string str({reg});
     return m_registers[str];
 }
-const tRegisters &ZepEditor::GetRegisters() {
+const std::map<std::string, Register> &ZepEditor::GetRegisters() {
     ReadClipboard();
     return m_registers;
 }
@@ -694,7 +694,7 @@ const tRegisters &ZepEditor::GetRegisters() {
 void ZepEditor::Notify(const std::shared_ptr<ZepMessage> &pMsg) {
     if (pMsg->messageId != Msg::MouseDown) return;
 
-    for (auto &tab: m_tabRegion->children) {
+    for (auto &tab: tabRegion->children) {
         if (tab->rect.Contains(pMsg->pos)) {
             auto pTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
             SetCurrentTabWindow(pTabRegionTab->pTabWindow);
@@ -728,7 +728,7 @@ bool ZepEditor::RefreshRequired() {
 
     auto lastBlink = m_lastCursorBlink;
     if (m_bPendingRefresh || lastBlink != GetCursorBlinkState()) {
-        if (!ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) m_bPendingRefresh = false;
+        if (!ZTestFlags(flags, ZepEditorFlags::FastUpdate)) m_bPendingRefresh = false;
         return true;
     }
 
@@ -740,9 +740,8 @@ bool ZepEditor::GetCursorBlinkState() const {
     return m_lastCursorBlink;
 }
 
-void ZepEditor::SetDisplayRegion(const NVec2f &topLeft, const NVec2f &bottomRight) {
-    m_editorRegion->rect.topLeftPx = topLeft;
-    m_editorRegion->rect.bottomRightPx = bottomRight;
+void ZepEditor::SetDisplayRegion(const NRectf &rect) {
+    editorRegion->rect = rect;
     UpdateSize();
 }
 
@@ -750,27 +749,27 @@ void ZepEditor::UpdateSize() {
     auto &uiFont = display->GetFont(ZepTextType::UI);
     auto commandCount = GetCommandLines().size();
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DpiX(textBorder) * 2.0f;
-    auto displaySize = m_editorRegion->rect.Size();
+    auto displaySize = editorRegion->rect.Size();
 
     // Regions
-    m_commandRegion->fixed_size = NVec2f(0.0f, commandSize);
-    m_commandRegion->flags = RegionFlags::Fixed;
+    commandRegion->fixed_size = NVec2f(0.0f, commandSize);
+    commandRegion->flags = RegionFlags::Fixed;
 
     // Add tabs for extra windows
     if (GetTabWindows().size() > 1) {
-        m_tabRegion->fixed_size = NVec2f(0.0f, uiFont.GetPixelHeight() + DpiX(textBorder) * 2);
-        m_tabRegion->flags = RegionFlags::Fixed;
+        tabRegion->fixed_size = NVec2f(0.0f, uiFont.GetPixelHeight() + DpiX(textBorder) * 2);
+        tabRegion->flags = RegionFlags::Fixed;
     } else {
-        m_tabRegion->fixed_size = NVec2f(0.0f);
-        m_tabRegion->flags = RegionFlags::Fixed;
+        tabRegion->fixed_size = NVec2f(0.0f);
+        tabRegion->flags = RegionFlags::Fixed;
     }
 
-    m_tabContentRegion->flags = RegionFlags::Expanding;
+    tabContentRegion->flags = RegionFlags::Expanding;
 
-    LayoutRegion(*m_editorRegion);
+    LayoutRegion(*editorRegion);
 
     if (GetActiveTabWindow()) {
-        GetActiveTabWindow()->SetDisplayRegion(m_tabContentRegion->rect);
+        GetActiveTabWindow()->SetDisplayRegion(tabContentRegion->rect);
     }
 }
 
@@ -789,23 +788,23 @@ void ZepEditor::Display() {
     auto &uiFont = display->GetFont(ZepTextType::UI);
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DpiX(textBorder) * 2.0f;
 
-    auto displaySize = m_editorRegion->rect.Size();
+    auto displaySize = editorRegion->rect.Size();
 
     auto commandSpace = commandCount;
     commandSpace = std::max(commandCount, 0l);
 
     // This fill will effectively fill the region around the tabs in Normal mode
     if (config.style == EditorStyle::Normal) {
-        display->DrawRectFilled(m_editorRegion->rect, theme->GetColor(ThemeColor::Background));
+        display->DrawRectFilled(editorRegion->rect, theme->GetColor(ThemeColor::Background));
     }
 
     // Background rect for CommandLine
     if (!GetCommandText().empty() || (config.autoHideCommandRegion == false)) {
-        display->DrawRectFilled(m_commandRegion->rect, theme->GetColor(ThemeColor::Background));
+        display->DrawRectFilled(commandRegion->rect, theme->GetColor(ThemeColor::Background));
     }
 
     // Draw command text
-    auto screenPosYPx = m_commandRegion->rect.topLeftPx + NVec2f(0.0f, DpiX(textBorder));
+    auto screenPosYPx = commandRegion->rect.topLeftPx + NVec2f(0.0f, DpiX(textBorder));
     for (int i = 0; i < commandSpace; i++) {
         if (!commandLines[i].empty()) {
             auto textSize = uiFont.GetTextSize((const uint8_t *) commandLines[i].c_str(), (const uint8_t *) commandLines[i].c_str() + commandLines[i].size());
@@ -813,15 +812,15 @@ void ZepEditor::Display() {
         }
 
         screenPosYPx.y += uiFont.GetPixelHeight();
-        screenPosYPx.x = m_commandRegion->rect.topLeftPx.x;
+        screenPosYPx.x = commandRegion->rect.topLeftPx.x;
     }
 
     if (config.style == EditorStyle::Normal) {
         // A line along the bottom of the tab region
         display->DrawRectFilled(
             NRectf(
-                NVec2f(m_tabRegion->rect.Left(), m_tabRegion->rect.Bottom() - DpiY(1)),
-                NVec2f(m_tabRegion->rect.Right(), m_tabRegion->rect.Bottom())
+                NVec2f(tabRegion->rect.Left(), tabRegion->rect.Bottom() - DpiY(1)),
+                NVec2f(tabRegion->rect.Right(), tabRegion->rect.Bottom())
             ),
             theme->GetColor(ThemeColor::TabInactive)
         );
@@ -830,7 +829,7 @@ void ZepEditor::Display() {
     // Figure out the active region
     auto pActiveTabWindow = GetActiveTabWindow();
     NRectf tabRect;
-    for (auto &tab: m_tabRegion->children) {
+    for (auto &tab: tabRegion->children) {
         if (std::static_pointer_cast<TabRegionTab>(tab)->pTabWindow == pActiveTabWindow) {
             tabRect = tab->rect;
             break;
@@ -839,17 +838,17 @@ void ZepEditor::Display() {
 
     // Figure out the virtual vs real page size of the tabs
     float virtualSize = 0.0f;
-    float tabRegionSize = m_tabRegion->rect.Width();
-    if (!m_tabRegion->children.empty()) {
-        virtualSize = m_tabRegion->children.back()->rect.Right();
+    float tabRegionSize = tabRegion->rect.Width();
+    if (!tabRegion->children.empty()) {
+        virtualSize = tabRegion->children.back()->rect.Right();
     }
 
     // Move the tab bar origin if appropriate
     if (tabRect.Width() != 0.0f) {
-        if ((tabRect.Left() - tabRect.Width() + m_tabOffsetX) < m_tabRegion->rect.Left()) {
-            m_tabOffsetX += m_tabRegion->rect.Left() - (tabRect.Left() + m_tabOffsetX - tabRect.Width());
-        } else if ((tabRect.Right() + m_tabOffsetX + tabRect.Width()) > m_tabRegion->rect.Right()) {
-            m_tabOffsetX -= (tabRect.Right() + m_tabOffsetX - m_tabRegion->rect.Right() + tabRect.Width());
+        if ((tabRect.Left() - tabRect.Width() + m_tabOffsetX) < tabRegion->rect.Left()) {
+            m_tabOffsetX += tabRegion->rect.Left() - (tabRect.Left() + m_tabOffsetX - tabRect.Width());
+        } else if ((tabRect.Right() + m_tabOffsetX + tabRect.Width()) > tabRegion->rect.Right()) {
+            m_tabOffsetX -= (tabRect.Right() + m_tabOffsetX - tabRegion->rect.Right() + tabRect.Width());
         }
     }
 
@@ -858,7 +857,7 @@ void ZepEditor::Display() {
     m_tabOffsetX = std::max(std::min(tabRegionSize - virtualSize, 0.0f), m_tabOffsetX);
 
     // Now display the tabs
-    for (auto &tab: m_tabRegion->children) {
+    for (auto &tab: tabRegion->children) {
         auto spTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
 
         auto rc = spTabRegionTab->rect;
@@ -882,33 +881,30 @@ void ZepEditor::Display() {
     if (GetActiveTabWindow()) GetActiveTabWindow()->Display();
 } // namespace Zep
 
-bool ZepEditor::OnMouseMove(const NVec2f &mousePos) {
-    m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseMove, mousePos));
+bool ZepEditor::OnMouseMove(const NVec2f &pos) {
+    mousePos = pos;
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseMove, pos));
     m_bPendingRefresh = true;
     return handled;
 }
 
-bool ZepEditor::OnMouseDown(const NVec2f &mousePos, ZepMouseButton button) {
-    m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseDown, mousePos, button));
+bool ZepEditor::OnMouseDown(const NVec2f &pos, ZepMouseButton button) {
+    mousePos = pos;
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseDown, pos, button));
     m_bPendingRefresh = true;
     return handled;
 }
 
-bool ZepEditor::OnMouseUp(const NVec2f &mousePos, ZepMouseButton button) {
-    m_mousePos = mousePos;
-    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseUp, mousePos, button));
+bool ZepEditor::OnMouseUp(const NVec2f &pos, ZepMouseButton button) {
+    mousePos = pos;
+    bool handled = Broadcast(std::make_shared<ZepMessage>(Msg::MouseUp, pos, button));
     m_bPendingRefresh = true;
     return handled;
 }
-
-NVec2f ZepEditor::GetMousePos() const { return m_mousePos; }
-uint32_t ZepEditor::GetFlags() const { return m_flags; }
 
 void ZepEditor::SetFlags(uint32_t flags) {
-    m_flags = flags;
-    if (ZTestFlags(m_flags, ZepEditorFlags::FastUpdate)) RequestRefresh();
+    flags = flags;
+    if (ZTestFlags(flags, ZepEditorFlags::FastUpdate)) RequestRefresh();
 }
 
 std::vector<const KeyMap *> ZepEditor::GetGlobalKeyMaps(ZepMode &mode) {

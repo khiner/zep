@@ -59,7 +59,10 @@ struct ZepConsole : Zep::IZepComponent {
         auto size = ImGui::GetWindowContentRegionMax();
         auto cursor = ImGui::GetCursorScreenPos();
 
-        zepEditor.SetDisplayRegion(Zep::NVec2f(cursor.x, cursor.y), Zep::NVec2f(size.x, size.y - cursor.y));
+        zepEditor.SetDisplayRegion({
+            {cursor.x, cursor.y},
+            {size.x,   size.y - cursor.y}
+        });
         zepEditor.Display();
         zepEditor.HandleInput();
 
