@@ -33,7 +33,7 @@ void ZepSyntaxAdorn_RainbowBrackets::Notify(const std::shared_ptr<ZepMessage> &s
 
 SyntaxResult ZepSyntaxAdorn_RainbowBrackets::GetSyntaxAt(const GlyphIterator &offset, bool &found) const {
     SyntaxResult data;
-    auto itr = m_brackets.find(offset.Index());
+    auto itr = m_brackets.find(offset.index);
     if (itr == m_brackets.end()) {
         found = false;
         return data;
@@ -56,7 +56,7 @@ void ZepSyntaxAdorn_RainbowBrackets::Insert(const GlyphIterator &start, const Gl
     auto diff = ByteDistance(start, end);
     std::map<long, Bracket> replace;
     for (auto &b: m_brackets) {
-        if (b.first < start.Index())
+        if (b.first < start.index)
             replace[b.first] = b.second;
         else
             replace[b.first + diff] = b.second;
@@ -71,14 +71,14 @@ void ZepSyntaxAdorn_RainbowBrackets::Clear(const GlyphIterator &start, const Gly
     // Note that we can't iterate here if the buffer has changed
     // TODO: this should happen on a message before delete! not after!
     auto itr = m_brackets.begin();
-    while (itr != m_brackets.end() && itr->first < start.Index()) itr++;
-    while (itr != m_brackets.end() && itr->first < end.Index()) itr = m_brackets.erase(itr);
+    while (itr != m_brackets.end() && itr->first < start.index) itr++;
+    while (itr != m_brackets.end() && itr->first < end.index) itr = m_brackets.erase(itr);
 
     // Adjust remaining brackets by the difference
     auto diff = ByteDistance(start, end);
     std::map<long, Bracket> replace;
     for (auto &b: m_brackets) {
-        if (b.first < start.Index()) replace[b.first] = b.second;
+        if (b.first < start.index) replace[b.first] = b.second;
         else replace[b.first - diff] = b.second;
     }
     std::swap(m_brackets, replace);
@@ -92,19 +92,19 @@ void ZepSyntaxAdorn_RainbowBrackets::Update(const GlyphIterator &start, const Gl
 
     for (auto itrBracket = itrStart; itrBracket < itrEnd; itrBracket++) {
         if (*itrBracket == '(') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Bracket, true};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Bracket, true};
         } else if (*itrBracket == ')') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Bracket, false};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Bracket, false};
         } else if (*itrBracket == '[') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Group, true};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Group, true};
         } else if (*itrBracket == ']') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Group, false};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Group, false};
         } else if (*itrBracket == '{') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Brace, true};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Brace, true};
         } else if (*itrBracket == '}') {
-            m_brackets[itrBracket.Index()] = Bracket{0, BracketType::Brace, false};
+            m_brackets[itrBracket.index] = Bracket{0, BracketType::Brace, false};
         } else {
-            auto itr = m_brackets.find(itrBracket.Index());
+            auto itr = m_brackets.find(itrBracket.index);
             if (itr != std::end(m_brackets)) {
                 m_brackets.erase(itr);
             }

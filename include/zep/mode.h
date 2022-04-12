@@ -159,8 +159,6 @@ public:
 
     virtual void SwitchMode(EditorMode currentMode);
 
-    virtual ZepWindow *GetCurrentWindow() const;
-
     const KeyMap &GetKeyMappings(EditorMode mode) const;
 
     // Keys handled by modes
@@ -169,6 +167,8 @@ public:
     virtual GlyphRange GetInclusiveVisualRange() const;
 
     virtual std::vector<Airline> GetAirlines(ZepWindow &) const { return std::vector<Airline>{}; }
+
+    ZepWindow *currentWindow = nullptr;
 
 protected:
     // Do the actual input handling
@@ -222,8 +222,6 @@ protected:
     CursorType m_visualCursorType = CursorType::Visual;
     uint32_t m_modeFlags = ModeFlags::None;
     uint32_t m_lastKey = 0;
-
-    ZepWindow *m_pCurrentWindow = nullptr;
 
     timer m_lastKeyPressTimer;
 };

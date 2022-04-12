@@ -36,17 +36,16 @@ public:
     virtual int GetPixelHeight() const { return m_pixelHeight; }
 
     virtual const NVec2f &GetDefaultCharSize();
-    virtual const NVec2f &GetDotSize();
     virtual void BuildCharCache();
     virtual void InvalidateCharCache();
     virtual NVec2f GetCharSize(const uint8_t *pChar);
 
+    NVec2f dotSize;
 protected:
     int m_pixelHeight{};
     bool m_charCacheDirty = true;
     std::unordered_map<uint32_t, NVec2f> m_charCache;
     NVec2f m_charCacheASCII[256];
-    NVec2f m_dotSize;
     NVec2f m_defaultCharSize;
     ZepDisplay &m_display;
 };

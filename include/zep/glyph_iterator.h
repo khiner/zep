@@ -32,10 +32,9 @@ enum class LineLocation {
 // It will clamp automatically and is usually valid if not in the default uninitialized state
 class GlyphIterator {
 public:
-    explicit GlyphIterator(const ZepBuffer *buffer = nullptr, unsigned long offset = 0);
+    explicit GlyphIterator(const ZepBuffer *buffer = nullptr, long offset = 0);
     GlyphIterator(const GlyphIterator &itr);
 
-    long Index() const;
     bool Valid() const;
     void Invalidate();
     bool operator<(const GlyphIterator &rhs) const;
@@ -64,9 +63,8 @@ public:
     GlyphIterator PeekByteOffset(long count) const;
     GlyphIterator Clamped() const;
 
-private:
-    const ZepBuffer *m_pBuffer = nullptr;
-    long m_index = -1;
+    long index = -1;
+    const ZepBuffer *buffer = nullptr;
 };
 
 inline long CodePointDistance(const GlyphIterator &itr1, const GlyphIterator &itr2) {
@@ -79,9 +77,7 @@ inline long CodePointDistance(const GlyphIterator &itr1, const GlyphIterator &it
     return count;
 }
 
-inline long ByteDistance(const GlyphIterator &itr1, const GlyphIterator &itr2) {
-    return itr2.Index() - itr1.Index();
-}
+inline long ByteDistance(const GlyphIterator &itr1, const GlyphIterator &itr2) { return itr2.index - itr1.index; }
 
 struct GlyphRange {
     GlyphIterator first;

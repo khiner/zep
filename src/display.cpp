@@ -20,19 +20,17 @@ void ZepFont::BuildCharCache() {
     }
     m_charCacheDirty = false;
 
-    m_dotSize = m_defaultCharSize / 8.0f;
-    m_dotSize.x = std::min(m_dotSize.x, m_dotSize.y);
-    m_dotSize.y = std::min(m_dotSize.x, m_dotSize.y);
-    m_dotSize.x = std::max(1.0f, m_dotSize.x);
-    m_dotSize.y = std::max(1.0f, m_dotSize.y);
+    dotSize = m_defaultCharSize / 8.0f;
+    dotSize.x = std::min(dotSize.x, dotSize.y);
+    dotSize.y = std::min(dotSize.x, dotSize.y);
+    dotSize.x = std::max(1.0f, dotSize.x);
+    dotSize.y = std::max(1.0f, dotSize.y);
 }
 
 const NVec2f &ZepFont::GetDefaultCharSize() {
     if (m_charCacheDirty) BuildCharCache();
     return m_defaultCharSize;
 }
-
-const NVec2f &ZepFont::GetDotSize() { return m_dotSize; }
 
 NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
     if (m_charCacheDirty) BuildCharCache();

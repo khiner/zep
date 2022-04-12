@@ -10,7 +10,7 @@
 
 namespace Zep {
 CommandContext::CommandContext(std::string commandIn, ZepMode &md, EditorMode editorMode)
-    : owner(md), fullCommand(std::move(commandIn)), buffer(*md.GetCurrentWindow()->buffer), bufferCursor(md.GetCurrentWindow()->GetBufferCursor()), tempReg("", false), currentMode(editorMode) {
+    : owner(md), fullCommand(std::move(commandIn)), buffer(*md.currentWindow->buffer), bufferCursor(md.currentWindow->GetBufferCursor()), tempReg("", false), currentMode(editorMode) {
     registers.push('"');
     pRegister = &tempReg;
 
@@ -43,7 +43,7 @@ void CommandContext::UpdateRegisters() {
         }
 
         // TODO: Make a helper for this
-        auto str = std::string(buffer.workingBuffer.begin() + beginRange.Index(), buffer.workingBuffer.begin() + endRange.Index());
+        auto str = std::string(buffer.workingBuffer.begin() + beginRange.index, buffer.workingBuffer.begin() + endRange.index);
 
         // Delete commands fill up 1-9 registers
         if (keymap.commandWithoutGroups[0] == 'd' || keymap.commandWithoutGroups[0] == 'D') {
@@ -65,7 +65,7 @@ void CommandContext::UpdateRegisters() {
             std::swap(beginRange, endRange);
         }
 
-        auto str = std::string(buffer.workingBuffer.begin() + beginRange.Index(), buffer.workingBuffer.begin() + endRange.Index());
+        auto str = std::string(buffer.workingBuffer.begin() + beginRange.index, buffer.workingBuffer.begin() + endRange.index);
         while (!registers.empty()) {
             auto &ed = owner.editor;
 
@@ -117,16 +117,10 @@ ZepMode::ZepMode(ZepEditor &editor)
 
 ZepMode::~ZepMode() = default;
 
-ZepWindow *ZepMode::GetCurrentWindow() const {
-    // Mode begin should always set this, and we should always have a valid window associated with the mode
-    assert(m_pCurrentWindow != nullptr);
-    return m_pCurrentWindow;
-}
-
 EditorMode ZepMode::GetEditorMode() const { return m_currentMode; }
 
 void ZepMode::AddCommandText(std::string strText) {
-    if (m_pCurrentWindow == nullptr) return;
+    if (currentWindow == nullptr) return;
 
     for (auto &ch: strText) {
         AddKeyPress(ch);
@@ -134,17 +128,17 @@ void ZepMode::AddCommandText(std::string strText) {
 }
 
 void ZepMode::ClampCursorForMode() {
-    if (m_pCurrentWindow == nullptr) return;
+    if (currentWindow == nullptr) return;
 
     // Normal mode cursor is never on a CR/0
     // This stops an edit, such as an undo from leaving the cursor on the CR.
     if (m_currentMode == EditorMode::Normal) {
-        GetCurrentWindow()->SetBufferCursor(GetCurrentWindow()->buffer->ClampToVisibleLine(GetCurrentWindow()->GetBufferCursor()));
+        currentWindow->SetBufferCursor(currentWindow->buffer->ClampToVisibleLine(currentWindow->GetBufferCursor()));
     }
 }
 
 void ZepMode::SwitchMode(EditorMode currentMode) {
-    if (m_pCurrentWindow == nullptr) return;
+    if (currentWindow == nullptr) return;
 
     // Don't switch to invalid mode
     if (currentMode == EditorMode::None) return;
@@ -152,7 +146,7 @@ void ZepMode::SwitchMode(EditorMode currentMode) {
     // Don't switch to the same thing again
     if (currentMode == m_currentMode) return;
 
-    auto pWindow = GetCurrentWindow();
+    auto pWindow = currentWindow;
     auto *buffer = pWindow->buffer;
     auto cursor = pWindow->GetBufferCursor();
 
@@ -177,7 +171,7 @@ void ZepMode::SwitchMode(EditorMode currentMode) {
             // Move back, but not to the previous line
             GlyphIterator itr(cursor);
             itr.MoveClamped(-1);
-            GetCurrentWindow()->SetBufferCursor(itr);
+            currentWindow->SetBufferCursor(itr);
         }
     }
 
@@ -277,7 +271,7 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
 
 // Handle a key press, convert it to an input command and context, and return it.
 void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
-    if (m_pCurrentWindow == nullptr) return;
+    if (currentWindow == nullptr) return;
 
     // Temporarily accept up to 255; this is not fully allowing UTF8 input yet (though display and management of buffers with
     // utf8 is just fine)
@@ -295,7 +289,7 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
     // We convert CTRL + f to a string: "<C-f>"
     HandleMappedInput(ConvertInputToMapString(key, modifierKeys));
 
-    const auto &notifier = m_pCurrentWindow->buffer->postKeyNotifier;
+    const auto &notifier = currentWindow->buffer->postKeyNotifier;
     if (notifier != nullptr) {
         notifier(key, modifierKeys);
     }
@@ -430,11 +424,11 @@ void ZepMode::HandleMappedInput(const std::string &input) {
 }
 
 void ZepMode::AddCommand(std::shared_ptr<ZepCommand> spCmd) {
-    if (m_pCurrentWindow == nullptr) return;
+    if (currentWindow == nullptr) return;
 
     // Ignore commands on buffers because we are view only,
     // and all commands currently modify the buffer!
-    if (GetCurrentWindow()->buffer->HasFileFlags(FileFlags::Locked)) return;
+    if (currentWindow->buffer->HasFileFlags(FileFlags::Locked)) return;
 
     spCmd->Redo();
     m_undoStack.push(spCmd);
@@ -443,13 +437,13 @@ void ZepMode::AddCommand(std::shared_ptr<ZepCommand> spCmd) {
     std::stack<std::shared_ptr<ZepCommand>> empty;
     m_redoStack.swap(empty);
 
-    if (spCmd->GetCursorAfter().Valid()) {
-        GetCurrentWindow()->SetBufferCursor(spCmd->GetCursorAfter());
+    if (spCmd->cursorAfter.Valid()) {
+        currentWindow->SetBufferCursor(spCmd->cursorAfter);
     }
 }
 
 void ZepMode::Redo() {
-    if (m_pCurrentWindow == nullptr || m_redoStack.empty()) return;
+    if (currentWindow == nullptr || m_redoStack.empty()) return;
 
     if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(m_redoStack.top()) != nullptr) {
         m_undoStack.push(m_redoStack.top());
@@ -460,8 +454,8 @@ void ZepMode::Redo() {
         auto &spCommand = m_redoStack.top();
         spCommand->Redo();
 
-        if (spCommand->GetCursorAfter().Valid()) {
-            GetCurrentWindow()->SetBufferCursor(spCommand->GetCursorAfter());
+        if (spCommand->cursorAfter.Valid()) {
+            currentWindow->SetBufferCursor(spCommand->cursorAfter);
         }
 
         m_undoStack.push(spCommand);
@@ -472,7 +466,7 @@ void ZepMode::Redo() {
 }
 
 void ZepMode::Undo() {
-    if (m_pCurrentWindow == nullptr || m_undoStack.empty()) return;
+    if (currentWindow == nullptr || m_undoStack.empty()) return;
 
     if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(m_undoStack.top()) != nullptr) {
         m_redoStack.push(m_undoStack.top());
@@ -483,8 +477,8 @@ void ZepMode::Undo() {
         auto &spCommand = m_undoStack.top();
         spCommand->Undo();
 
-        if (spCommand->GetCursorBefore().Valid()) {
-            GetCurrentWindow()->SetBufferCursor(spCommand->GetCursorBefore());
+        if (spCommand->cursorBefore.Valid()) {
+            currentWindow->SetBufferCursor(spCommand->cursorBefore);
         }
 
         m_redoStack.push(spCommand);
@@ -516,13 +510,13 @@ const std::string &ZepMode::GetLastCommand() const {
 }
 
 bool ZepMode::GetCommand(CommandContext &context) {
-    auto bufferCursor = GetCurrentWindow()->GetBufferCursor();
-    auto *buffer = GetCurrentWindow()->buffer;
+    auto bufferCursor = currentWindow->GetBufferCursor();
+    auto *buffer = currentWindow->buffer;
 
     if (m_currentMode == EditorMode::Ex) {
         // TODO: Is it possible extend our key mapping to better process ex commands?  Or are these too specialized?
         if (HandleExCommand(context.fullCommand)) {
-            // buffer.GetMode()->Begin(GetCurrentWindow());
+            // buffer.GetMode()->Begin(currentWindow);
             SwitchMode(DefaultMode());
             ResetCommand();
             return true;
@@ -563,27 +557,27 @@ bool ZepMode::GetCommand(CommandContext &context) {
     }
         // Control
     else if (mappedCommand == id_MotionNextMarker) {
-        auto pFound = buffer->FindNextMarker(GetCurrentWindow()->GetBufferCursor(), Direction::Forward, RangeMarkerType::Mark);
+        auto pFound = buffer->FindNextMarker(currentWindow->GetBufferCursor(), Direction::Forward, RangeMarkerType::Mark);
         if (pFound) {
-            GetCurrentWindow()->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
+            currentWindow->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
         }
         return true;
     } else if (mappedCommand == id_MotionPreviousMarker) {
-        auto pFound = buffer->FindNextMarker(GetCurrentWindow()->GetBufferCursor(), Direction::Backward, RangeMarkerType::Mark);
+        auto pFound = buffer->FindNextMarker(currentWindow->GetBufferCursor(), Direction::Backward, RangeMarkerType::Mark);
         if (pFound) {
-            GetCurrentWindow()->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
+            currentWindow->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
         }
         return true;
     } else if (mappedCommand == id_MotionNextSearch) {
-        auto pFound = buffer->FindNextMarker(GetCurrentWindow()->GetBufferCursor(), m_lastSearchDirection, RangeMarkerType::Search);
+        auto pFound = buffer->FindNextMarker(currentWindow->GetBufferCursor(), m_lastSearchDirection, RangeMarkerType::Search);
         if (pFound) {
-            GetCurrentWindow()->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
+            currentWindow->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
         }
         return true;
     } else if (mappedCommand == id_MotionPreviousSearch) {
-        auto pFound = buffer->FindNextMarker(GetCurrentWindow()->GetBufferCursor(), m_lastSearchDirection == Direction::Forward ? Direction::Backward : Direction::Forward, RangeMarkerType::Search);
+        auto pFound = buffer->FindNextMarker(currentWindow->GetBufferCursor(), m_lastSearchDirection == Direction::Forward ? Direction::Backward : Direction::Forward, RangeMarkerType::Search);
         if (pFound) {
-            GetCurrentWindow()->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
+            currentWindow->SetBufferCursor(GlyphIterator(&context.buffer, pFound->GetRange().first));
         }
         return true;
     } else if (mappedCommand == id_SwitchToAlternateFile) {
@@ -637,7 +631,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                         if (path.stem() == currentPath.stem() && !(currentPath.extension() == path.extension())) {
                             auto load = editor.GetFileBuffer(currentPath, 0, true);
                             if (load != nullptr) {
-                                GetCurrentWindow()->SetBuffer(load);
+                                currentWindow->SetBuffer(load);
                                 found = true;
                                 return false;
                             }
@@ -657,16 +651,16 @@ bool ZepMode::GetCommand(CommandContext &context) {
     }
         // Moving between splits
     else if (mappedCommand == id_MotionDownSplit) {
-        GetCurrentWindow()->GetTabWindow().DoMotion(WindowMotion::Down);
+        currentWindow->tabWindow.DoMotion(WindowMotion::Down);
         return true;
     } else if (mappedCommand == id_MotionUpSplit) {
-        GetCurrentWindow()->GetTabWindow().DoMotion(WindowMotion::Up);
+        currentWindow->tabWindow.DoMotion(WindowMotion::Up);
         return true;
     } else if (mappedCommand == id_MotionLeftSplit) {
-        GetCurrentWindow()->GetTabWindow().DoMotion(WindowMotion::Left);
+        currentWindow->tabWindow.DoMotion(WindowMotion::Left);
         return true;
     } else if (mappedCommand == id_MotionRightSplit) {
-        GetCurrentWindow()->GetTabWindow().DoMotion(WindowMotion::Right);
+        currentWindow->tabWindow.DoMotion(WindowMotion::Right);
         return true;
     }
         // global search
@@ -682,23 +676,23 @@ bool ZepMode::GetCommand(CommandContext &context) {
         Undo();
         return true;
     } else if (mappedCommand == id_MotionLineEnd) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineLastNonCR));
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineLastNonCR));
         return true;
     } else if (mappedCommand == id_MotionLineBeyondEnd) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineCRBegin));
         return true;
     } else if (mappedCommand == id_MotionLineBegin) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin));
         return true;
     } else if (mappedCommand == id_MotionLineFirstChar) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar));
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar));
         return true;
     } else if (mappedCommand == id_MotionLineHomeToggle) {
         auto newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar);
         if (bufferCursor == newCursorPos) {
             newCursorPos = context.buffer.GetLinePos(bufferCursor, LineLocation::LineBegin);
         }
-        GetCurrentWindow()->SetBufferCursor(newCursorPos);
+        currentWindow->SetBufferCursor(newCursorPos);
         return true;
     }
         // Moving between tabs
@@ -709,119 +703,119 @@ bool ZepMode::GetCommand(CommandContext &context) {
         editor.NextTabWindow();
         return true;
     } else if (mappedCommand == id_MotionDown) {
-        GetCurrentWindow()->MoveCursorY(context.keymap.TotalCount());
+        currentWindow->MoveCursorY(context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionUp) {
-        GetCurrentWindow()->MoveCursorY(-context.keymap.TotalCount());
+        currentWindow->MoveCursorY(-context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionRight) {
-        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(context.keymap.TotalCount()));
+        currentWindow->SetBufferCursor(cursorItr.MoveClamped(context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionLeft) {
-        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(-context.keymap.TotalCount()));
+        currentWindow->SetBufferCursor(cursorItr.MoveClamped(-context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionStandardRight) {
-        GetCurrentWindow()->SetBufferCursor(cursorItr.Move(context.keymap.TotalCount()));
+        currentWindow->SetBufferCursor(cursorItr.Move(context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionStandardLeft) {
-        GetCurrentWindow()->SetBufferCursor(cursorItr.Move(-context.keymap.TotalCount()));
+        currentWindow->SetBufferCursor(cursorItr.Move(-context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionStandardUp) {
-        GetCurrentWindow()->MoveCursorY(-1, LineLocation::LineCRBegin);
+        currentWindow->MoveCursorY(-1, LineLocation::LineCRBegin);
         return true;
     } else if (mappedCommand == id_MotionStandardDown) {
-        GetCurrentWindow()->MoveCursorY(1, LineLocation::LineCRBegin);
+        currentWindow->MoveCursorY(1, LineLocation::LineCRBegin);
         return true;
     } else if (mappedCommand == id_StandardSelectAll) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         m_visualBegin = context.buffer.Begin();
         m_visualEnd = context.buffer.End();
         auto range = GetInclusiveVisualRange();
-        GetCurrentWindow()->buffer->SetSelection(range);
-        GetCurrentWindow()->SetBufferCursor(range.second);
+        currentWindow->buffer->SetSelection(range);
+        currentWindow->SetBufferCursor(range.second);
         return true;
     } else if (mappedCommand == id_MotionStandardRightSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
-        GetCurrentWindow()->SetBufferCursor(bufferCursor + 1);
+        currentWindow->SetBufferCursor(bufferCursor + 1);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionStandardLeftSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
-        GetCurrentWindow()->SetBufferCursor(bufferCursor - 1);
+        currentWindow->SetBufferCursor(bufferCursor - 1);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionStandardUpSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
-        GetCurrentWindow()->MoveCursorY(-1, LineLocation::LineCRBegin);
+        currentWindow->MoveCursorY(-1, LineLocation::LineCRBegin);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionStandardDownSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
-        GetCurrentWindow()->MoveCursorY(1, LineLocation::LineCRBegin);
+        currentWindow->MoveCursorY(1, LineLocation::LineCRBegin);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionStandardRightWord) {
         auto target = buffer->StandardCtrlMotion(bufferCursor, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target.second);
+        currentWindow->SetBufferCursor(target.second);
         return true;
     } else if (mappedCommand == id_MotionStandardLeftWord) {
         auto target = buffer->StandardCtrlMotion(bufferCursor, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target.second);
+        currentWindow->SetBufferCursor(target.second);
         return true;
     } else if (mappedCommand == id_MotionStandardRightWordSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
         auto target = buffer->StandardCtrlMotion(bufferCursor, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target.second);
+        currentWindow->SetBufferCursor(target.second);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionStandardLeftWordSelect) {
         context.commandResult.modeSwitch = EditorMode::Visual;
         if (m_currentMode != EditorMode::Visual) {
-            m_visualBegin = GetCurrentWindow()->GetBufferCursor();
+            m_visualBegin = currentWindow->GetBufferCursor();
         }
         auto target = buffer->StandardCtrlMotion(bufferCursor, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target.second);
+        currentWindow->SetBufferCursor(target.second);
         UpdateVisualSelection();
         return true;
     } else if (mappedCommand == id_MotionPageForward) {
         // Note: the vim spec says 'visible lines - 2' for a 'page'.
         // We jump the max possible lines, which might hit the end of the text; this matches observed vim behavior
-        GetCurrentWindow()->MoveCursorY((GetCurrentWindow()->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
+        currentWindow->MoveCursorY((currentWindow->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionHalfPageForward) {
         // Note: the vim spec says 'half visible lines' for up/down
-        GetCurrentWindow()->MoveCursorY((GetCurrentWindow()->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
+        currentWindow->MoveCursorY((currentWindow->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionPageBackward) {
         // Note: the vim spec says 'visible lines - 2' for a 'page'
-        GetCurrentWindow()->MoveCursorY(-(GetCurrentWindow()->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
+        currentWindow->MoveCursorY(-(currentWindow->GetMaxDisplayLines() - 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionHalfPageBackward) {
-        GetCurrentWindow()->MoveCursorY(-(GetCurrentWindow()->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
+        currentWindow->MoveCursorY(-(currentWindow->GetNumDisplayedLines() / 2) * context.keymap.TotalCount());
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     } else if (mappedCommand == id_MotionGotoLine) {
@@ -833,12 +827,12 @@ bool ZepMode::GetCommand(CommandContext &context) {
 
             ByteRange range;
             if (context.buffer.GetLineOffsets(count, range)) {
-                GetCurrentWindow()->SetBufferCursor(GlyphIterator(&context.buffer, range.first));
+                currentWindow->SetBufferCursor(GlyphIterator(&context.buffer, range.first));
             }
         } else {
             // Move right to the end
             auto lastLine = context.buffer.GetLinePos(context.buffer.End(), LineLocation::LineBegin);
-            GetCurrentWindow()->SetBufferCursor(lastLine);
+            currentWindow->SetBufferCursor(lastLine);
             context.commandResult.flags |= CommandResultFlags::HandledCount;
         }
         return true;
@@ -849,38 +843,38 @@ bool ZepMode::GetCommand(CommandContext &context) {
         context.op = CommandOperation::Delete;
     } else if (mappedCommand == id_MotionWord) {
         auto target = context.buffer.WordMotion(context.bufferCursor, SearchType::Word, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionWORD) {
         auto target = context.buffer.WordMotion(context.bufferCursor, SearchType::WORD, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionBackWord) {
         auto target = context.buffer.WordMotion(context.bufferCursor, SearchType::Word, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionBackWORD) {
         auto target = context.buffer.WordMotion(context.bufferCursor, SearchType::WORD, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionEndWord) {
         auto target = context.buffer.EndWordMotion(context.bufferCursor, SearchType::Word, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionEndWORD) {
         auto target = context.buffer.EndWordMotion(context.bufferCursor, SearchType::WORD, Direction::Forward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionBackEndWord) {
         auto target = context.buffer.EndWordMotion(context.bufferCursor, SearchType::Word, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionBackEndWORD) {
         auto target = context.buffer.EndWordMotion(context.bufferCursor, SearchType::WORD, Direction::Backward);
-        GetCurrentWindow()->SetBufferCursor(target);
+        currentWindow->SetBufferCursor(target);
         return true;
     } else if (mappedCommand == id_MotionGotoBeginning) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.Begin());
+        currentWindow->SetBufferCursor(context.buffer.Begin());
         return true;
     } else if (mappedCommand == id_JoinLines) {
         // Special case, join on empty line, just pull out the newline
@@ -1076,7 +1070,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_VisualSelectInnerWORD) {
         if (GetOperationRange("iW", context.currentMode, context.beginRange, context.endRange)) {
             m_visualBegin = context.beginRange;
-            GetCurrentWindow()->SetBufferCursor(context.endRange - 1);
+            currentWindow->SetBufferCursor(context.endRange - 1);
             UpdateVisualSelection();
             return true;
         }
@@ -1084,21 +1078,21 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_VisualSelectInnerWord) {
         if (GetOperationRange("iw", context.currentMode, context.beginRange, context.endRange)) {
             m_visualBegin = context.beginRange;
-            GetCurrentWindow()->SetBufferCursor(context.endRange - 1);
+            currentWindow->SetBufferCursor(context.endRange - 1);
             UpdateVisualSelection();
             return true;
         }
     } else if (mappedCommand == id_VisualSelectAWord) {
         if (GetOperationRange("aw", context.currentMode, context.beginRange, context.endRange)) {
             m_visualBegin = context.beginRange;
-            GetCurrentWindow()->SetBufferCursor(context.endRange - 1);
+            currentWindow->SetBufferCursor(context.endRange - 1);
             UpdateVisualSelection();
             return true;
         }
     } else if (mappedCommand == id_VisualSelectAWORD) {
         if (GetOperationRange("aW", context.currentMode, context.beginRange, context.endRange)) {
             m_visualBegin = context.beginRange;
-            GetCurrentWindow()->SetBufferCursor(context.endRange - 1);
+            currentWindow->SetBufferCursor(context.endRange - 1);
             UpdateVisualSelection();
             return true;
         }
@@ -1195,14 +1189,14 @@ bool ZepMode::GetCommand(CommandContext &context) {
             if (range.first.Valid() && range.second.Valid()) {
                 if ((range.first + 1) == range.second) {
                     // A closed pair (); so insert between them 
-                    GetCurrentWindow()->SetBufferCursor(range.first + 1);
+                    currentWindow->SetBufferCursor(range.first + 1);
                     context.commandResult.modeSwitch = EditorMode::Insert;
                     return true;
                 } else {
                     GlyphIterator lineEnd = context.buffer.GetLinePos(range.first, LineLocation::LineCRBegin);
                     if (lineEnd.Valid() && lineEnd < range.second) {
                         GlyphIterator lineStart = context.buffer.GetLinePos(range.first, LineLocation::LineBegin);
-                        auto offsetStart = (range.first.Index() - lineStart.Index());
+                        auto offsetStart = (range.first.index - lineStart.index);
 
                         // If change in a pair of delimiters that are on separate lines, then
                         // we remove everything and replace with 2 CRs and an indent based on the start bracket
@@ -1247,20 +1241,20 @@ bool ZepMode::GetCommand(CommandContext &context) {
         }
     } else if (mappedCommand == id_Find) {
         if (!context.keymap.captureChars.empty()) {
-            GetCurrentWindow()->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) &context.keymap.captureChars[0], Direction::Forward));
+            currentWindow->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) &context.keymap.captureChars[0], Direction::Forward));
             m_lastFind = context.keymap.captureChars[0];
             m_lastFindDirection = Direction::Forward;
         }
         return true;
     } else if (mappedCommand == id_FindBackwards) {
         if (!context.keymap.captureChars.empty()) {
-            GetCurrentWindow()->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) &context.keymap.captureChars[0], Direction::Backward));
+            currentWindow->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) &context.keymap.captureChars[0], Direction::Backward));
             m_lastFind = context.keymap.captureChars[0];
             m_lastFindDirection = Direction::Backward;
         }
         return true;
     } else if (mappedCommand == id_FindNext) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) m_lastFind.c_str(), m_lastFindDirection));
+        currentWindow->SetBufferCursor(context.buffer.FindOnLineMotion(bufferCursor, (const uint8_t *) m_lastFind.c_str(), m_lastFindDirection));
         return true;
     } else if (mappedCommand == id_FindNextDelimiter) {
         int32_t findIndex = 0;
@@ -1297,9 +1291,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 end_loc = context.buffer.FindFirstCharOf(end_loc, openClose, newIndex, dir);
 
                 // Fell off, no find
-                if (newIndex < 0) {
-                    break;
-                }
+                if (newIndex < 0) break;
 
                 // Found another opener/no good
                 if (newIndex == 0) {
@@ -1309,7 +1301,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 else if (newIndex == 1) {
                     closingCount--;
                     if (closingCount == 0) {
-                        GetCurrentWindow()->SetBufferCursor(end_loc);
+                        currentWindow->SetBufferCursor(end_loc);
                         return true;
                     }
                 }
@@ -1327,22 +1319,22 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_Append) {
         // Cursor append
         cursorItr.MoveClamped(1, LineLocation::LineCRBegin);
-        GetCurrentWindow()->SetBufferCursor(cursorItr);
+        currentWindow->SetBufferCursor(cursorItr);
         context.commandResult.modeSwitch = EditorMode::Insert;
         return true;
     } else if (mappedCommand == id_AppendToLine) {
         GlyphIterator appendItr = context.buffer.GetLinePos(bufferCursor, LineLocation::LineLastNonCR);
         appendItr.MoveClamped(1, LineLocation::LineCRBegin);
-        GetCurrentWindow()->SetBufferCursor(appendItr);
+        currentWindow->SetBufferCursor(appendItr);
         context.commandResult.modeSwitch = EditorMode::Insert;
         return true;
     } else if (mappedCommand == id_InsertAtFirstChar) {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar));
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar));
         context.commandResult.modeSwitch = EditorMode::Insert;
         return true;
     } else if (mappedCommand == id_MotionNextFirstChar) {
-        GetCurrentWindow()->MoveCursorY(1);
-        GetCurrentWindow()->SetBufferCursor(context.buffer.GetLinePos(GetCurrentWindow()->GetBufferCursor(), LineLocation::LineBegin));
+        currentWindow->MoveCursorY(1);
+        currentWindow->SetBufferCursor(context.buffer.GetLinePos(currentWindow->GetBufferCursor(), LineLocation::LineBegin));
         return true;
     } else if (mappedCommand == id_Replace) {
         if (!context.keymap.captureChars.empty()) {
@@ -1437,7 +1429,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         return true;
     } else if (context.op == CommandOperation::Copy || context.op == CommandOperation::CopyLines) {
         // Put the cursor where the command says it should be
-        GetCurrentWindow()->SetBufferCursor(context.cursorAfterOverride);
+        currentWindow->SetBufferCursor(context.cursorAfterOverride);
         return true;
     }
 
@@ -1449,8 +1441,8 @@ void ZepMode::ResetCommand() {
 }
 
 bool ZepMode::GetOperationRange(const std::string &op, EditorMode currentMode, GlyphIterator &beginRange, GlyphIterator &endRange) const {
-    auto *buffer = GetCurrentWindow()->buffer;
-    const auto bufferCursor = GetCurrentWindow()->GetBufferCursor();
+    auto *buffer = currentWindow->buffer;
+    const auto bufferCursor = currentWindow->GetBufferCursor();
 
     beginRange = GlyphIterator();
     if (op == "visual") {
@@ -1514,11 +1506,11 @@ void ZepMode::UpdateVisualSelection() {
     if (m_currentMode == EditorMode::Visual) {
         // Update the visual range
         m_visualEnd = m_lineWise ?
-                      GetCurrentWindow()->buffer->GetLinePos(GetCurrentWindow()->GetBufferCursor(), LineLocation::LineCRBegin) :
-                      GetCurrentWindow()->GetBufferCursor();
+                      currentWindow->buffer->GetLinePos(currentWindow->GetBufferCursor(), LineLocation::LineCRBegin) :
+                      currentWindow->GetBufferCursor();
 
         auto range = GetInclusiveVisualRange();
-        GetCurrentWindow()->buffer->SetSelection(range);
+        currentWindow->buffer->SetSelection(range);
     }
 }
 
@@ -1539,7 +1531,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         if (!strCommand.empty()) strCommand.pop_back();
 
         if (strCommand.empty()) {
-            GetCurrentWindow()->SetBufferCursor(m_exCommandStartLocation);
+            currentWindow->SetBufferCursor(m_exCommandStartLocation);
             return true;
         }
 
@@ -1548,15 +1540,15 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
     }
 
     if (m_lastKey == ExtKeys::ESCAPE) {
-        GetCurrentWindow()->SetBufferCursor(m_exCommandStartLocation);
+        currentWindow->SetBufferCursor(m_exCommandStartLocation);
         return true;
     }
 
     if (m_lastKey == ExtKeys::RETURN) {
-        assert(GetCurrentWindow());
+        assert(currentWindow);
 
-        auto *buffer = GetCurrentWindow()->buffer;
-        auto bufferCursor = GetCurrentWindow()->GetBufferCursor();
+        auto *buffer = currentWindow->buffer;
+        auto bufferCursor = currentWindow->GetBufferCursor();
 
         // Just exit Ex mode when finished the search
         if (strCommand[0] == '/' || strCommand[0] == '?') return true;
@@ -1620,43 +1612,43 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 if (strTok[1] == "%") {
-                    pTab->AddWindow(GetCurrentWindow()->buffer, GetCurrentWindow(), RegionLayoutType::HBox);
+                    pTab->AddWindow(currentWindow->buffer, currentWindow, RegionLayoutType::HBox);
                 } else {
                     auto fname = strTok[1];
                     auto pBuffer = editor.GetFileBuffer(fname);
-                    pTab->AddWindow(pBuffer, GetCurrentWindow(), RegionLayoutType::HBox);
+                    pTab->AddWindow(pBuffer, currentWindow, RegionLayoutType::HBox);
                 }
             } else {
-                pTab->AddWindow(GetCurrentWindow()->buffer, GetCurrentWindow(), RegionLayoutType::HBox);
+                pTab->AddWindow(currentWindow->buffer, currentWindow, RegionLayoutType::HBox);
             }
         } else if (strCommand.find(":hsplit") == 0 || strCommand.find(":split") == 0) {
             auto pTab = editor.activeTabWindow;
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 if (strTok[1] == "%") {
-                    pTab->AddWindow(GetCurrentWindow()->buffer, GetCurrentWindow(), RegionLayoutType::VBox);
+                    pTab->AddWindow(currentWindow->buffer, currentWindow, RegionLayoutType::VBox);
                 } else {
                     auto fname = strTok[1];
                     auto pBuffer = editor.GetFileBuffer(fname);
-                    pTab->AddWindow(pBuffer, GetCurrentWindow(), RegionLayoutType::VBox);
+                    pTab->AddWindow(pBuffer, currentWindow, RegionLayoutType::VBox);
                 }
             } else {
-                pTab->AddWindow(GetCurrentWindow()->buffer, GetCurrentWindow(), RegionLayoutType::VBox);
+                pTab->AddWindow(currentWindow->buffer, currentWindow, RegionLayoutType::VBox);
             }
         } else if (strCommand.find(":e") == 0) {
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 auto fname = strTok[1];
                 auto pBuffer = editor.GetFileBuffer(fname);
-                GetCurrentWindow()->SetBuffer(pBuffer);
+                currentWindow->SetBuffer(pBuffer);
             }
         } else if (strCommand.find(":w") == 0) {
             auto strTok = string_split(strCommand, " ");
             if (strTok.size() > 1) {
                 auto fname = strTok[1];
-                GetCurrentWindow()->buffer->SetFilePath(fname);
+                currentWindow->buffer->SetFilePath(fname);
             }
-            editor.SaveBuffer(*GetCurrentWindow()->buffer);
+            editor.SaveBuffer(*currentWindow->buffer);
         } else if (strCommand == ":close" || strCommand == ":clo") {
             editor.activeTabWindow->CloseActiveWindow();
         } else if (strCommand[1] == 'q') {
@@ -1667,7 +1659,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             editor.SetCommandText(editor.fileSystem->GetConfigPath().string());
         } else if (strCommand.find(":ZConfig") == 0) {
             auto pBuffer = editor.GetFileBuffer(editor.fileSystem->GetConfigPath() / "zep.cfg");
-            GetCurrentWindow()->SetBuffer(pBuffer);
+            currentWindow->SetBuffer(pBuffer);
         } else if (strCommand.find(":cd") == 0) {
             editor.SetCommandText(editor.fileSystem->GetWorkingDirectory().string());
         } else if (strCommand.find(":ZTestFloatSlider") == 0) {
@@ -1675,7 +1667,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             auto pSlider = std::make_shared<FloatSlider>(editor, 4);
 
             auto spMarker = std::make_shared<RangeMarker>(*buffer);
-            spMarker->SetRange(ByteRange(bufferCursor.Index(), bufferCursor.Peek(1).Index()));
+            spMarker->SetRange(ByteRange(bufferCursor.index, bufferCursor.Peek(1).index));
             spMarker->spWidget = pSlider;
             spMarker->markerType = RangeMarkerType::LineWidget;
             spMarker->displayType = RangeMarkerDisplayType::Hidden;
@@ -1683,7 +1675,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             // auto line = buffer->GetBufferLine(bufferCursor);
             auto pPicker = std::make_shared<ColorPicker>(editor);
             auto spMarker = std::make_shared<RangeMarker>(*buffer);
-            spMarker->SetRange(ByteRange(bufferCursor.Index(), bufferCursor.Peek(1).Index()));
+            spMarker->SetRange(ByteRange(bufferCursor.index, bufferCursor.Peek(1).index));
             spMarker->spWidget = pPicker;
             spMarker->markerType = RangeMarkerType::Widget;
             spMarker->displayType = RangeMarkerDisplayType::Background;
@@ -1712,63 +1704,63 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             if (strTok.size() > 1) {
                 markerSelection = std::stoi(strTok[1]);
             }
-            auto spMarker = std::make_shared<RangeMarker>(*buffer);
+            auto marker = std::make_shared<RangeMarker>(*buffer);
             GlyphIterator start;
             GlyphIterator end;
 
-            if (GetCurrentWindow()->buffer->HasSelection()) {
+            if (currentWindow->buffer->HasSelection()) {
                 // Markers are exclusive
-                auto range = GetCurrentWindow()->buffer->selection;
+                auto range = currentWindow->buffer->selection;
                 start = range.first;
                 end = range.second.Peek(1);
             } else {
                 start = buffer->GetLinePos(bufferCursor, LineLocation::LineFirstGraphChar);
                 end = buffer->GetLinePos(bufferCursor, LineLocation::LineLastGraphChar) + 1;
             }
-            spMarker->SetRange(ByteRange(start.Index(), end.Index()));
+            marker->SetRange(ByteRange(start.index, end.index));
             switch (markerSelection) {
-                case 5:spMarker->SetColors(ThemeColor::Error, ThemeColor::Text, ThemeColor::Error);
-                    spMarker->SetName("All Marker");
-                    spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
-                    spMarker->displayType = RangeMarkerDisplayType::All;
+                case 5:marker->SetColors(ThemeColor::Error, ThemeColor::Text, ThemeColor::Error);
+                    marker->name = "All Marker";
+                    marker->description = "This is an example tooltip\nThey can be added to any range of characters";
+                    marker->displayType = RangeMarkerDisplayType::All;
                     break;
-                case 4:spMarker->SetColors(ThemeColor::Error, ThemeColor::Text, ThemeColor::Error);
-                    spMarker->SetName("Filled Marker");
-                    spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
-                    spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::Indicator | RangeMarkerDisplayType::Background;
+                case 4:marker->SetColors(ThemeColor::Error, ThemeColor::Text, ThemeColor::Error);
+                    marker->name = "Filled Marker";
+                    marker->description = "This is an example tooltip\nThey can be added to any range of characters";
+                    marker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::Indicator | RangeMarkerDisplayType::Background;
                     break;
-                case 3:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, editor.theme->GetUniqueColor(unique++));
-                    spMarker->SetName("Underline Marker");
-                    spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
-                    spMarker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::CursorTip;
+                case 3:marker->SetColors(ThemeColor::Background, ThemeColor::Text, editor.theme->GetUniqueColor(unique++));
+                    marker->name = "Underline Marker";
+                    marker->description = "This is an example tooltip\nThey can be added to any range of characters";
+                    marker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::CursorTip;
                     break;
-                case 2:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Warning);
-                    spMarker->SetName("Tooltip");
-                    spMarker->SetDescription("This is an example tooltip\nThey can be added to any range of characters");
-                    spMarker->displayType = RangeMarkerDisplayType::Tooltip;
+                case 2:marker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Warning);
+                    marker->name = "Tooltip";
+                    marker->description = "This is an example tooltip\nThey can be added to any range of characters";
+                    marker->displayType = RangeMarkerDisplayType::Tooltip;
                     break;
-                case 1:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Warning);
-                    spMarker->SetName("Warning");
-                    spMarker->SetDescription("This is an example warning mark");
+                case 1:marker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Warning);
+                    marker->name = "Warning";
+                    marker->description = "This is an example warning mark";
                     break;
                 case 0:
-                default:spMarker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Error);
-                    spMarker->SetName("Error");
-                    spMarker->SetDescription("This is an example error mark");
+                default:marker->SetColors(ThemeColor::Background, ThemeColor::Text, ThemeColor::Error);
+                    marker->name = "Error";
+                    marker->description = "This is an example error mark";
             }
             SwitchMode(DefaultMode());
         } else if (strCommand == ":ZTabs") {
             buffer->ToggleFileFlag(FileFlags::InsertTabs);
         } else if (strCommand == ":ZShowCR") {
-            GetCurrentWindow()->ToggleFlag(WindowFlags::ShowCR);
+            currentWindow->ToggleFlag(WindowFlags::ShowCR);
         } else if (strCommand == ":ZShowLineNumbers") {
-            GetCurrentWindow()->ToggleFlag(WindowFlags::ShowLineNumbers);
+            currentWindow->ToggleFlag(WindowFlags::ShowLineNumbers);
         } else if (strCommand == ":ZWrapText") {
             // Wrapping is not fully supported yet, but useful for the Orca optional mode.
             // To enable wrapping fully, the editor needs to scroll in X as well as Y...
-            GetCurrentWindow()->ToggleFlag(WindowFlags::WrapText);
+            currentWindow->ToggleFlag(WindowFlags::WrapText);
         } else if (strCommand == ":ZShowIndicators") {
-            GetCurrentWindow()->ToggleFlag(WindowFlags::ShowIndicators);
+            currentWindow->ToggleFlag(WindowFlags::ShowIndicators);
         } else if (strCommand == ":ZShowInput") {
             editor.config.showNormalModeKeyStrokes = !editor.config.showNormalModeKeyStrokes;
         } else if (strCommand == ":ls") {
@@ -1778,7 +1770,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             for (auto &editor_buffer: editor.buffers) {
                 if (!editor_buffer->name.empty()) {
                     str << (editor_buffer->IsHidden() ? "h" : " ");
-                    str << (GetCurrentWindow()->buffer == editor_buffer.get() ? "*" : " ");
+                    str << (currentWindow->buffer == editor_buffer.get() ? "*" : " ");
                     str << (editor_buffer->HasFileFlags(FileFlags::Dirty) ? "+" : " ");
                     str << index++ << " : " << string_replace(editor_buffer->name, "\n", "^J") << '\n';
                 }
@@ -1793,13 +1785,11 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     auto current = 0;
                     for (auto &editor_buffer: editor.buffers) {
                         if (index == current) {
-                            GetCurrentWindow()->SetBuffer(editor_buffer.get());
+                            currentWindow->SetBuffer(editor_buffer.get());
                         }
                         current++;
                     }
-                }
-                catch (std::exception &) {
-                }
+                } catch (std::exception &) {}
             }
         } else {
             editor.SetCommandText("Not a command");
@@ -1808,7 +1798,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
     } else if (!m_currentCommand.empty() && (m_currentCommand[0] == '/' || m_currentCommand[0] == '?')) {
         // TODO: Busy editing the search string; do the search
         if (m_currentCommand.length() > 0) {
-            auto pWindow = GetCurrentWindow();
+            auto pWindow = currentWindow;
             auto *buffer = pWindow->buffer;
             auto searchString = m_currentCommand.substr(1);
 
@@ -1827,7 +1817,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
 
                     auto spMarker = std::make_shared<RangeMarker>(*buffer);
                     spMarker->SetColors(ThemeColor::VisualSelectBackground, ThemeColor::Text);
-                    spMarker->SetRange(ByteRange(found.Index(), found.PeekByteOffset(long(searchString.size())).Index()));
+                    spMarker->SetRange(ByteRange(found.index, found.PeekByteOffset(long(searchString.size())).index));
                     spMarker->displayType = RangeMarkerDisplayType::Background;
                     spMarker->markerType = RangeMarkerType::Search;
 
@@ -1958,7 +1948,7 @@ CursorType ZepMode::GetCursorType() const {
 void ZepMode::Begin(ZepWindow *pWindow) {
     timer_restart(m_lastKeyPressTimer);
 
-    m_pCurrentWindow = pWindow;
+    currentWindow = pWindow;
 
     if (pWindow) {
         m_visualBegin = pWindow->buffer->Begin();

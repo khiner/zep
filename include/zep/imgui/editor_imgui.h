@@ -54,64 +54,50 @@ public:
 
     void HandleInput() {
         auto &io = ImGui::GetIO();
-
         bool handled = false;
-
         uint32_t mod = 0;
 
-        static std::map<int, int> MapUSBKeys =
-            {
-                {ZEP_KEY_F1,  ExtKeys::F1},
-                {ZEP_KEY_F2,  ExtKeys::F2},
-                {ZEP_KEY_F3,  ExtKeys::F3},
-                {ZEP_KEY_F4,  ExtKeys::F4},
-                {ZEP_KEY_F5,  ExtKeys::F5},
-                {ZEP_KEY_F6,  ExtKeys::F6},
-                {ZEP_KEY_F7,  ExtKeys::F7},
-                {ZEP_KEY_F8,  ExtKeys::F8},
-                {ZEP_KEY_F9,  ExtKeys::F9},
-                {ZEP_KEY_F10, ExtKeys::F10},
-                {ZEP_KEY_F11, ExtKeys::F11},
-                {ZEP_KEY_F12, ExtKeys::F12}
-            };
+        static std::map<int, int> MapUSBKeys = {
+            {ZEP_KEY_F1,  ExtKeys::F1},
+            {ZEP_KEY_F2,  ExtKeys::F2},
+            {ZEP_KEY_F3,  ExtKeys::F3},
+            {ZEP_KEY_F4,  ExtKeys::F4},
+            {ZEP_KEY_F5,  ExtKeys::F5},
+            {ZEP_KEY_F6,  ExtKeys::F6},
+            {ZEP_KEY_F7,  ExtKeys::F7},
+            {ZEP_KEY_F8,  ExtKeys::F8},
+            {ZEP_KEY_F9,  ExtKeys::F9},
+            {ZEP_KEY_F10, ExtKeys::F10},
+            {ZEP_KEY_F11, ExtKeys::F11},
+            {ZEP_KEY_F12, ExtKeys::F12}
+        };
+
         if (io.MouseDelta.x != 0 || io.MouseDelta.y != 0) {
             OnMouseMove(toNVec2f(io.MousePos));
         }
 
-        if (io.MouseClicked[0]) {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
+        if (io.MouseClicked[0] && OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
+            // Hide the mouse click from imgui if we handled it
+            io.MouseClicked[0] = false;
         }
 
-        if (io.MouseClicked[1]) {
-            if (OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
+        if (io.MouseClicked[1] && OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
+            // Hide the mouse click from imgui if we handled it
+            io.MouseClicked[0] = false;
         }
 
-        if (io.MouseReleased[0]) {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
+        if (io.MouseReleased[0] && OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
+            // Hide the mouse click from imgui if we handled it
+            io.MouseClicked[0] = false;
         }
 
-        if (io.MouseReleased[1]) {
-            if (OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
-                // Hide the mouse click from imgui if we handled it
-                io.MouseClicked[0] = false;
-            }
+        if (io.MouseReleased[1] && OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
+            // Hide the mouse click from imgui if we handled it
+            io.MouseClicked[0] = false;
         }
 
-        if (io.KeyCtrl) {
-            mod |= ModifierKey::Ctrl;
-        }
-        if (io.KeyShift) {
-            mod |= ModifierKey::Shift;
-        }
+        if (io.KeyCtrl) mod |= ModifierKey::Ctrl;
+        if (io.KeyShift) mod |= ModifierKey::Shift;
 
         auto pWindow = activeTabWindow->GetActiveWindow();
         const auto *buffer = pWindow->buffer;
@@ -222,15 +208,12 @@ public:
         if (!handled) {
             for (int n = 0; n < io.InputQueueCharacters.Size && io.InputQueueCharacters[n]; n++) {
                 // Ignore '\r' - sometimes ImGui generates it!
-                if (io.InputQueueCharacters[n] == '\r')
-                    continue;
+                if (io.InputQueueCharacters[n] == '\r') continue;
 
                 buffer->GetMode()->AddKeyPress(io.InputQueueCharacters[n], mod);
             }
         }
     }
-
-private:
 };
 
 } // namespace Zep

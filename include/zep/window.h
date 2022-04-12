@@ -39,7 +39,7 @@ struct SpanInfo {
     // The byte length, not code point length
     // TODO: This is not the way to measure text lengths
     long ByteLength() const { return lineByteRange.second - lineByteRange.first; }
-    bool BufferCursorInside(const GlyphIterator &offset) const { return offset.Index() >= lineByteRange.first && offset.Index() < lineByteRange.second; }
+    bool BufferCursorInside(const GlyphIterator &offset) const { return offset.index >= lineByteRange.first && offset.index < lineByteRange.second; }
 };
 
 inline bool operator<(const SpanInfo &lhs, const SpanInfo &rhs) {
@@ -121,12 +121,12 @@ public:
 
     virtual void SetBuffer(ZepBuffer *pBuffer);
 
-    ZepTabWindow &GetTabWindow() const;
     NVec4f FilterActiveColor(const NVec4f &col, float atten = 1.0f);
 
     void DirtyLayout();
 
     ZepBuffer *buffer = nullptr;
+    ZepTabWindow &tabWindow; // Owner tab
 
 private:
     void UpdateLayout(bool force = false);
@@ -188,7 +188,6 @@ private:
     std::shared_ptr<Region> m_vScrollRegion;    // Vertical scroller
     std::shared_ptr<Region> m_expandingEditRegion;    // Region containing the text sub-box 
     Airline m_airline;
-    ZepTabWindow &m_tabWindow; // Owner tab
     std::shared_ptr<Scroller> m_vScroller; // Scroll bar, if visible
 
     // Wrap ; need horizontal offset for this to be turned on.

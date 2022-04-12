@@ -18,35 +18,29 @@ static ImWchar greek_range[] = {0x300, 0x52F, 0x1f00, 0x1fff, 0, 0};
 
 class ZepFont_ImGui : public ZepFont {
 public:
-    ZepFont_ImGui(ZepDisplay &display, ImFont *pFont, int pixelHeight)
-        : ZepFont(display), m_pFont(pFont) {
+    ZepFont_ImGui(ZepDisplay &display, ImFont *pFont, int pixelHeight) : ZepFont(display), font(pFont) {
         SetPixelHeight(pixelHeight);
     }
 
-    virtual void SetPixelHeight(int pixelHeight) override {
+    void SetPixelHeight(int pixelHeight) override {
         InvalidateCharCache();
         m_pixelHeight = pixelHeight;
     }
 
-    virtual NVec2f GetTextSize(const uint8_t *pBegin, const uint8_t *pEnd = nullptr) const override {
+    NVec2f GetTextSize(const uint8_t *pBegin, const uint8_t *pEnd = nullptr) const override {
         // This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
         // need as we draw one character at a time...
-        ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char *) pBegin, (const char *) pEnd, NULL);
+        ImVec2 text_size = font->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char *) pBegin, (const char *) pEnd, NULL);
         if (text_size.x == 0.0) {
             // Make invalid characters a default fixed_size
             const char chDefault = 'A';
-            text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
+            text_size = font->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
         }
 
         return toNVec2f(text_size);
     }
 
-    ImFont *GetImFont() {
-        return m_pFont;
-    }
-
-private:
-    ImFont *m_pFont;
+    ImFont *font;
 };
 
 class ZepDisplay_ImGui : public ZepDisplay {
@@ -56,7 +50,7 @@ public:
     }
 
     void DrawChars(ZepFont &font, const NVec2f &pos, const NVec4f &col, const uint8_t *text_begin, const uint8_t *text_end) const override {
-        auto imFont = static_cast<ZepFont_ImGui &>(font).GetImFont();
+        auto imFont = dynamic_cast<ZepFont_ImGui &>(font).font;
         ImDrawList *drawList = ImGui::GetWindowDrawList();
         if (text_end == nullptr) {
             text_end = text_begin + strlen((const char *) text_begin);
@@ -98,15 +92,14 @@ public:
         }
     }
 
-    virtual void SetClipRect(const NRectf &rc) override { m_clipRect = rc; }
+    void SetClipRect(const NRectf &rc) override { m_clipRect = rc; }
 
-    virtual ZepFont &GetFont(ZepTextType type) override {
+    ZepFont &GetFont(ZepTextType type) override {
         if (m_fonts[(int) type] == nullptr) {
             m_fonts[(int) type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetIO().Fonts[0].Fonts[0], int(16.0f * pixelScale.y));
         }
         return *m_fonts[(int) type];
     }
-
 
 private:
     static ImU32 GetStyleModulatedColor(const NVec4f &color) {

@@ -151,8 +151,8 @@ empty()
     {                                                                       \
         pBuffer->SetText(source);                                           \
         PARSE_COMMAND(command)                                              \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.Index(), start); \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.Index(), end);  \
+        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.index, start); \
+        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.index, end);  \
     }
 
 TEST_F(StandardTest, UndoRedo

@@ -87,8 +87,8 @@ public:
     {                                                      \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.Index(), start); \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.Index(), end);  \
+        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.index, start); \
+        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.index, end);  \
     };
 
 // Given a sample text, a keystroke list and a target text, check the test returns the right thing

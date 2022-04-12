@@ -67,8 +67,8 @@ long ZepBuffer::GetBufferColumn(const GlyphIterator &location) const {
 
 // Find the location inside the list of line ends
 long ZepBuffer::GetBufferLine(const GlyphIterator &location) const {
-    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), location.Index());
-    if (itrLine != lineEnds.end() && location.Index() >= *itrLine) {
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), location.index);
+    if (itrLine != lineEnds.end() && location.index >= *itrLine) {
         itrLine++;
     }
     long line = long(itrLine - lineEnds.begin());
@@ -90,7 +90,7 @@ void ZepBuffer::MotionBegin(GlyphIterator &start) {
 }
 
 bool ZepBuffer::Move(GlyphIterator &loc, Direction dir) const {
-    if ((dir == Direction::Backward && loc.Index()) == 0 || (dir == Direction::Forward && loc.Index() == End().Index())) {
+    if ((dir == Direction::Backward && loc.index) == 0 || (dir == Direction::Forward && loc.index == End().index)) {
         return false;
     }
 
@@ -594,7 +594,7 @@ void ZepBuffer::Clear() {
         workingBuffer.push_back(0);
         lineEnds.clear();
         m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
-        lineEnds.push_back(End().Index() + 1);
+        lineEnds.push_back(End().index + 1);
         return;
     }
 
@@ -605,7 +605,7 @@ void ZepBuffer::Clear() {
     workingBuffer.push_back(0);
     lineEnds.clear();
     m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
-    lineEnds.push_back(End().Index() + 1);
+    lineEnds.push_back(End().index + 1);
 
     {
         MarkUpdate();
@@ -663,7 +663,7 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
     // TODO: Why is a line end needed always?
     // TODO: Line ends 1 beyond, or just for end?  Can't remember this detail:
     // understand it, then write a unit test to ensure it.
-    lineEnds.push_back(End().Index() + 1);
+    lineEnds.push_back(End().index + 1);
 
     MarkUpdate();
 
@@ -786,13 +786,13 @@ GlyphIterator ZepBuffer::GetLinePos(GlyphIterator bufferLocation, LineLocation l
 }
 
 std::string ZepBuffer::GetBufferText(const GlyphIterator &start, const GlyphIterator &end) const {
-    return {workingBuffer.begin() + start.Index(), workingBuffer.begin() + end.Index()};
+    return {workingBuffer.begin() + start.index, workingBuffer.begin() + end.index};
 }
 
 bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, ChangeRecord &changeRecord) {
     if (!startIndex.Valid()) return false;
 
-    GlyphIterator endIndex(this, startIndex.Index() + long(str.length()));
+    GlyphIterator endIndex(this, startIndex.index + long(str.length()));
 
     sigPreInsert(*this, startIndex, str);
 
@@ -802,8 +802,8 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::PreBufferChange, startIndex, endIndex));
 
     // abcdef\r\nabc<insert>dfdf\r\n
-    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.Index());;
-    if (itrLine != lineEnds.end() && *itrLine <= startIndex.Index()) {
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.index);;
+    if (itrLine != lineEnds.end() && *itrLine <= startIndex.index) {
         itrLine++;
     }
 
@@ -820,7 +820,7 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
         itr = std::find_first_of(itr, itrEnd, lineEndSymbols.begin(), lineEndSymbols.end());
         if (itr != itrEnd) {
             if (itr != itrEnd && *itr == '\n') itr++;
-            lines.push_back(long(itr - itrBegin) + startIndex.Index());
+            lines.push_back(long(itr - itrBegin) + startIndex.index);
         }
     }
 
@@ -838,7 +838,7 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     }
 
     changeRecord.strInserted = str;
-    workingBuffer.insert(workingBuffer.begin() + startIndex.Index(), str.begin(), str.end());
+    workingBuffer.insert(workingBuffer.begin() + startIndex.index, str.begin(), str.end());
 
     MarkUpdate();
 
@@ -870,7 +870,7 @@ bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &en
     for (auto loc = startIndex; loc < endIndex; loc++) {
         // Note we don't support utf8 yet
         // TODO: (0) Broken now we support utf8
-        workingBuffer[loc.Index()] = str[0];
+        workingBuffer[loc.index] = str[0];
     }
 
     MarkUpdate();
@@ -901,13 +901,13 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
 
     sigPreDelete(*this, startIndex, endIndex);
 
-    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.Index());
+    auto itrLine = std::lower_bound(lineEnds.begin(), lineEnds.end(), startIndex.index);
     if (itrLine == lineEnds.end()) return false;
 
-    auto itrLastLine = std::upper_bound(itrLine, lineEnds.end(), endIndex.Index());
-    auto offsetDiff = endIndex.Index() - startIndex.Index();
+    auto itrLastLine = std::upper_bound(itrLine, lineEnds.end(), endIndex.index);
+    auto offsetDiff = endIndex.index - startIndex.index;
 
-    if (*itrLine <= startIndex.Index()) {
+    if (*itrLine <= startIndex.index) {
         itrLine++;
     }
 
@@ -920,7 +920,7 @@ bool ZepBuffer::Delete(const GlyphIterator &startIndex, const GlyphIterator &end
         lineEnds.erase(itrLine, itrLastLine);
     }
 
-    workingBuffer.erase(workingBuffer.begin() + startIndex.Index(), workingBuffer.begin() + endIndex.Index());
+    workingBuffer.erase(workingBuffer.begin() + startIndex.index, workingBuffer.begin() + endIndex.index);
     assert(!workingBuffer.empty() && workingBuffer[workingBuffer.size() - 1] == 0);
 
     MarkUpdate();
@@ -995,7 +995,7 @@ bool OverlapInclusive(ByteRange r1, ByteRange r2) {
 }
 
 void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, std::function<bool(const std::shared_ptr<RangeMarker> &)> fnCB) const {
-    ByteRange inclusive = ByteRange(begin.Index(), end.Peek(-1).Index());
+    ByteRange inclusive = ByteRange(begin.index, end.Peek(-1).index);
     if (dir == Direction::Forward) {
         for (const auto &m_rangeMarker: m_rangeMarkers) {
             for (int pass = 0; pass < 2; pass++) {
@@ -1063,8 +1063,8 @@ std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Dire
     auto search = [&]() {
         ForEachMarker(markerType, dir, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
             if (dir == Direction::Forward) {
-                if (marker->GetRange().first <= start.Index()) return true;
-            } else if (marker->GetRange().first >= start.Index()) return true;
+                if (marker->GetRange().first <= start.index) return true;
+            } else if (marker->GetRange().first >= start.index) return true;
 
             spFound = marker;
             return false;
@@ -1182,8 +1182,8 @@ GlyphRange ZepBuffer::GetExpression(ExpressionType type, const GlyphIterator &lo
     for (auto &outer: topLevel) {
         if (location >= outer->range.first && location < outer->range.second) return outer->range;
 
-        auto leftDist = std::abs(outer->range.first.Index() - location.Index());
-        auto rightDist = std::abs(location.Index() - outer->range.second.Index());
+        auto leftDist = std::abs(outer->range.first.index - location.index);
+        auto rightDist = std::abs(location.index - outer->range.second.index);
         if (leftDist < dist) {
             pBest = outer.get();
             dist = leftDist;
@@ -1214,7 +1214,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange 
     if (range.first == range.second) return;
 
     auto spMarker = std::make_shared<RangeMarker>(*this);
-    spMarker->SetRange(ByteRange(range.first.Index(), range.second.Index()));
+    spMarker->SetRange(ByteRange(range.first.index, range.second.index));
     spMarker->SetBackgroundColor(ThemeColor::FlashColor);
     spMarker->displayType = RangeMarkerDisplayType::Timed | RangeMarkerDisplayType::Background;
     spMarker->markerType = RangeMarkerType::Mark;

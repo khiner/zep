@@ -221,7 +221,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
             return "<No Expression>";
 
         const auto &text = buffer.workingBuffer;
-        auto eval = std::string(text.begin() + range.first.Index(), text.begin() + range.second.Index());
+        auto eval = std::string(text.begin() + range.first.index, text.begin() + range.second.index);
 
         // Flash the evaluated expression
         FlashType flashType = FlashType::Flash;

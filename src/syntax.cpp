@@ -30,11 +30,11 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
 
     Wait();
 
-    if (m_processedChar < offset.Index() || (long) m_syntax.size() <= offset.Index()) return result;
+    if (m_processedChar < offset.index || (long) m_syntax.size() <= offset.index) return result;
 
-    result.background = m_syntax[offset.Index()].background;
-    result.foreground = m_syntax[offset.Index()].foreground;
-    result.underline = m_syntax[offset.Index()].underline;
+    result.background = m_syntax[offset.index].background;
+    result.foreground = m_syntax[offset.index].foreground;
+    result.underline = m_syntax[offset.index].underline;
 
     bool found = false;
     for (auto &adorn: m_adornments) {
@@ -64,8 +64,8 @@ void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const Glyp
     // ensure that multiple calls to restart the thread keep track of where to start
     // This means a small edit at the end of a big file, followed by a small edit at the top
     // is the worst case scenario, because
-    m_processedChar = std::min(startLocation.Index(), long(m_processedChar));
-    m_targetChar = std::max(endLocation.Index(), long(m_targetChar));
+    m_processedChar = std::min(startLocation.index, long(m_processedChar));
+    m_targetChar = std::max(endLocation.index, long(m_targetChar));
 
     // Make sure the syntax buffer is big enough - adding normal syntax to the end
     // This may also 'chop'
@@ -92,11 +92,11 @@ void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
             Interrupt();
         } else if (spBufferMsg->type == BufferMessageType::TextDeleted) {
             Interrupt();
-            m_syntax.erase(m_syntax.begin() + spBufferMsg->startLocation.Index(), m_syntax.begin() + spBufferMsg->endLocation.Index());
+            m_syntax.erase(m_syntax.begin() + spBufferMsg->startLocation.index, m_syntax.begin() + spBufferMsg->endLocation.index);
             QueueUpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
         } else if (spBufferMsg->type == BufferMessageType::TextAdded || spBufferMsg->type == BufferMessageType::Loaded) {
             Interrupt();
-            m_syntax.insert(m_syntax.begin() + spBufferMsg->startLocation.Index(), ByteDistance(spBufferMsg->startLocation, spBufferMsg->endLocation), SyntaxData{});
+            m_syntax.insert(m_syntax.begin() + spBufferMsg->startLocation.index, ByteDistance(spBufferMsg->startLocation, spBufferMsg->endLocation), SyntaxData{});
             QueueUpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
         } else if (spBufferMsg->type == BufferMessageType::TextChanged) {
             Interrupt();

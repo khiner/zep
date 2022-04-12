@@ -108,7 +108,7 @@ bool ZepReplExCommand::AddKeyPress(uint32_t key, uint32_t modifiers) {
     if (key == ExtKeys::RETURN) {
         ChangeRecord record;
         auto *buffer = m_pReplWindow->buffer;
-        auto str = std::string(buffer->workingBuffer.begin() + m_startLocation.Index(), buffer->workingBuffer.end());
+        auto str = std::string(buffer->workingBuffer.begin() + m_startLocation.index, buffer->workingBuffer.end());
         if (str.size() <= 1) {
             MoveToEnd();
             buffer->GetMode()->SwitchMode(EditorMode::Insert);

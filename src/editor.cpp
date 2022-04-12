@@ -159,9 +159,7 @@ void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
         } else if (styleStr == "minimal") {
             config.style = EditorStyle::Minimal;
         }
-    }
-    catch (...) {
-    }
+    } catch (...) {}
 }
 
 // TODO get rid of this
@@ -228,7 +226,7 @@ std::vector<ZepWindow *> ZepEditor::FindBufferWindows(const ZepBuffer *buffer) c
 void ZepEditor::RemoveBuffer(ZepBuffer *buffer) {
     auto bufferWindows = FindBufferWindows(buffer);
     for (auto &window: bufferWindows) {
-        window->GetTabWindow().RemoveWindow(window);
+        window->tabWindow.RemoveWindow(window);
     }
 
     // Find the buffer in the list of buffers owned by the editor and remove it
@@ -329,12 +327,11 @@ ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
             // Remember the working directory 
             fileSystem->SetWorkingDirectory(startPath);
             return activeTabWindow->GetActiveWindow()->buffer;
-        } else {
-            // Try to get the working directory from the parent path of the passed file
-            auto parentDir = startPath.parent_path();
-            if (fileSystem->Exists(parentDir) && fileSystem->IsDirectory(parentDir)) {
-                fileSystem->SetWorkingDirectory(startPath.parent_path());
-            }
+        }
+        // Try to get the working directory from the parent path of the passed file
+        auto parentDir = startPath.parent_path();
+        if (fileSystem->Exists(parentDir) && fileSystem->IsDirectory(parentDir)) {
+            fileSystem->SetWorkingDirectory(startPath.parent_path());
         }
     }
 
@@ -548,9 +545,9 @@ void ZepEditor::RegisterBufferMode(const std::string &extension, const std::shar
 void ZepEditor::SetGlobalMode(const std::string &currentMode) {
     auto itrMode = m_mapGlobalModes.find(currentMode);
     if (itrMode != m_mapGlobalModes.end()) {
-        auto *pWindow = m_pCurrentMode ? m_pCurrentMode->GetCurrentWindow() : nullptr;
+        auto *window = m_pCurrentMode ? m_pCurrentMode->currentWindow : nullptr;
         m_pCurrentMode = itrMode->second.get();
-        if (pWindow) m_pCurrentMode->Begin(pWindow);
+        if (window) m_pCurrentMode->Begin(window);
     }
 }
 
