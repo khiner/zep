@@ -1,7 +1,5 @@
 #pragma once
 
-#include "zep_config.h"
-
 #include <memory>
 #include <map>
 #include <string>

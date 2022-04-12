@@ -7,7 +7,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "zep_config.h"
 
 #include "zep/mcommon/math/math.h"
 #include "zep/mcommon/animation/timer.h"
