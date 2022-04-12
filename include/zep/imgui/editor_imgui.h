@@ -13,9 +13,6 @@
 
 namespace Zep {
 
-// These key defines from usb_hid_keys.h; standard USB keycodes.
-// Defined here to stop collisions.
-
 #define ZEP_KEY_F1 0x3a // Keyboard F1
 #define ZEP_KEY_F2 0x3b // Keyboard F2
 #define ZEP_KEY_F3 0x3c // Keyboard F3
