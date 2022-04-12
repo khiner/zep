@@ -1,17 +1,8 @@
 #pragma once
 
 #include "mode.h"
-#include "zep/keymap.h"
-
-class Timer;
 
 namespace Zep {
-
-struct SpanInfo;
-
-enum class VimMotion {
-    LineEnd
-};
 
 class ZepMode_Vim : public ZepMode {
 public:
@@ -27,9 +18,6 @@ public:
     EditorMode DefaultMode() const override { return EditorMode::Normal; }
     void PreDisplay(ZepWindow &win) override;
     virtual void SetupKeyMaps();
-    virtual void AddOverStrikeMaps();
-    virtual void AddCopyMaps();
-    virtual void AddPasteMaps();
     bool UsesRelativeLines() const override { return true; }
 };
 

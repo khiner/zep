@@ -63,28 +63,6 @@ ZepMode_Vim::ZepMode_Vim(ZepEditor &editor) : ZepMode(editor) {}
 
 ZepMode_Vim::~ZepMode_Vim() = default;
 
-void ZepMode_Vim::AddOverStrikeMaps() {
-    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"r<.>"}, id_Replace);
-}
-
-void ZepMode_Vim::AddCopyMaps() {
-    AddKeyMapWithCountRegisters({&m_normalMap}, {"v"}, id_VisualMode);
-    AddKeyMapWithCountRegisters({&m_normalMap}, {"V"}, id_VisualLineMode);
-    AddKeyMapWithCountRegisters({&m_visualMap}, {"y"}, id_Yank);
-    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"Y"}, id_YankLine);
-    AddKeyMapWithCountRegisters({&m_normalMap}, {"yy"}, id_YankLine);
-
-    // Visual mode
-    AddKeyMapWithCountRegisters({&m_visualMap}, {"aW"}, id_VisualSelectAWORD);
-    AddKeyMapWithCountRegisters({&m_visualMap}, {"aw"}, id_VisualSelectAWord);
-    AddKeyMapWithCountRegisters({&m_visualMap}, {"iW"}, id_VisualSelectInnerWORD);
-    AddKeyMapWithCountRegisters({&m_visualMap}, {"iw"}, id_VisualSelectInnerWord);
-}
-
-void ZepMode_Vim::AddPasteMaps() {
-
-}
-
 void ZepMode_Vim::Init() {
     for (int i = 0; i <= 9; i++) {
         editor.SetRegister('0' + (const char) i, "");
@@ -99,9 +77,22 @@ void ZepMode_Vim::SetupKeyMaps() {
     AddGlobalKeyMaps();
     AddNavigationKeyMaps(true);
     AddSearchKeyMaps();
-    AddCopyMaps();
-    AddPasteMaps();
-    AddOverStrikeMaps();
+
+    // Copy
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"v"}, id_VisualMode);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"V"}, id_VisualLineMode);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"y"}, id_Yank);
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"Y"}, id_YankLine);
+    AddKeyMapWithCountRegisters({&m_normalMap}, {"yy"}, id_YankLine);
+
+    // Visual mode
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"aW"}, id_VisualSelectAWORD);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"aw"}, id_VisualSelectAWord);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"iW"}, id_VisualSelectInnerWORD);
+    AddKeyMapWithCountRegisters({&m_visualMap}, {"iw"}, id_VisualSelectInnerWord);
+
+    // Over-stroke
+    AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"r<.>"}, id_Replace);
 
     // Mode switching
     AddKeyMapWithCountRegisters({&m_normalMap, &m_visualMap}, {"<Escape>"}, id_NormalMode);
@@ -179,10 +170,9 @@ void ZepMode_Vim::Begin(ZepWindow *pWindow) {
 }
 
 void ZepMode_Vim::PreDisplay(ZepWindow &window) {
-    // After .25 seconds of not pressing the 'k' escape code after j, 
-    // put the j in.
+    // After .25 seconds of not pressing the 'k' escape code after 'j', put the 'j' in.
     // We can do better than this and fix the keymapper to handle timed key events.
-    // This is an easier fix for now
+    // This is an easier fix for now.
     if (timer_get_elapsed_seconds(m_lastKeyPressTimer) > .25f &&
         m_currentMode == EditorMode::Insert &&
         m_currentCommand == "j") {
