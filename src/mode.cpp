@@ -1662,23 +1662,6 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
             currentWindow->SetBuffer(pBuffer);
         } else if (strCommand.find(":cd") == 0) {
             editor.SetCommandText(editor.fileSystem->GetWorkingDirectory().string());
-        } else if (strCommand.find(":ZTestFloatSlider") == 0) {
-            // auto line = buffer->GetBufferLine(bufferCursor);
-            auto pSlider = std::make_shared<FloatSlider>(editor, 4);
-
-            auto spMarker = std::make_shared<RangeMarker>(*buffer);
-            spMarker->SetRange(ByteRange(bufferCursor.index, bufferCursor.Peek(1).index));
-            spMarker->spWidget = pSlider;
-            spMarker->markerType = RangeMarkerType::LineWidget;
-            spMarker->displayType = RangeMarkerDisplayType::Hidden;
-        } else if (strCommand.find(":ZTestColorPicker") == 0) {
-            // auto line = buffer->GetBufferLine(bufferCursor);
-            auto pPicker = std::make_shared<ColorPicker>(editor);
-            auto spMarker = std::make_shared<RangeMarker>(*buffer);
-            spMarker->SetRange(ByteRange(bufferCursor.index, bufferCursor.Peek(1).index));
-            spMarker->spWidget = pPicker;
-            spMarker->markerType = RangeMarkerType::Widget;
-            spMarker->displayType = RangeMarkerDisplayType::Background;
         } else if (strCommand.find(":ZTestFlash") == 0) {
             if (buffer->syntax) {
                 FlashType flashType = FlashType::Flash;

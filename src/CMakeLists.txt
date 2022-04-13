@@ -11,7 +11,6 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/include/zep/filesystem.h
     ${ZEP_ROOT}/include/zep/indexer.h
     ${ZEP_ROOT}/include/zep/keymap.h
-    ${ZEP_ROOT}/include/zep/line_widgets.h
     ${ZEP_ROOT}/include/zep/mcommon/animation/timer.h
     ${ZEP_ROOT}/include/zep/mcommon/file/cpptoml.h
     ${ZEP_ROOT}/include/zep/mcommon/file/path.h
@@ -44,7 +43,6 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/src/filesystem.cpp
     ${ZEP_ROOT}/src/indexer.cpp
     ${ZEP_ROOT}/src/keymap.cpp
-    ${ZEP_ROOT}/src/line_widgets.cpp
     ${ZEP_ROOT}/src/mcommon/animation/timer.cpp
     ${ZEP_ROOT}/src/mcommon/file/path.cpp
     ${ZEP_ROOT}/src/mcommon/string/stringutils.cpp

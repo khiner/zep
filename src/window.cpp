@@ -268,22 +268,10 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
     auto underlineHeight = editor.DpiY(editor.config.underlineHeight) + editor.DpiY(UnderlineMargin * 2.0f);
     NVec2f height(0.0f);
 
-    uint32_t lineWidgetCount = 0;
     bool underPad = false;
     std::vector<ByteIndex> markerStack;
     for (auto&[index, markerSet]: markers) {
         for (auto &spMarker: markerSet) {
-            if (spMarker->markerType == RangeMarkerType::LineWidget) {
-                auto size = editor.Dpi(spMarker->spWidget->GetSize());
-
-                // Each widget has a margin then its height then the bottom
-                height.x += margins.x;
-                height.x += size.y;
-                height.x += margins.y;
-
-                spMarker->displayRow = lineWidgetCount++;
-            }
-
             if (spMarker->displayType & RangeMarkerDisplayType::Underline) {
                 // Stack the markers packed
                 uint32_t row = 0;
@@ -615,33 +603,6 @@ NVec4f ZepWindow::GetBlendedColor(ThemeColor color) const {
     return col;
 }
 
-void ZepWindow::DrawAboveLineWidgets(SpanInfo &lineInfo) {
-    if (lineInfo.isSplitContinuation) return;
-
-    auto markers = buffer->GetRangeMarkersOnLine(RangeMarkerType::LineWidget, lineInfo.bufferLineNumber);
-    if (markers.empty()) return;
-
-    auto lineMargins = editor.Dpi(editor.config.lineMargins);
-    auto widgetMargins = editor.Dpi(editor.config.widgetMargins);
-
-    float widgetHeight = lineInfo.lineWidgetHeights.x;
-    NVec2f linePx = GetSpanPixelRange(lineInfo);
-    float currentY = 0.0f; // lineMargins.x;
-
-    for (auto&[index, markerSet]: markers) {
-        for (auto &spMarker: markerSet) {
-            if (spMarker->spWidget == nullptr) continue;
-
-            auto widgetSize = editor.Dpi(spMarker->spWidget->GetSize());
-
-            currentY += widgetMargins.x;
-            spMarker->spWidget->Draw(*buffer, NVec2f(linePx.x, ToWindowY(currentY + lineInfo.yOffsetPx - widgetHeight)));
-            currentY += widgetSize.y;
-            currentY += widgetMargins.y;
-        }
-    }
-}
-
 NRectf SquareRect(const NRectf &rc) {
     auto minSize = std::min(rc.Width(), rc.Height());
     auto xMargin = (rc.Width() - minSize) / 2;
@@ -734,31 +695,6 @@ void ZepWindow::DisplayLineBackground(SpanInfo &lineInfo, ZepSyntax *pSyntax) {
         // Skip to current marker
         while (itrWidgetMarkers != widgetMarkers.end() && itrWidgetMarkers->first < cp.iterator.index) {
             itrWidgetMarkers++;
-        }
-
-        // Draw inline widget marks
-        if (itrWidgetMarkers != widgetMarkers.end()) {
-            if (itrWidgetMarkers->first == cp.iterator.index) {
-                for (const auto &pMarker: itrWidgetMarkers->second) {
-                    // Tell the widget to draw inline
-                    NRectf inlineRect(NVec2f(screenPosX, ToWindowY(lineInfo.yOffsetPx)), NVec2f(screenPosX + pMarker->inlineSize.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.FullLineHeightPx())));
-
-                    // If the syntax overrides the background, show it first
-                    if (pSyntax) {
-                        auto syntaxResult = pSyntax->GetSyntaxAt(cp.iterator);
-                        if (syntaxResult.background != ThemeColor::None) {
-                            auto themeCol = pSyntax->ToBackgroundColor(syntaxResult);
-                            display->DrawRectFilled(inlineRect, themeCol);
-                        }
-                    }
-
-                    // Draw the inline marker and advance the text position
-                    inlineRect.Adjust(inlineMargins.x, inlineMargins.y, -inlineMargins.x, -inlineMargins.y);
-                    inlineRect = SquareRect(inlineRect);
-                    pMarker->spWidget->DrawInline(*buffer, inlineRect);
-                    screenPosX += pMarker->inlineSize.x;
-                }
-            }
         }
 
         // Store the actual location of the text codepoint
@@ -1011,10 +947,6 @@ bool ZepWindow::DisplayLine(SpanInfo &lineInfo, int displayPass) {
         }
             // Second pass, characters
         else {
-            if (lineStart) {
-                DrawAboveLineWidgets(lineInfo);
-            }
-
             if ((special != SpecialChar::Hidden) || (GetWindowFlags() & WindowFlags::ShowCR)) {
                 auto centerY = ToWindowY(lineInfo.yOffsetPx) + cp.size.y / 2;
                 auto centerChar = NVec2f(cp.pos.x + cp.size.x / 2, centerY);

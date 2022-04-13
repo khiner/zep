@@ -14,7 +14,6 @@
 // For example, tooltips, underlines, inline widgets, etc.
 // Try :ZTestMarkers 5 or :ZTestMarkers 3 after selecting a region of text
 namespace Zep {
-struct IWidget;
 class ZepBuffer;
 
 namespace RangeMarkerType {
@@ -82,7 +81,6 @@ public:
     mutable ThemeColor textColor = ThemeColor::Text;
     mutable float alpha = 1.0f;
     ToolTipPos tipPos = ToolTipPos::AboveLine;
-    std::shared_ptr<IWidget> spWidget;
     float duration = 1.0f;
     NVec2f inlineSize;
     bool enabled = true;

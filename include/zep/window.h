@@ -169,8 +169,6 @@ private:
 
     void PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &spMarker);
 
-    void DrawAboveLineWidgets(SpanInfo &lineInfo);
-
     NVec2f ArrangeLineMarkers(tRangeMarkers &markers);
 
     bool IsActiveWindow() const;

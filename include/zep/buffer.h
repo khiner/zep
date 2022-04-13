@@ -11,7 +11,6 @@
 #include "zep/glyph_iterator.h"
 
 #include "zep/editor.h"
-#include "zep/line_widgets.h"
 #include "zep/range_markers.h"
 
 namespace Zep {
