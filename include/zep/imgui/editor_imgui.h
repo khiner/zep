@@ -45,9 +45,13 @@ class ZepDisplay_ImGui;
 class ZepTabWindow;
 class ZepEditor_ImGui : public ZepEditor {
 public:
-    ZepEditor_ImGui(const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr)
+    explicit ZepEditor_ImGui(const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr)
         : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem) {
     }
+
+    bool sendImGuiKeyPressToBuffer(ImGuiKey imGuiKey, uint32_t key, uint32_t mod = 0);
+
+    void handleMouseEventAndHideFromImGui(size_t mouseButtonIndex, ZepMouseButton zepMouseButton, bool down);
 
     void HandleInput() {
         auto &io = ImGui::GetIO();
@@ -73,31 +77,15 @@ public:
             OnMouseMove(toNVec2f(io.MousePos));
         }
 
-        if (io.MouseClicked[0] && OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
-            // Hide the mouse click from imgui if we handled it
-            io.MouseClicked[0] = false;
-        }
-
-        if (io.MouseClicked[1] && OnMouseDown(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
-            // Hide the mouse click from imgui if we handled it
-            io.MouseClicked[0] = false;
-        }
-
-        if (io.MouseReleased[0] && OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Left)) {
-            // Hide the mouse click from imgui if we handled it
-            io.MouseClicked[0] = false;
-        }
-
-        if (io.MouseReleased[1] && OnMouseUp(toNVec2f(io.MousePos), ZepMouseButton::Right)) {
-            // Hide the mouse click from imgui if we handled it
-            io.MouseClicked[0] = false;
-        }
+        handleMouseEventAndHideFromImGui(0, ZepMouseButton::Left, true);
+        handleMouseEventAndHideFromImGui(1, ZepMouseButton::Right, true);
+        handleMouseEventAndHideFromImGui(0, ZepMouseButton::Left, false);
+        handleMouseEventAndHideFromImGui(1, ZepMouseButton::Right, false);
 
         if (io.KeyCtrl) mod |= ModifierKey::Ctrl;
         if (io.KeyShift) mod |= ModifierKey::Shift;
 
-        auto pWindow = activeTabWindow->GetActiveWindow();
-        const auto *buffer = pWindow->buffer;
+        const auto *buffer = activeTabWindow->GetActiveWindow()->buffer;
 
         // Check USB Keys
         for (auto &usbKey: MapUSBKeys) {
@@ -107,47 +95,21 @@ public:
             }
         }
 
-        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::TAB, mod);
-            return;
-        }
-        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::ESCAPE, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::RETURN, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::DEL, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Home))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::HOME, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_End))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::END, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::BACKSPACE, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightArrow))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::RIGHT, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftArrow))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::LEFT, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_UpArrow))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::UP, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_DownArrow))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::DOWN, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageDown))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::PAGEDOWN, mod);
-            return;
-        } else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_PageUp))) {
-            buffer->GetMode()->AddKeyPress(ExtKeys::PAGEUP, mod);
-            return;
-        } else if (io.KeyCtrl) {
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Tab, ExtKeys::TAB)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Escape, ExtKeys::ESCAPE)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Enter, ExtKeys::RETURN)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Delete, ExtKeys::DEL)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Home, ExtKeys::HOME)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_End, ExtKeys::END)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_Backspace, ExtKeys::BACKSPACE)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_RightArrow, ExtKeys::RIGHT)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_LeftArrow, ExtKeys::LEFT)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_UpArrow, ExtKeys::UP)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_DownArrow, ExtKeys::DOWN)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_PageDown, ExtKeys::PAGEDOWN)) return;
+        if (sendImGuiKeyPressToBuffer(ImGuiKey_PageUp, ExtKeys::PAGEUP)) return;
+
+        if (io.KeyCtrl) {
             // SDL Remaps to its own scancodes; and since we can't look them up in the standard IMGui list
             // without modifying the ImGui base code, we have special handling here for CTRL.
             // For the Win32 case, we use VK_A (ASCII) is handled below

@@ -2,17 +2,13 @@
 
 #include "../display.h"
 #include "../syntax.h"
-#include <imgui.h>
 #include <string>
+#include "../../imgui/imgui.h"
 
 namespace Zep {
 
-inline NVec2f toNVec2f(const ImVec2 &im) {
-    return NVec2f(im.x, im.y);
-}
-inline ImVec2 toImVec2(const NVec2f &im) {
-    return ImVec2(im.x, im.y);
-}
+inline NVec2f toNVec2f(const ImVec2 &im) { return {im.x, im.y}; }
+inline ImVec2 toImVec2(const NVec2f &im) { return {im.x, im.y}; }
 
 static ImWchar greek_range[] = {0x300, 0x52F, 0x1f00, 0x1fff, 0, 0};
 
@@ -45,9 +41,7 @@ public:
 
 class ZepDisplay_ImGui : public ZepDisplay {
 public:
-    ZepDisplay_ImGui()
-        : ZepDisplay() {
-    }
+    ZepDisplay_ImGui() : ZepDisplay() {}
 
     void DrawChars(ZepFont &font, const NVec2f &pos, const NVec4f &col, const uint8_t *text_begin, const uint8_t *text_end) const override {
         auto imFont = dynamic_cast<ZepFont_ImGui &>(font).font;
