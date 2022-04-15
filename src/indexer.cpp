@@ -42,9 +42,7 @@ std::map<std::string, TypeName> MapToType = {
     {"int8_t",   t_int8_t}
 };
 
-Indexer::Indexer(ZepEditor &editor)
-    : ZepComponent(editor) {
-}
+Indexer::Indexer(ZepEditor &editor) : ZepComponent(editor) {}
 
 void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector<std::string> &ignore_patterns, std::vector<std::string> &include_patterns, std::string &errors) {
     ZepPath config = path / ".zep" / "project.cfg";
@@ -78,16 +76,7 @@ void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector
         };
     }
     if (include_patterns.empty()) {
-        include_patterns = {
-            "*.cpp",
-            "*.c",
-            "*.hpp",
-            "*.h",
-            "*.lsp",
-            "*.scm",
-            "*.cs",
-            "*.cfg",
-        };
+        include_patterns = {"*.cpp", "*.c", "*.hpp", "*.h", "*.lsp", "*.scm", "*.cs", "*.cfg",};
     }
 } // namespace Zep
 

@@ -26,7 +26,7 @@ bool Zep::ZLog::disabled = false;
 namespace Zep {
 
 ZepComponent::ZepComponent(ZepEditor &editor) : editor(editor) {
-    editor.RegisterCallback(this);
+    this->editor.RegisterCallback(this);
 }
 
 ZepComponent::~ZepComponent() {

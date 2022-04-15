@@ -111,9 +111,7 @@ void CommandContext::GetCommandRegisters() {
     }
 }
 
-ZepMode::ZepMode(ZepEditor &editor)
-    : ZepComponent(editor) {
-}
+ZepMode::ZepMode(ZepEditor &editor) : ZepComponent(editor) {}
 
 ZepMode::~ZepMode() = default;
 

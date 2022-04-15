@@ -268,6 +268,7 @@ public:
 
     // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
     virtual void OnFileChanged(const ZepPath &path);
+    virtual void HandleInput() {};
 
     ZepDisplay *display;
     std::deque<std::shared_ptr<ZepBuffer>> buffers; // May or may not be visible
