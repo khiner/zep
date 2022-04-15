@@ -39,6 +39,8 @@ void ZepEditor::RegisterSyntaxProvider(const std::vector<std::string> &mappings,
 }
 
 void ZepEditor::RegisterSyntaxProviders() {
+    RegisterSyntaxProvider({".dsp"},
+        {"faust", ([](auto *buffer) { return std::make_shared<ZepSyntax>(*buffer, faust_keywords, faust_identifiers); })});
     RegisterSyntaxProvider({".vert", ".frag"},
         {"gl_shader", ([](auto *buffer) { return std::make_shared<ZepSyntax>(*buffer, glsl_keywords, glsl_identifiers); })});
     RegisterSyntaxProvider({".hlsl", ".hlsli", ".vs", ".ps"},

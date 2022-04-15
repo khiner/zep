@@ -6,6 +6,22 @@ namespace Zep {
 
 class ZepEditor;
 
+// Faust syntax highlighting https://github.com/grame-cncm/faust/tree/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting
+// The simplest one is probably https://github.com/grame-cncm/faust/blob/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting/faust.nanorc
+
+// TODO need more robust syntax highlighting in general.
+// TODO faust emacs syntax is a good example for pulling more faust keywords from the faust libraries
+//  https://github.com/grame-cncm/faust/blob/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting/faust-mode.el
+
+// From https://github.com/grame-cncm/faust/blob/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting/faust.vim
+static std::unordered_set<std::string> faust_keywords = {
+    "syn", "keyword", "fstPrims", "mem", "prefix", "int", "float", "rdtable", "rwtable", "select2", "select3", "ffunction", "fconstant", "fvariable", "route", "waveform", "soundfile", "button", "checkbox", "vslider",
+    "hslider", "nentry", "vgroup", "hgroup", "tgroup", "vbargraph", "hbargraph", "attach", "acos", "asin", "atan", "atan2", "cos", "sin", "tan", "exp", "log", "log10", "pow", "sqrt", "abs", "min", "max", "fmod",
+    "remainder", "floor", "ceil", "rint",
+};
+static std::unordered_set<std::string> faust_identifiers = {
+    "syn", "keyword", "fstOps", "process", "with", "case", "seq", "par", "sum", "prod", "import", "component", "library", "environment", "declare",
+};
 
 // Most of these keyword values taken from : https://github.com/BalazsJako/ImGuiColorTextEdit
 // another great ImGui based text editor.
@@ -18,7 +34,6 @@ static std::unordered_set<std::string> cpp_keywords = {
     "throw", "true", "try", "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq", "#define", "#include",
     "uint32_t", "int32_t", "uint64_t", "int64_t", "size_t", "uint8_t", "int8_t", "int16_t", "uint16_t"
 };
-
 static std::unordered_set<std::string> cpp_identifiers = {
     "abort", "abs", "acos", "asin", "atan", "atexit", "atof", "atoi", "atol", "ceil", "clock", "cosh", "ctime", "div", "exit", "fabs", "floor", "fmod", "getchar", "getenv", "isalnum", "isalpha", "isdigit", "isgraph",
     "ispunct", "isspace", "isupper", "kbhit", "log10", "log2", "log", "memcmp", "modf", "pow", "printf", "sprintf", "snprintf", "putchar", "putenv", "puts", "rand", "remove", "rename", "sinh", "sqrt", "srand", "strcat",
@@ -46,7 +61,6 @@ static std::unordered_set<std::string> hlsl_keywords = {
     "half1x2",
     "half2x2", "half3x2", "half4x2", "half1x3", "half2x3", "half3x3", "half4x3", "half1x4", "half2x4", "half3x4", "half4x4"
 };
-
 static std::unordered_set<std::string> hlsl_identifiers = {
     "abort", "abs", "acos", "all", "AllMemoryBarrier", "AllMemoryBarrierWithGroupSync", "any", "asdouble", "asfloat", "asin", "asint", "asint", "asuint", "asuint", "atan", "atan2", "ceil", "CheckAccessFullyMapped",
     "clamp",
@@ -77,12 +91,10 @@ static std::unordered_set<std::string> glsl_keywords{
     "sampler2DRect", "sampler2DRectShadow", "isampler2DRect", "usampler2DRect", "samplerBuffer", "isamplerBuffer", "usamplerBuffer", "sampler2DMS", "isampler2DMS", "usampler2DMS",
     "sampler2DMSArray", "isampler2DMSArray", "usampler2DMSArray", "samplerCubeArray", "samplerCubeArrayShadow", "isamplerCubeArray", "usamplerCubeArray", "struct"
 };
-
 static std::unordered_set<std::string> glsl_identifiers = {
     "abort", "abs", "acos", "asin", "atan", "atexit", "atof", "atoi", "atol", "ceil", "clock", "cosh", "ctime", "div", "exit", "fabs", "floor", "fmod", "getchar", "getenv", "isalnum", "isalpha", "isdigit", "isgraph",
     "ispunct", "isspace", "isupper", "kbhit", "log10", "log2", "log", "memcmp", "modf", "pow", "putchar", "putenv", "puts", "rand", "remove", "rename", "sinh", "sqrt", "srand", "strcat", "strcmp", "strerror", "time",
-    "tolower", "toupper",
-    "gl_Position"
+    "tolower", "toupper", "gl_Position"
 };
 
 static std::unordered_set<std::string> c_keywords = {
@@ -90,7 +102,6 @@ static std::unordered_set<std::string> c_keywords = {
     "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "void", "volatile", "while", "_Alignas", "_Alignof", "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary",
     "_Noreturn", "_Static_assert", "_Thread_local"
 };
-
 static std::unordered_set<std::string> c_identifiers = {
     "abort", "abs", "acos", "asin", "atan", "atexit", "atof", "atoi", "atol", "ceil", "clock", "cosh", "ctime", "div", "exit", "fabs", "floor", "fmod", "getchar", "getenv", "isalnum", "isalpha", "isdigit", "isgraph",
     "ispunct", "isspace", "isupper", "kbhit", "log10", "log2", "log", "memcmp", "modf", "pow", "putchar", "putenv", "puts", "rand", "remove", "rename", "sinh", "sqrt", "srand", "strcat", "strcmp", "strerror", "time",
