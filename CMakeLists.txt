@@ -6,7 +6,6 @@ message(STATUS "CMakeLists: Zep")
 option(BUILD_IMGUI "Make Imgui Library" OFF)
 option(BUILD_DEMOS "Make the demo app" ON)
 option(BUILD_TESTS "Make the tests" ON)
-option(BUILD_EXTENSIONS "Make the extension library (required for demo)" OFF)
 option(ZEP_FEATURE_CPP_FILE_SYSTEM "Default File system enabled" ON)
 
 # Global Settings
@@ -22,7 +21,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll" FORCE)
 set(CMAKE_DEBUG_POSTFIX "-debug")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "-reldbg")
 
-if (BUILD_DEMOS OR BUILD_EXTENSIONS)
+if (BUILD_DEMOS)
     if (WIN32)
         set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
     endif ()
@@ -39,10 +38,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 # Can I remove these now?
 if (ZEP_FEATURE_CPP_FILE_SYSTEM)
     add_definitions(-DZEP_FEATURE_CPP_FILE_SYSTEM)
-endif ()
-
-if (BUILD_DEMOS)
-    SET(BUILD_EXTENSIONS ON)
 endif ()
 
 # config_app.h checks
@@ -65,9 +60,7 @@ enable_testing()
 
 # The main library
 add_subdirectory(src)
-add_subdirectory(extensions)
 add_subdirectory(tests)
-add_subdirectory(demos)
 
 # Make the CMake bits that ensure find_package does the right thing
 install(EXPORT zep-targets

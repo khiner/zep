@@ -18,6 +18,7 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/include/zep/mcommon/string/stringutils.h
     ${ZEP_ROOT}/include/zep/mcommon/threadutils.h
     ${ZEP_ROOT}/include/zep/mode.h
+    ${ZEP_ROOT}/include/zep/mode_repl.h
     ${ZEP_ROOT}/include/zep/mode_search.h
     ${ZEP_ROOT}/include/zep/mode_standard.h
     ${ZEP_ROOT}/include/zep/mode_tree.h
@@ -47,6 +48,7 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/src/mcommon/file/path.cpp
     ${ZEP_ROOT}/src/mcommon/string/stringutils.cpp
     ${ZEP_ROOT}/src/mode.cpp
+    ${ZEP_ROOT}/src/mode_repl.cpp
     ${ZEP_ROOT}/src/mode_search.cpp
     ${ZEP_ROOT}/src/mode_standard.cpp
     ${ZEP_ROOT}/src/mode_tree.cpp

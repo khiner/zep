@@ -13,7 +13,6 @@ if (BUILD_DEMOS)
     find_package(gl3w REQUIRED)
     find_package(freetype CONFIG REQUIRED)
     find_package(unofficial-concurrentqueue REQUIRED)
-    find_package(tinyfiledialogs REQUIRED)
 
     include(${M3RDPARTY_DIR}/list.cmake)
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/demo_common.cmake)

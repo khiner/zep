@@ -46,8 +46,7 @@ class ZepTabWindow;
 class ZepEditor_ImGui : public ZepEditor {
 public:
     explicit ZepEditor_ImGui(const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr)
-        : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem) {
-    }
+        : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem) {}
 
     bool sendImGuiKeyPressToBuffer(ImGuiKey imGuiKey, uint32_t key, uint32_t mod = 0);
 

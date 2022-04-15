@@ -4,17 +4,17 @@
 #include "zep/tab_window.h"
 #include "zep/mcommon/threadutils.h"
 
-#include "mode_repl.h"
+#include "zep/mode_repl.h"
 
 namespace Zep {
 
-ZepReplEvaluateOuterCommand::ZepReplEvaluateOuterCommand(ZepEditor &editor, IZepReplProvider *pProvider)
-    : ZepExCommand(editor), m_pProvider(pProvider) {
+ZepReplEvaluateOuterCommand::ZepReplEvaluateOuterCommand(ZepEditor &editor, IZepReplProvider *provide)
+    : ZepExCommand(editor), m_pProvider(provide) {
     keymap_add(m_keymap, {"<C-Return>"}, ExCommandId());
 }
 
-void ZepReplEvaluateOuterCommand::Register(ZepEditor &editor, IZepReplProvider *pProvider) {
-    editor.RegisterExCommand(std::make_shared<ZepReplEvaluateOuterCommand>(editor, pProvider));
+void ZepReplEvaluateOuterCommand::Register(ZepEditor &editor, IZepReplProvider *provider) {
+    editor.RegisterExCommand(std::make_shared<ZepReplEvaluateOuterCommand>(editor, provider));
 }
 
 void ZepReplEvaluateOuterCommand::Run(const std::vector<std::string> &tokens) {
@@ -81,7 +81,7 @@ void ZepReplExCommand::Run(const std::vector<std::string> &tokens) {
     if (!editor.activeTabWindow) return;
 
     // TODO: Modifiable but not saveable buffer
-    m_pReplBuffer = editor.GetEmptyBuffer("Repl.lisp"); // , FileFlags::ReadOnly);
+    m_pReplBuffer = editor.GetEmptyBuffer("Repl.cpp"); // , FileFlags::ReadOnly);
     m_pReplBuffer->type = BufferType::Repl;
     m_pReplBuffer->syntax->IgnoreLineHighlight();
     m_pReplBuffer->postKeyNotifier = [&](uint32_t key, uint32_t modifier) { return AddKeyPress(key, modifier); };
