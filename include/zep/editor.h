@@ -92,7 +92,7 @@ enum class Msg {
 struct IZepComponent;
 class ZepMessage {
 public:
-    explicit ZepMessage(Msg id, std::string strIn = std::string()) : messageId(id), str(std::move(strIn)) {}
+    explicit ZepMessage(Msg id, std::string strIn = {}) : messageId(id), str(std::move(strIn)) {}
     ZepMessage(Msg id, const NVec2f &p, ZepMouseButton b = ZepMouseButton::Unknown) : messageId(id), pos(p), button(b) {}
     ZepMessage(Msg id, IZepComponent *pComp) : messageId(id), pComponent(pComp) {}
 
