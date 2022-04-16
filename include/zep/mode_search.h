@@ -47,9 +47,7 @@ private:
     };
 
     // A mapping from character distance to a list of lines
-    struct IndexSet {
-        std::multimap<uint32_t, SearchResult> indices;
-    };
+    typedef std::multimap<uint32_t, SearchResult> IndexSet;
 
     bool fileSearchActive = false;
     bool treeSearchActive = false;

@@ -46,17 +46,17 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
         }
     } else {
         if (modifiers & ModifierKey::Ctrl) {
-            if (key == 'j' || key == ExtKeys::DOWN) {
-                m_window.MoveCursorY(1);
-            } else if (key == 'k' || key == ExtKeys::UP) {
-                m_window.MoveCursorY(-1);
-            } else if (key == 'v') {
+            if (key == 'j' || key == ExtKeys::DOWN) m_window.MoveCursorY(1);
+            if (key == 'k' || key == ExtKeys::UP) m_window.MoveCursorY(-1);
+            if (key == 'v') {
                 OpenSelection(OpenType::VSplit);
                 return;
-            } else if (key == 'x') {
+            }
+            if (key == 'x') {
                 OpenSelection(OpenType::HSplit);
                 return;
-            } else if (key == 't') {
+            }
+            if (key == 't') {
                 OpenSelection(OpenType::Tab);
                 return;
             }
@@ -76,7 +76,7 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
     str << ">>> " << m_searchTerm;
 
     if (!m_indexTree.empty()) {
-        str << " (" << m_indexTree[m_indexTree.size() - 1]->indices.size() << " / " << m_indexTree[0]->indices.size() << ")";
+        str << " (" << m_indexTree[m_indexTree.size() - 1]->size() << " / " << m_indexTree[0]->size() << ")";
     }
 
     editor.SetCommandText(str.str());
@@ -126,7 +126,7 @@ void ZepMode_Search::InitSearchTree() {
     m_indexTree.clear();
     auto pInitSet = std::make_shared<IndexSet>();
     for (uint32_t i = 0; i < (uint32_t) m_spFilePaths->paths.size(); i++) {
-        pInitSet->indices.insert(std::make_pair(0, SearchResult{i, 0}));
+        pInitSet->insert(std::make_pair(0, SearchResult{i, 0}));
     }
     m_indexTree.push_back(pInitSet);
 }
@@ -134,7 +134,7 @@ void ZepMode_Search::InitSearchTree() {
 void ZepMode_Search::ShowTreeResult() {
     std::ostringstream str;
     bool start = true;
-    for (auto &index: m_indexTree.back()->indices) {
+    for (auto &index: *m_indexTree.back()) {
         if (!start) {
             str << std::endl;
         }
@@ -156,7 +156,7 @@ void ZepMode_Search::OpenSelection(OpenType type) {
     editor.activeTabWindow->SetActiveWindow(&m_launchWindow);
 
     long count = 0;
-    for (auto &index: m_indexTree.back()->indices) {
+    for (auto &index: *m_indexTree.back()) {
         if (count == line) {
             auto path = m_spFilePaths->paths[index.second.index];
             auto full_path = m_spFilePaths->root / path;
@@ -210,7 +210,7 @@ void ZepMode_Search::UpdateTree() {
         // Search for a match at the next level of the search tree
         m_searchResult = editor.threadPool->enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
                 auto spResult = std::make_shared<IndexSet>();
-                for (auto &searchPair: spStartSet->indices) {
+                for (auto &searchPair: *spStartSet) {
                     auto index = searchPair.second.index;
                     auto loc = searchPair.second.location;
                     auto dist = searchPair.first;
@@ -236,7 +236,7 @@ void ZepMode_Search::UpdateTree() {
                             newDist = dist + 1;
                         }
 
-                        spResult->indices.insert(std::make_pair(newDist, SearchResult{index, (uint32_t) pos}));
+                        spResult->insert(std::make_pair(newDist, SearchResult{index, (uint32_t) pos}));
                     }
                 }
                 return spResult;
