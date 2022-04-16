@@ -46,8 +46,6 @@ endif ()
 set(ZEP_ROOT ${CMAKE_CURRENT_LIST_DIR})
 set(M3RDPARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/m3rdparty)
 
-configure_file(${ZEP_ROOT}/cmake/config_app.h.cmake ${CMAKE_BINARY_DIR}/config_app.h)
-
 include(GNUInstallDirs)
 
 # Set all compiler flags 
@@ -89,5 +87,3 @@ install(
     ${CMAKE_BINARY_DIR}/cmake/zep-config-version.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zep
 )
-
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack_installer.cmake)
