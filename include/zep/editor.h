@@ -250,7 +250,7 @@ public:
     void UpdateWindowState();
 
     void SetDisplayRegion(const NRectf &rect);
-    void UpdateSize();
+    void UpdateSize() const;
 
     bool OnMouseMove(const NVec2f &pos);
     bool OnMouseDown(const NVec2f &pos, ZepMouseButton button);

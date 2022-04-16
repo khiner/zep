@@ -732,9 +732,6 @@ void ZepEditor::SetCommandText(const std::string &command) {
 void ZepEditor::RequestRefresh() { m_bPendingRefresh = true; }
 
 bool ZepEditor::RefreshRequired() {
-    // Allow any components to update themselves
-    Broadcast(std::make_shared<ZepMessage>(Msg::Tick));
-
     auto lastBlink = m_lastCursorBlink;
     if (m_bPendingRefresh || lastBlink != GetCursorBlinkState()) {
         if (!(flags & ZepEditorFlags::FastUpdate)) m_bPendingRefresh = false;
@@ -754,7 +751,7 @@ void ZepEditor::SetDisplayRegion(const NRectf &rect) {
     UpdateSize();
 }
 
-void ZepEditor::UpdateSize() {
+void ZepEditor::UpdateSize() const {
     auto &uiFont = display->GetFont(ZepTextType::UI);
     auto commandCount = commandLines.size();
     const float commandSize = uiFont.GetPixelHeight() * commandCount + DpiX(textBorder) * 2.0f;
@@ -783,6 +780,9 @@ void ZepEditor::UpdateSize() {
 }
 
 void ZepEditor::Display() {
+    // Allow any components to update themselves
+    Broadcast(std::make_shared<ZepMessage>(Msg::Tick));
+
     UpdateWindowState();
 
     if (m_bRegionsChanged) {

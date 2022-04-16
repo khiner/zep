@@ -90,7 +90,6 @@ void ZepMode_Search::Begin(ZepWindow *pWindow) {
     editor.SetCommandText(">>> ");
 
     m_indexResult = Indexer::IndexPaths(editor, m_startPath);
-    // next up
     m_window.buffer->SetText("Indexing: " + m_startPath.string());
 
     fileSearchActive = true;
