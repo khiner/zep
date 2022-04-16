@@ -579,7 +579,6 @@ void ZepBuffer::SetFilePath(const ZepPath &path) {
 // Clients can use these values to figure out update times and dirty state
 void ZepBuffer::MarkUpdate() {
     updateCount++;
-    lastUpdateTime = timer_get_time_now();
     m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::Dirty);
 }
 
@@ -965,13 +964,6 @@ void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
-void ZepBuffer::ClearRangeMarkers(const std::set<std::shared_ptr<RangeMarker>> &markers) {
-    for (auto &marker: markers) {
-        ClearRangeMarker(marker);
-    }
-    editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
-}
-
 void ZepBuffer::ClearRangeMarkers(uint32_t markerType) {
     std::set<std::shared_ptr<RangeMarker>> markers;
     ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &pMarker) {
@@ -1083,8 +1075,8 @@ GlyphIterator ZepBuffer::GetLastEditLocation() {
     return lastEditLocation;
 }
 
-ZepMode *ZepBuffer::GetMode() const { return m_spMode ? m_spMode.get() : editor.GetGlobalMode(); }
-void ZepBuffer::SetMode(std::shared_ptr<ZepMode> spMode) { m_spMode = std::move(spMode); }
+ZepMode *ZepBuffer::GetMode() const { return m_mode ? m_mode.get() : editor.GetGlobalMode(); }
+void ZepBuffer::SetMode(std::shared_ptr<ZepMode> mode) { m_mode = std::move(mode); }
 
 tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) const {
     ByteRange range;
@@ -1107,14 +1099,13 @@ bool ZepBuffer::IsHidden() const {
 }
 
 void ZepBuffer::SetFileFlags(uint32_t flags, bool set) { m_fileFlags = ZSetFlags(m_fileFlags, flags, set); }
-void ZepBuffer::ClearFileFlags(uint32_t flags) { m_fileFlags = ZSetFlags(m_fileFlags, flags, false); }
 bool ZepBuffer::HasFileFlags(uint32_t flags) const { return m_fileFlags & flags; }
 
 void ZepBuffer::ToggleFileFlag(uint32_t flags) {
     m_fileFlags = ZSetFlags(m_fileFlags, flags, !(m_fileFlags & flags));
 }
 
-GlyphRange ZepBuffer::GetExpression(ExpressionType type, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const {
+GlyphRange ZepBuffer::GetExpression(ExpressionType expressionType, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const {
     GlyphIterator itr = Begin();
     GlyphIterator itrEnd = End();
 
@@ -1169,7 +1160,7 @@ GlyphRange ZepBuffer::GetExpression(ExpressionType type, const GlyphIterator &lo
         itr.Move(1);
     }
 
-    if (type == ExpressionType::Inner) {
+    if (expressionType == ExpressionType::Inner) {
         if (pInner) return pInner->range;
         return {Begin(), Begin()};
     }

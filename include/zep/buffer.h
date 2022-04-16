@@ -145,9 +145,7 @@ public:
     void SetSyntaxProvider(const SyntaxProvider &provider) {
         if (provider.syntaxID != m_syntaxProvider.syntaxID) {
             if (provider.factory) syntax = provider.factory(this);
-            else {
-                syntax.reset();
-            }
+            else syntax.reset();
 
             m_syntaxProvider = provider;
         }
@@ -157,7 +155,6 @@ public:
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     ZepTheme &GetTheme() const;
-    void SetTheme(std::shared_ptr<ZepTheme> spTheme);
 
     void SetSelection(const GlyphRange &sel);
     bool HasSelection() const;
@@ -165,7 +162,6 @@ public:
 
     void AddRangeMarker(const std::shared_ptr<RangeMarker> &spMarker);
     void ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker);
-    void ClearRangeMarkers(const std::set<std::shared_ptr<RangeMarker>> &markers);
     void ClearRangeMarkers(uint32_t types);
     tRangeMarkers GetRangeMarkers(uint32_t types) const;
     tRangeMarkers GetRangeMarkersOnLine(uint32_t types, long line) const;
@@ -178,16 +174,15 @@ public:
     GlyphIterator GetLastEditLocation();
 
     ZepMode *GetMode() const;
-    void SetMode(std::shared_ptr<ZepMode> spMode);
+    void SetMode(std::shared_ptr<ZepMode> mode);
 
     bool IsHidden() const;
 
     bool HasFileFlags(uint32_t flags) const;
     void SetFileFlags(uint32_t flags, bool set = true);
-    void ClearFileFlags(uint32_t flags);
     void ToggleFileFlag(uint32_t flags);
 
-    GlyphRange GetExpression(ExpressionType type, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const;
+    GlyphRange GetExpression(ExpressionType expressionType, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const;
     std::string GetBufferText(const GlyphIterator &start, const GlyphIterator &end) const;
 
     void EndFlash() const;
@@ -202,7 +197,6 @@ public:
 
     ZepPath filePath;
     uint64_t updateCount = 0;
-    uint64_t lastUpdateTime = 0;
     GlyphIterator lastEditLocation;// = 0;
 
     std::shared_ptr<ZepSyntax> syntax;
@@ -217,14 +211,9 @@ private:
 
 private:
     uint32_t m_fileFlags = 0;
-
     SyntaxProvider m_syntaxProvider;
-
-    // Selections
-    tRangeMarkers m_rangeMarkers;
-
-    // Modes
-    std::shared_ptr<ZepMode> m_spMode;
+    tRangeMarkers m_rangeMarkers; // Selections
+    std::shared_ptr<ZepMode> m_mode; // Modes
 };
 
 // Notification payload
