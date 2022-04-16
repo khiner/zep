@@ -108,8 +108,7 @@ struct IZepComponent {
     virtual void Notify(const std::shared_ptr<ZepMessage> &message) { ZEP_UNUSED(message); };
 };
 
-class ZepComponent : public IZepComponent {
-public:
+struct ZepComponent : public IZepComponent {
     explicit ZepComponent(ZepEditor &editor);
     virtual ~ZepComponent();
 
@@ -157,10 +156,8 @@ struct EditorConfig {
     float backgroundFadeWait = 60.0f;
 };
 
-class ZepExCommand : public ZepComponent {
-public:
+struct ZepExCommand : public ZepComponent {
     explicit ZepExCommand(ZepEditor &editor) : ZepComponent(editor) {}
-    ~ZepExCommand() override = default;
     virtual void Run(const std::vector<std::string> &args = {}) = 0;
     virtual const char *ExCommandName() const = 0;
     virtual StringId ExCommandId() const { return StringId(ExCommandName()); }
@@ -203,8 +200,9 @@ public:
     void Display();
 
     bool Broadcast(const std::shared_ptr<ZepMessage> &payload);
-    void RegisterCallback(IZepComponent *pClient) { m_notifyClients.insert(pClient); }
-    void UnRegisterCallback(IZepComponent *pClient) { m_notifyClients.erase(pClient); }
+
+    void RegisterCallback(IZepComponent *client) { notifyClients.insert(client); }
+    void UnRegisterCallback(IZepComponent *client) { notifyClients.erase(client); }
 
     ZepBuffer *GetMRUBuffer() const;
     void SaveBuffer(ZepBuffer &buffer);
@@ -270,6 +268,7 @@ public:
     virtual void OnFileChanged(const ZepPath &path);
     virtual void HandleInput() {};
 
+    std::set<IZepComponent *> notifyClients;
     ZepDisplay *display;
     std::deque<std::shared_ptr<ZepBuffer>> buffers; // May or may not be visible
     std::shared_ptr<ZepTheme> theme;
@@ -297,7 +296,6 @@ private:
     void RegisterSyntaxProviders();
 
 private:
-    std::set<IZepComponent *> m_notifyClients;
     mutable std::map<std::string, Register> m_registers;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;

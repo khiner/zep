@@ -55,8 +55,6 @@ ZepBuffer::ZepBuffer(ZepEditor &editor, const ZepPath &path) : ZepComponent(edit
     Load(path);
 }
 
-ZepBuffer::~ZepBuffer() = default;
-
 void ZepBuffer::Notify(const std::shared_ptr<ZepMessage> &message) {}
 
 // Vertical column

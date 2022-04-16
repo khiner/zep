@@ -11,7 +11,6 @@ class ZepSyntaxAdorn_RainbowBrackets : public ZepSyntaxAdorn {
 public:
     using TParent = ZepSyntaxAdorn;
     ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax, ZepBuffer &buffer);
-    ~ZepSyntaxAdorn_RainbowBrackets() override;
 
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
     SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const override;

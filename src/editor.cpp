@@ -628,7 +628,7 @@ bool ZepEditor::Broadcast(const std::shared_ptr<ZepMessage> &message) {
     Notify(message);
     if (message->handled) return true;
 
-    for (auto &client: m_notifyClients) {
+    for (auto &client: notifyClients) {
         client->Notify(message);
         if (message->handled) break;
     }

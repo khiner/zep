@@ -136,7 +136,6 @@ public:
 class ZepMode : public ZepComponent {
 public:
     explicit ZepMode(ZepEditor &editor);
-    ~ZepMode() override;
 
     virtual void Init() {};
     virtual void AddKeyPress(uint32_t key, uint32_t modifierKeys = ModifierKey::None);
@@ -162,7 +161,7 @@ public:
     const KeyMap &GetKeyMappings(EditorMode mode) const;
 
     // Keys handled by modes
-    virtual void AddCommandText(std::string strText);
+    virtual void AddCommandText(const std::string &text);
 
     virtual GlyphRange GetInclusiveVisualRange() const;
 

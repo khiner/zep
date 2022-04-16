@@ -52,7 +52,7 @@ public:
 
     void handleMouseEventAndHideFromImGui(size_t mouseButtonIndex, ZepMouseButton zepMouseButton, bool down);
 
-    void HandleInput() {
+    void HandleInput() override {
         auto &io = ImGui::GetIO();
         bool handled = false;
         uint32_t mod = 0;

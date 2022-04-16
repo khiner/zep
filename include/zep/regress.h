@@ -5,8 +5,7 @@
 namespace Zep {
 
 class ZepEditor;
-class ZepRegressExCommand : public ZepExCommand {
-public:
+struct ZepRegressExCommand : public ZepExCommand {
     explicit ZepRegressExCommand(ZepEditor &editor);
 
     static void Register(ZepEditor &editor);

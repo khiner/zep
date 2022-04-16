@@ -113,14 +113,12 @@ void CommandContext::GetCommandRegisters() {
 
 ZepMode::ZepMode(ZepEditor &editor) : ZepComponent(editor) {}
 
-ZepMode::~ZepMode() = default;
-
 EditorMode ZepMode::GetEditorMode() const { return m_currentMode; }
 
-void ZepMode::AddCommandText(std::string strText) {
+void ZepMode::AddCommandText(const std::string &text) {
     if (currentWindow == nullptr) return;
 
-    for (auto &ch: strText) {
+    for (auto &ch: text) {
         AddKeyPress(ch);
     }
 }

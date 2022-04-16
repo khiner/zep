@@ -23,8 +23,7 @@ Iter select_randomly(Iter start, Iter end) {
     return select_randomly(start, end, gen);
 }
 
-ZepRegressExCommand::ZepRegressExCommand(ZepEditor &editor)
-    : ZepExCommand(editor) {
+ZepRegressExCommand::ZepRegressExCommand(ZepEditor &editor) : ZepExCommand(editor) {
     timer_start(m_timer);
 }
 

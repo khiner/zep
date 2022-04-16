@@ -99,7 +99,6 @@ class ZepBuffer : public ZepComponent {
 public:
     ZepBuffer(ZepEditor &editor, std::string strName);
     ZepBuffer(ZepEditor &editor, const ZepPath &path);
-    ~ZepBuffer() override;
 
     void Clear();
     void SetText(const std::string &strText, bool initFromFile = false);
@@ -146,7 +145,9 @@ public:
     void SetSyntaxProvider(const SyntaxProvider &provider) {
         if (provider.syntaxID != m_syntaxProvider.syntaxID) {
             if (provider.factory) syntax = provider.factory(this);
-            else syntax.reset();
+            else {
+                syntax.reset();
+            }
 
             m_syntaxProvider = provider;
         }

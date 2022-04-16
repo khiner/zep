@@ -21,9 +21,7 @@
 
 namespace Zep {
 
-ZepMode_Standard::ZepMode_Standard(ZepEditor &editor)
-    : ZepMode(editor) {
-}
+ZepMode_Standard::ZepMode_Standard(ZepEditor &editor) : ZepMode(editor) {}
 
 ZepMode_Standard::~ZepMode_Standard() = default;
 
