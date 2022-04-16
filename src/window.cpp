@@ -147,7 +147,7 @@ void ZepWindow::Notify(const std::shared_ptr<ZepMessage> &payload) {
     if (payload->messageId == Msg::Buffer) {
         auto pMsg = std::static_pointer_cast<BufferMessage>(payload);
 
-        if (pMsg->pBuffer != buffer) return;
+        if (pMsg->buffer != buffer) return;
 
         m_layoutDirty = true;
 

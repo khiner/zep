@@ -240,10 +240,9 @@ enum class BufferMessageType {
 
 struct BufferMessage : public ZepMessage {
     BufferMessage(ZepBuffer *pBuff, BufferMessageType messageType, const GlyphIterator &startLoc, const GlyphIterator &endLoc)
-        : ZepMessage(Msg::Buffer), pBuffer(pBuff), type(messageType), startLocation(startLoc), endLocation(endLoc) {
-    }
+        : ZepMessage(Msg::Buffer), buffer(pBuff), type(messageType), startLocation(startLoc), endLocation(endLoc) {}
 
-    ZepBuffer *pBuffer;
+    ZepBuffer *buffer;
     BufferMessageType type;
     GlyphIterator startLocation;
     GlyphIterator endLocation;

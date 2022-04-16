@@ -86,7 +86,7 @@ void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
     // Handle any interesting buffer messages
     if (spMsg->messageId == Msg::Buffer) {
         auto spBufferMsg = std::static_pointer_cast<BufferMessage>(spMsg);
-        if (spBufferMsg->pBuffer != &m_buffer) return;
+        if (spBufferMsg->buffer != &m_buffer) return;
 
         if (spBufferMsg->type == BufferMessageType::PreBufferChange) {
             Interrupt();

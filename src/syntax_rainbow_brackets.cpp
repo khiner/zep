@@ -14,7 +14,7 @@ void ZepSyntaxAdorn_RainbowBrackets::Notify(const std::shared_ptr<ZepMessage> &s
     // Handle any interesting buffer messages
     if (spMsg->messageId == Msg::Buffer) {
         auto spBufferMsg = std::static_pointer_cast<BufferMessage>(spMsg);
-        if (spBufferMsg->pBuffer != &m_buffer) return;
+        if (spBufferMsg->buffer != &m_buffer) return;
 
         else if (spBufferMsg->type == BufferMessageType::TextDeleted) {
             Clear(spBufferMsg->startLocation, spBufferMsg->endLocation);
