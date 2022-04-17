@@ -10,7 +10,6 @@
 #include "zep/window.h"
 
 #include "zep/mcommon/string/stringutils.h"
-#include "zep/mcommon/utf8.h"
 
 namespace {
 struct WindowPass {
@@ -270,7 +269,7 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
 
     bool underPad = false;
     std::vector<ByteIndex> markerStack;
-    for (auto&[index, markerSet]: markers) {
+    for (auto &[index, markerSet]: markers) {
         for (auto &spMarker: markerSet) {
             if (spMarker->displayType & RangeMarkerDisplayType::Underline) {
                 // Stack the markers packed

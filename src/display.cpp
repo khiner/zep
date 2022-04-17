@@ -48,20 +48,10 @@ NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
     return sz;
 }
 
-ZepDisplay::ZepDisplay()
-    : pixelScale(Zep::NVec2f(1.0f)) {
+ZepDisplay::ZepDisplay() : pixelScale(Zep::NVec2f(1.0f)) {
     for (auto &m_font: m_fonts) {
         m_font = nullptr;
     }
-}
-
-uint32_t ZepDisplay::GetCodePointCount(const uint8_t *pCh, const uint8_t *pEnd) const {
-    uint32_t count = 0;
-    while (pCh < pEnd) {
-        pCh += utf8_codepoint_length(*pCh);
-        count++;
-    }
-    return count;
 }
 
 void ZepDisplay::DrawRect(const NRectf &rc, const NVec4f &col) const {

@@ -7,15 +7,6 @@ namespace Zep {
 
 class ZepTabWindow;
 
-// A region inside the text for selections
-struct SelectRegion {
-    // For vertical select, we will have a list of spans...
-    GlyphIterator start;
-    GlyphIterator end;
-    bool visible = true;
-    bool vertical = false; // Not yet supported
-};
-
 enum class ZepTextType {
     UI,
     Text,
@@ -63,7 +54,6 @@ public:
     virtual void DrawRectFilled(const NRectf &rc, const NVec4f &col = NVec4f(1.0f)) const = 0;
     virtual void SetClipRect(const NRectf &rc) = 0;
 
-    virtual uint32_t GetCodePointCount(const uint8_t *pCh, const uint8_t *pEnd) const;
     virtual void DrawRect(const NRectf &rc, const NVec4f &col = NVec4f(1.0f)) const;
 
     virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
