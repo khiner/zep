@@ -1592,8 +1592,6 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 }
             }
             editor.SetCurrentTabWindow(pTab);
-        } else if (strCommand.find(":tree") == 0) {
-            editor.AddTree();
         } else if (strCommand.find(":vsplit") == 0) {
             auto pTab = editor.activeTabWindow;
             auto strTok = string_split(strCommand, " ");

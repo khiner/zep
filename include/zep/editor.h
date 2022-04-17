@@ -222,7 +222,6 @@ struct ZepEditor {
 
     void UpdateTabs() const;
 
-    ZepWindow *AddTree();
     ZepWindow *AddSearch();
 
     void ResetCursorTimer();

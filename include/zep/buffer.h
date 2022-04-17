@@ -62,7 +62,6 @@ enum class BufferType {
     Normal,
     Search,
     Repl,
-    Tree
 };
 
 // A really big cursor move; which will likely clamp

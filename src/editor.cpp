@@ -2,7 +2,7 @@
 #include "zep/filesystem.h"
 #include "zep/mode_search.h"
 #include "zep/mode_standard.h"
-#include "zep/mode_tree.h"
+#include "zep/mode_vim.h"
 #include "zep/regress.h"
 #include "zep/syntax.h"
 #include "zep/syntax_providers.h"
@@ -220,27 +220,6 @@ ZepBuffer *ZepEditor::GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags,
     auto buffer = CreateNewBuffer(filePath);
     buffer->SetFileFlags(fileFlags);
     return buffer;
-}
-
-ZepWindow *ZepEditor::AddTree() {
-    auto tree = GetEmptyBuffer("Tree.tree", FileFlags::Locked | FileFlags::ReadOnly);
-    auto treeWindow = activeTabWindow->AddWindow(tree, nullptr, RegionLayoutType::HBox);
-
-    auto activeWindow = activeTabWindow->GetActiveWindow();
-    activeWindow->SetBuffer(tree);
-
-    auto treeModel = std::make_shared<ZepFileTree>();
-    auto root = treeModel->root;
-
-    root->AddChild(std::make_shared<ZepFileNode>("Child1", ZepTreeNodeFlags::IsFolder));
-    auto child2 = root->AddChild(std::make_shared<ZepFileNode>("Child2", ZepTreeNodeFlags::IsFolder));
-    child2->AddChild(std::make_shared<ZepFileNode>("Child2_1"));
-
-    root->ExpandAll(true);
-
-    tree->mode = std::make_shared<ZepMode_Tree>(*this, treeModel, *activeWindow, *treeWindow);
-    tree->mode->Begin(activeWindow);
-    return activeWindow;
 }
 
 ZepWindow *ZepEditor::AddSearch() {
