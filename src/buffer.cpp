@@ -69,8 +69,7 @@ long ZepBuffer::GetBufferLine(const GlyphIterator &location) const {
     if (itrLine != lineEnds.end() && location.index >= *itrLine) {
         itrLine++;
     }
-    long line = long(itrLine - lineEnds.begin());
-    line = std::min(std::max(0l, line), long(lineEnds.size() - 1));
+    long line = std::min(std::max(0l, long(itrLine - lineEnds.begin())), long(lineEnds.size()) - 1);
     return line;
 }
 
@@ -481,7 +480,7 @@ GlyphIterator ZepBuffer::ClampToVisibleLine(GlyphIterator in) const {
 // Method for querying the beginning and end of a line
 bool ZepBuffer::GetLineOffsets(const long line, ByteRange &range) const {
     // Not valid
-    if ((long) lineEnds.size() <= line) {
+    if (long(lineEnds.size()) <= line) {
         range.first = 0;
         range.second = 0;
         return false;

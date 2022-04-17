@@ -131,26 +131,26 @@ void ZepMode::ClampCursorForMode() {
     }
 }
 
-void ZepMode::SwitchMode(EditorMode newMode) {
+void ZepMode::SwitchMode(EditorMode editorMode) {
     if (currentWindow == nullptr) return;
 
     // Don't switch to invalid mode
-    if (currentMode == EditorMode::None) return;
+    if (editorMode == EditorMode::None) return;
 
     // Don't switch to the same thing again
-    if (newMode == currentMode) return;
+    if (editorMode == currentMode) return;
 
     auto pWindow = currentWindow;
     auto *buffer = pWindow->buffer;
     auto cursor = pWindow->GetBufferCursor();
 
     // Force normal mode if the file is read only
-    if (newMode == EditorMode::Insert && buffer->HasFileFlags(FileFlags::ReadOnly)) {
-        newMode = DefaultMode();
+    if (editorMode == EditorMode::Insert && buffer->HasFileFlags(FileFlags::ReadOnly)) {
+        editorMode = DefaultMode();
     }
 
     // When leaving Ex mode, reset search markers
-    if (newMode == EditorMode::Ex) {
+    if (currentMode == EditorMode::Ex) {
         buffer->HideMarkers(RangeMarkerType::Search);
 
         // Bailed out of ex mode; reset the start location
@@ -159,9 +159,9 @@ void ZepMode::SwitchMode(EditorMode newMode) {
             pWindow->SetBufferCursor(m_exCommandStartLocation);
         }
         */
-    } else if (newMode == EditorMode::Insert) {
+    } else if (editorMode == EditorMode::Insert) {
         // When switching back to normal mode, put the cursor on the last character typed
-        if (newMode == EditorMode::Normal) {
+        if (editorMode == EditorMode::Normal) {
             // Move back, but not to the previous line
             GlyphIterator itr(cursor);
             itr.MoveClamped(-1);
@@ -169,7 +169,7 @@ void ZepMode::SwitchMode(EditorMode newMode) {
         }
     }
 
-    currentMode = newMode;
+    currentMode = editorMode;
 
     switch (currentMode) {
         case EditorMode::Normal: {
@@ -203,8 +203,7 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
         str << "<C-";
         if (modifierKeys & ModifierKey::Shift) {
             // Add the S- modifier for shift enabled special keys
-            // We want to avoid adding S- to capitalized (and already shifted)
-            // keys
+            // We want to avoid adding S- to capitalized (and already shifted) keys
             if (key < ' ') str << "S-";
         }
         closeBracket = true;
@@ -417,7 +416,7 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     ClampCursorForMode();
 }
 
-void ZepMode::AddCommand(std::shared_ptr<ZepCommand> cmd) {
+void ZepMode::AddCommand(const std::shared_ptr<ZepCommand> &cmd) {
     if (currentWindow == nullptr) return;
 
     // Ignore commands on buffers because we are view only,
@@ -808,9 +807,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_MotionGotoLine) {
         if (!context.keymap.captureNumbers.empty()) {
             // In Vim, 0G means go to end!  1G is the first line...
-            long count = context.keymap.TotalCount() - 1;
-            count = std::min((long) context.buffer.lineEnds.size() - 1, count);
-            if (count < 0) count = context.buffer.lineEnds.size() - 1;
+            long count = std::min(std::min(long(context.buffer.lineEnds.size()) - 1l, context.keymap.TotalCount() - 1l), 0l);
 
             ByteRange range;
             if (context.buffer.GetLineOffsets(count, range)) {

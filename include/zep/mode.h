@@ -153,7 +153,7 @@ struct ZepMode : public ZepComponent {
 
     virtual CursorType GetCursorType() const;
 
-    virtual void SwitchMode(EditorMode currentMode);
+    virtual void SwitchMode(EditorMode editorMode);
 
     const KeyMap &GetKeyMappings(EditorMode mode) const;
 
@@ -171,7 +171,7 @@ protected:
     // Do the actual input handling
     void HandleMappedInput(const std::string &input);
 
-    void AddCommand(std::shared_ptr<ZepCommand> cmd);
+    void AddCommand(const std::shared_ptr<ZepCommand> &cmd);
 
     bool GetCommand(CommandContext &context);
     void ResetCommand();

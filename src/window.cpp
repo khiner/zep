@@ -334,9 +334,8 @@ void ZepWindow::UpdateLineSpans() {
 
     // Process every buffer line
     for (;;) {
-        // We haven't processed this line yet, so we can't display anything
-        // else
-        if (buffer->lineEnds.size() <= bufferLine) break;
+        // We haven't processed this line yet, so we can't display anything else
+        if (long(buffer->lineEnds.size()) <= bufferLine) break;
 
         ByteRange lineByteRange;
         if (!buffer->GetLineOffsets(bufferLine, lineByteRange)) break;
