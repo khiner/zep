@@ -30,8 +30,7 @@ enum class LineLocation {
 // walk the gap buffer and skip along in multi byte characters.
 // This is the main 'pointer' into the text, used everywhere
 // It will clamp automatically and is usually valid if not in the default uninitialized state
-class GlyphIterator {
-public:
+struct GlyphIterator {
     explicit GlyphIterator(const ZepBuffer *buffer = nullptr, long offset = 0);
     GlyphIterator(const GlyphIterator &itr);
 

@@ -8,16 +8,13 @@
 #include <gtest/gtest.h>
 
 using namespace Zep;
-class SyntaxTest : public testing::Test {
-public:
+struct SyntaxTest : public testing::Test {
     SyntaxTest() {
         editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
     }
 
-    ~SyntaxTest() {
-    }
+    ~SyntaxTest() {}
 
-public:
     std::shared_ptr<ZepEditor> editor;
 };
 

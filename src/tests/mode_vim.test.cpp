@@ -17,8 +17,7 @@
 // line that wraps, and that navigation moves correctly
 
 using namespace Zep;
-class VimTest : public testing::Test {
-public:
+struct VimTest : public testing::Test {
     VimTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
@@ -47,10 +46,8 @@ public:
         */
     }
 
-    ~VimTest() {
-    }
+    ~VimTest() {}
 
-public:
     std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
     ZepWindow *pWindow;

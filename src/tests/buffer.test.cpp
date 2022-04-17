@@ -7,8 +7,7 @@
 #include <gtest/gtest.h>
 
 using namespace Zep;
-class BufferTest : public testing::Test {
-public:
+struct BufferTest : public testing::Test {
     BufferTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
@@ -16,10 +15,8 @@ public:
         pBuffer = editor->InitWithText("", "");
     }
 
-    ~BufferTest() {
-    }
+    ~BufferTest() {}
 
-public:
     std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
 };

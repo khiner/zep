@@ -97,8 +97,7 @@ struct CommandResult {
     std::shared_ptr<ZepCommand> command;
 };
 
-class CommandContext {
-public:
+struct CommandContext {
     CommandContext(std::string commandIn, ZepMode &md, EditorMode editorMode);
 
     void GetCommandRegisters();

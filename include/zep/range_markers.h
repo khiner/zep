@@ -67,7 +67,6 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     void HandleBufferInsert(ZepBuffer &buffer, const GlyphIterator &itrStart, const std::string &str);
     void HandleBufferDelete(ZepBuffer &buffer, const GlyphIterator &itr, const GlyphIterator &itrEnd);
 
-public:
     ZepBuffer &buffer;
     std::string name;
     std::string description;

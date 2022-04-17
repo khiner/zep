@@ -1,27 +1,3 @@
-/*The MIT License (MIT)
-
-Copyright (c) 2017 chrismaughan.com
-
-https://github.com/cmaughan/
-https://chrismaughan.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
-
 #pragma once
 
 #include <algorithm>
@@ -49,11 +25,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 // For the curious, you can ask emacs for the gap position and fixed_size by evaluating (gap-fixed_size), (gap-position)
 
 template<class T, class A = std::allocator<T>>
-class GapBuffer {
-public:
+struct GapBuffer {
     static const int DEFAULT_GAP = 1000;
 
-    typedef A allocator_type;
     typedef typename std::allocator_traits<A>::value_type value_type;
     typedef typename std::allocator_traits<A>::difference_type difference_type;
     typedef typename std::allocator_traits<A>::size_type size_type;
@@ -68,8 +42,7 @@ public:
     A _alloc;                    // The memory allocator to use
 
     // An iterator used to walk the buffer
-    class iterator {
-    public:
+    struct iterator {
         typedef typename std::allocator_traits<A>::difference_type difference_type;
         typedef typename std::allocator_traits<A>::value_type value_type;
         typedef typename std::allocator_traits<A>::pointer pointer;
@@ -85,7 +58,7 @@ public:
 
         iterator(GapBuffer<T> &buff, size_t ptr, bool skip = true) : skipGap(skip), p(ptr), buffer(buff) {}
         iterator(const iterator &rhs) : skipGap(rhs.skipGap), p(rhs.p), buffer(rhs.buffer) {}
-        ~iterator() {}
+        ~iterator() = default;
 
         iterator &operator=(const iterator &rhs) {
             p = rhs.p;
@@ -137,8 +110,7 @@ public:
         reference operator[](size_type distance) const { return buffer.GetBufferPtr(p + distance, skipGap); }
     };
 
-    class const_iterator {
-    public:
+    struct const_iterator {
         typedef typename std::allocator_traits<A>::difference_type difference_type;
         typedef typename std::allocator_traits<A>::value_type value_type;
         typedef typename std::allocator_traits<A>::pointer pointer;
@@ -152,7 +124,7 @@ public:
         const_iterator(const GapBuffer<T> &buff, size_t ptr, bool skip = true) : skipGap(skip), p(ptr), buffer(buff) {}
         const_iterator(const iterator &rhs) : skipGap(rhs.skipGap), p(rhs.p), buffer(rhs.buffer) {}
         const_iterator(const const_iterator &rhs) : skipGap(rhs.skipGap), p(rhs.p), buffer(rhs.buffer) {}
-        ~const_iterator() {}
+        ~const_iterator() = default;
 
         const_iterator &operator=(const const_iterator &rhs) {
             p = rhs.p;
@@ -206,7 +178,6 @@ public:
     typedef std::reverse_iterator<iterator> reverse_iterator;
     typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-public:
     iterator begin() { return iterator(*this, 0); }
     const_iterator begin() const { return const_iterator(*this, 0); }
     const_iterator cbegin() const { return const_iterator(*this, 0); }

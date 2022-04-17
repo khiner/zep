@@ -11,8 +11,7 @@
 #include <gtest/gtest.h>
 
 using namespace Zep;
-class StandardTest : public testing::Test {
-public:
+struct StandardTest : public testing::Test {
     StandardTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
@@ -31,10 +30,8 @@ public:
         mode = editor->GetGlobalMode();
     }
 
-    ~StandardTest() {
-    }
+    ~StandardTest() {}
 
-public:
     std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
     ZepWindow *pWindow;

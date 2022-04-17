@@ -41,8 +41,7 @@ struct ZLogger {
 
 extern ZLogger logger;
 
-class ZLog {
-public:
+struct ZLog {
     ZLog() = default;
     explicit ZLog(ZLT type) {
         msglevel = type;
@@ -72,6 +71,7 @@ public:
     }
 
     static bool disabled;
+
 private:
     bool opened = false;
     ZLT msglevel = ZLT::DBG;

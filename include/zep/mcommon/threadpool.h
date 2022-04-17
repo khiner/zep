@@ -46,8 +46,7 @@ Original here: https://github.com/progschj/ThreadPool
 #include <stdexcept>
 
 // std::thread pool for resources recycling
-class ThreadPool {
-public:
+struct ThreadPool {
     // the constructor just launches some amount of workers
     explicit ThreadPool(size_t threads_n = std::thread::hardware_concurrency()) : stop(false) {
         // If not enough threads, the pool will just execute all tasks immediately
