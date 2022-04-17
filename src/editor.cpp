@@ -238,9 +238,8 @@ ZepWindow *ZepEditor::AddTree() {
 
     root->ExpandAll(true);
 
-    auto mode = std::make_shared<ZepMode_Tree>(*this, treeModel, *activeWindow, *treeWindow);
-    tree->SetMode(mode);
-    mode->Begin(activeWindow);
+    tree->mode = std::make_shared<ZepMode_Tree>(*this, treeModel, *activeWindow, *treeWindow);
+    tree->mode->Begin(activeWindow);
     return activeWindow;
 }
 
@@ -260,9 +259,8 @@ ZepWindow *ZepEditor::AddSearch() {
     auto pSearchWindow = activeTabWindow->AddWindow(searchBuffer, nullptr, RegionLayoutType::VBox);
     pSearchWindow->SetWindowFlags(pSearchWindow->GetWindowFlags() | WindowFlags::Modal);
 
-    auto mode = std::make_shared<ZepMode_Search>(*this, *activeWindow, *pSearchWindow, searchPath);
-    searchBuffer->SetMode(mode);
-    mode->Begin(pSearchWindow);
+    searchBuffer->mode = std::make_shared<ZepMode_Search>(*this, *activeWindow, *pSearchWindow, searchPath);
+    searchBuffer->mode->Begin(pSearchWindow);
     return pSearchWindow;
 }
 
@@ -521,7 +519,7 @@ ZepMode *ZepEditor::GetGlobalMode() {
 
 void ZepEditor::SetBufferMode(ZepBuffer &buffer) const {
     // Reset it in case we are changing the text in a buffer
-    buffer.SetMode(nullptr);
+    buffer.mode = nullptr;
 
     // TODO DRY
     std::string ext;
@@ -539,7 +537,7 @@ void ZepEditor::SetBufferMode(ZepBuffer &buffer) const {
 
     auto itr = m_mapBufferModes.find(ext);
     if (itr != m_mapBufferModes.end()) {
-        buffer.SetMode(itr->second);
+        buffer.mode = itr->second;
     }
 }
 

@@ -21,8 +21,6 @@ bool RangeMarker::IntersectsRange(const ByteRange &i) const {
 }
 
 void RangeMarker::SetBackgroundColor(ThemeColor color) { backgroundColor = color; }
-void RangeMarker::SetTextColor(ThemeColor color) { textColor = color; }
-void RangeMarker::SetHighlightColor(ThemeColor color) { highlightColor = color; }
 
 void RangeMarker::SetColors(ThemeColor back, ThemeColor text, ThemeColor highlight) {
     backgroundColor = back;

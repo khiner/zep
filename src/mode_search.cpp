@@ -11,8 +11,7 @@
 namespace Zep {
 
 ZepMode_Search::ZepMode_Search(ZepEditor &editor, ZepWindow &launchWindow, ZepWindow &window, ZepPath path)
-    : ZepMode(editor), m_launchWindow(launchWindow), m_window(window), m_startPath(std::move(path)) {
-}
+    : ZepMode(editor), m_launchWindow(launchWindow), m_window(window), m_startPath(std::move(path)) {}
 
 ZepMode_Search::~ZepMode_Search() {
     // Ensure threads have finished

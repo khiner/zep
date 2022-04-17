@@ -1076,21 +1076,20 @@ GlyphIterator ZepBuffer::GetLastEditLocation() {
 }
 
 ZepMode *ZepBuffer::GetMode() const { return mode ? mode.get() : editor.GetGlobalMode(); }
-void ZepBuffer::SetMode(std::shared_ptr<ZepMode> mode) { mode = std::move(mode); }
 
 tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) const {
     ByteRange range;
     GetLineOffsets(line, range);
 
-    tRangeMarkers rangeMarkers;
+    tRangeMarkers rangeMarkersOnLine;
     ForEachMarker(markerTypes,
         Zep::Direction::Forward,
         GlyphIterator(this, range.first), GlyphIterator(this, range.second),
         [&](const std::shared_ptr<RangeMarker> &marker) {
-            rangeMarkers[marker->GetRange().first].insert(marker);
+            rangeMarkersOnLine[marker->GetRange().first].insert(marker);
             return true;
         });
-    return rangeMarkers;
+    return rangeMarkersOnLine;
 }
 
 bool ZepBuffer::IsHidden() const {

@@ -61,8 +61,6 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     void SetRange(ByteRange range);
     const ByteRange &GetRange() const;
     void SetBackgroundColor(ThemeColor color);
-    void SetTextColor(ThemeColor color);
-    void SetHighlightColor(ThemeColor color);
     void SetColors(ThemeColor back = ThemeColor::None, ThemeColor text = ThemeColor::Text, ThemeColor highlight = ThemeColor::Text);
     void SetAlpha(float a);
 

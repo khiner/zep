@@ -166,7 +166,6 @@ struct ZepBuffer : public ZepComponent {
     GlyphIterator GetLastEditLocation();
 
     ZepMode *GetMode() const;
-    void SetMode(std::shared_ptr<ZepMode> mode);
 
     bool IsHidden() const;
 
