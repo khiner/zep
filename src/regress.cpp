@@ -31,8 +31,6 @@ void ZepRegressExCommand::Register(ZepEditor &editor) {
     editor.RegisterExCommand(std::make_shared<ZepRegressExCommand>(editor));
 }
 
-const char *ZepRegressExCommand::ExCommandName() const { return "ZRegress"; }
-
 void ZepRegressExCommand::Run(const std::vector<std::string> &tokens) {
     ZEP_UNUSED(tokens);
     m_enable = !m_enable;

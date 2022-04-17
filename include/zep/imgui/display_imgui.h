@@ -19,17 +19,17 @@ struct ZepFont_ImGui : public ZepFont {
 
     void SetPixelHeight(int pixelHeight) override {
         InvalidateCharCache();
-        m_pixelHeight = pixelHeight;
+        this->pixelHeight = pixelHeight;
     }
 
     NVec2f GetTextSize(const uint8_t *pBegin, const uint8_t *pEnd = nullptr) const override {
         // This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
         // need as we draw one character at a time...
-        ImVec2 text_size = font->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char *) pBegin, (const char *) pEnd, NULL);
+        ImVec2 text_size = font->CalcTextSizeA(float(pixelHeight), FLT_MAX, FLT_MAX, (const char *) pBegin, (const char *) pEnd, NULL);
         if (text_size.x == 0.0) {
             // Make invalid characters a default fixed_size
             const char chDefault = 'A';
-            text_size = font->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
+            text_size = font->CalcTextSizeA(float(pixelHeight), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
         }
 
         return toNVec2f(text_size);
@@ -49,10 +49,10 @@ struct ZepDisplay_ImGui : public ZepDisplay {
         }
         const auto modulatedColor = GetStyleModulatedColor(col);
         if (m_clipRect.Width() == 0) {
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), modulatedColor, (const char *) text_begin, (const char *) text_end);
+            drawList->AddText(imFont, float(font.pixelHeight), toImVec2(pos), modulatedColor, (const char *) text_begin, (const char *) text_end);
         } else {
             drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), modulatedColor, (const char *) text_begin, (const char *) text_end);
+            drawList->AddText(imFont, float(font.pixelHeight), toImVec2(pos), modulatedColor, (const char *) text_begin, (const char *) text_end);
             drawList->PopClipRect();
         }
     }

@@ -13,11 +13,11 @@ RangeMarker::RangeMarker(ZepBuffer &buffer) : buffer(buffer) {
 }
 
 bool RangeMarker::ContainsLocation(const GlyphIterator &loc) const {
-    return m_range.ContainsLocation(loc.index);
+    return range.ContainsLocation(loc.index);
 }
 
 bool RangeMarker::IntersectsRange(const ByteRange &i) const {
-    return i.first < m_range.second && i.second > m_range.first;
+    return i.first < range.second && i.second > range.first;
 }
 
 void RangeMarker::SetBackgroundColor(ThemeColor color) { backgroundColor = color; }
@@ -30,15 +30,13 @@ void RangeMarker::SetColors(ThemeColor back, ThemeColor text, ThemeColor highlig
 
 void RangeMarker::SetAlpha(float a) { alpha = a; }
 
-void RangeMarker::SetRange(ByteRange range) {
+void RangeMarker::SetRange(ByteRange newRange) {
     auto marker = shared_from_this();
     buffer.ClearRangeMarker(marker);
 
-    m_range = range;
+    range = newRange;
     buffer.AddRangeMarker(marker);
 }
-
-const ByteRange &RangeMarker::GetRange() const { return m_range; }
 
 // By Default Markers will:
 // - Move down if text is inserted before them.
@@ -49,12 +47,12 @@ const ByteRange &RangeMarker::GetRange() const { return m_range; }
 // Markers do not act inside the undo/redo system.  They live on the buffer but are not stored with it.  They are adornments that 
 // must be managed externally.
 void RangeMarker::HandleBufferInsert(ZepBuffer &buf, const GlyphIterator &itrStart, const std::string &str) {
-    if (!enabled || itrStart.index > GetRange().second) return;
+    if (!enabled || itrStart.index > range.second) return;
 
     auto itrEnd = itrStart + long(str.size());
-    if (itrEnd.index <= (GetRange().first + 1)) {
+    if (itrEnd.index <= (range.first + 1)) {
         auto distance = itrEnd.index - itrStart.index;
-        auto currentRange = GetRange();
+        auto currentRange = range;
         SetRange(ByteRange(currentRange.first + distance, currentRange.second + distance));
     } else {
         buf.ClearRangeMarker(shared_from_this());
@@ -63,12 +61,12 @@ void RangeMarker::HandleBufferInsert(ZepBuffer &buf, const GlyphIterator &itrSta
 }
 
 void RangeMarker::HandleBufferDelete(ZepBuffer &buf, const GlyphIterator &itrStart, const GlyphIterator &itrEnd) {
-    if (!enabled || itrStart.index > GetRange().second) return;
+    if (!enabled || itrStart.index > range.second) return;
 
     // It's OK to move on the first char; since that is like a shove
-    if (itrEnd.index < (GetRange().first + 1)) {
-        auto distance = std::min(itrEnd.index, GetRange().first) - itrStart.index;
-        auto currentRange = GetRange();
+    if (itrEnd.index < (range.first + 1)) {
+        auto distance = std::min(itrEnd.index, range.first) - itrStart.index;
+        auto currentRange = range;
         SetRange(ByteRange(currentRange.first - distance, currentRange.second - distance));
     } else {
         buf.ClearRangeMarker(shared_from_this());

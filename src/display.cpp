@@ -74,7 +74,7 @@ void ZepDisplay::Bigger() {
                 case ZepTextType::Heading2:
                 case ZepTextType::Heading3: {
                     auto &textFont = GetFont(ZepTextType(i));
-                    textFont.SetPixelHeight((int) std::min((float) ceil(textFont.GetPixelHeight() * 1.05), 800.0f));
+                    textFont.SetPixelHeight((int) std::min((float) ceil(textFont.pixelHeight * 1.05), 800.0f));
                 }
                 default:break;
             }
@@ -91,7 +91,7 @@ void ZepDisplay::Smaller() {
                 case ZepTextType::Heading2:
                 case ZepTextType::Heading3: {
                     auto &textFont = GetFont(ZepTextType(i));
-                    textFont.SetPixelHeight((int) std::max(4.0f, (float) floor(textFont.GetPixelHeight() / 1.05)));
+                    textFont.SetPixelHeight((int) std::max(4.0f, (float) floor(textFont.pixelHeight / 1.05)));
                 }
                 default:break;
             }

@@ -704,7 +704,7 @@ void ZepEditor::SetDisplayRegion(const NRectf &rect) const {
 void ZepEditor::UpdateSize() const {
     auto &uiFont = display->GetFont(ZepTextType::UI);
     auto commandCount = commandLines.size();
-    const float commandSize = uiFont.GetPixelHeight() * commandCount + DpiX(textBorder) * 2.0f;
+    const float commandSize = uiFont.pixelHeight * commandCount + DpiX(textBorder) * 2.0f;
     auto displaySize = editorRegion->rect.Size();
 
     // Regions
@@ -713,7 +713,7 @@ void ZepEditor::UpdateSize() const {
 
     // Add tabs for extra windows
     if (tabWindows.size() > 1) {
-        tabRegion->fixed_size = NVec2f(0.0f, uiFont.GetPixelHeight() + DpiX(textBorder) * 2);
+        tabRegion->fixed_size = NVec2f(0.0f, uiFont.pixelHeight + DpiX(textBorder) * 2);
         tabRegion->flags = RegionFlags::Fixed;
     } else {
         tabRegion->fixed_size = NVec2f(0.0f);
@@ -744,7 +744,7 @@ void ZepEditor::Display() {
     long commandCount = long(commandLines.size());
 
     auto &uiFont = display->GetFont(ZepTextType::UI);
-    const float commandSize = uiFont.GetPixelHeight() * commandCount + DpiX(textBorder) * 2.0f;
+    const float commandSize = uiFont.pixelHeight * commandCount + DpiX(textBorder) * 2.0f;
 
     auto displaySize = editorRegion->rect.Size();
 
@@ -769,7 +769,7 @@ void ZepEditor::Display() {
             display->DrawChars(uiFont, screenPosYPx, theme->GetColor(ThemeColor::Text), (const uint8_t *) commandLines[i].c_str());
         }
 
-        screenPosYPx.y += uiFont.GetPixelHeight();
+        screenPosYPx.y += uiFont.pixelHeight;
         screenPosYPx.x = commandRegion->rect.topLeftPx.x;
     }
 

@@ -128,7 +128,6 @@ struct ZepBuffer : public ZepComponent {
     bool Insert(const GlyphIterator &startOffset, const std::string &str, ChangeRecord &changeRecord);
     bool Replace(const GlyphIterator &startOffset, const GlyphIterator &endOffset, /*note; not ref*/ std::string str, ReplaceRangeMode mode, ChangeRecord &changeRecord);
 
-    long GetLineCount() const { return long(lineEnds.size()); }
     long GetBufferLine(const GlyphIterator &offset) const;
 
     GlyphIterator End() const;

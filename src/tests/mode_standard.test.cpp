@@ -249,14 +249,12 @@ mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
 ASSERT_EQ(mode
-->
-GetEditorMode(), EditorMode::Visual
+->currentMode, EditorMode::Visual
 );
 mode->
 AddKeyPress(ExtKeys::RIGHT);
 ASSERT_EQ(mode
-->
-GetEditorMode(), EditorMode::Insert
+->currentMode, EditorMode::Insert
 );
 }
 TEST_F(StandardTest, down_a_shorter_line

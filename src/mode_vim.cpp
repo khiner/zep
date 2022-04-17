@@ -164,7 +164,7 @@ void ZepMode_Vim::Begin(ZepWindow *pWindow) {
     ZepMode::Begin(pWindow);
 
     editor.SetCommandText(m_currentCommand);
-    m_currentMode = EditorMode::Normal;
+    currentMode = EditorMode::Normal;
     m_currentCommand.clear();
     m_dotCommand.clear();
 }
@@ -174,7 +174,7 @@ void ZepMode_Vim::PreDisplay(ZepWindow &window) {
     // We can do better than this and fix the keymapper to handle timed key events.
     // This is an easier fix for now.
     if (timer_get_elapsed_seconds(m_lastKeyPressTimer) > .25f &&
-        m_currentMode == EditorMode::Insert &&
+        currentMode == EditorMode::Insert &&
         m_currentCommand == "j") {
         auto cmd = std::make_shared<ZepCommand_Insert>(
             *window.buffer,

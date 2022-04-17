@@ -945,18 +945,18 @@ void ZepBuffer::SetSelection(const GlyphRange &sel) {
 }
 
 void ZepBuffer::AddRangeMarker(const std::shared_ptr<RangeMarker> &marker) {
-    rangeMarkers[marker->GetRange().first].insert(marker);
+    rangeMarkers[marker->range.first].insert(marker);
 
     // TODO: Why is this necessary; marks the whole buffer
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &marker) {
-    auto itr = rangeMarkers.find(marker->GetRange().first);
+    auto itr = rangeMarkers.find(marker->range.first);
     if (itr != rangeMarkers.end()) {
         itr->second.erase(marker);
         if (itr->second.empty()) {
-            rangeMarkers.erase(marker->GetRange().first);
+            rangeMarkers.erase(marker->range.first);
         }
     }
 
@@ -997,7 +997,7 @@ void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIte
                         if (markerItem->displayType & RangeMarkerDisplayType::Timed) continue;
                     } else if (!(markerItem->displayType & RangeMarkerDisplayType::Timed)) continue;
 
-                    auto markerInclusive = ByteRange(markerItem->GetRange().first, std::max(0l, markerItem->GetRange().second - 1));
+                    auto markerInclusive = ByteRange(markerItem->range.first, std::max(0l, markerItem->range.second - 1));
                     if (!OverlapInclusive(inclusive, markerInclusive)) continue;
 
                     if (!fnCB(markerItem)) return;
@@ -1039,7 +1039,7 @@ tRangeMarkers ZepBuffer::GetRangeMarkers(uint32_t markerType) const {
     tRangeMarkers markers;
     ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
         if ((marker->markerType & markerType) != 0) {
-            markers[marker->GetRange().first].insert(marker);
+            markers[marker->range.first].insert(marker);
         }
         return true;
     });
@@ -1053,8 +1053,8 @@ std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Dire
     auto search = [&]() {
         ForEachMarker(markerType, dir, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
             if (dir == Direction::Forward) {
-                if (marker->GetRange().first <= start.index) return true;
-            } else if (marker->GetRange().first >= start.index) return true;
+                if (marker->range.first <= start.index) return true;
+            } else if (marker->range.first >= start.index) return true;
 
             found = marker;
             return false;
@@ -1086,7 +1086,7 @@ tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) 
         Zep::Direction::Forward,
         GlyphIterator(this, range.first), GlyphIterator(this, range.second),
         [&](const std::shared_ptr<RangeMarker> &marker) {
-            rangeMarkersOnLine[marker->GetRange().first].insert(marker);
+            rangeMarkersOnLine[marker->range.first].insert(marker);
             return true;
         });
     return rangeMarkersOnLine;
@@ -1209,7 +1209,7 @@ void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange 
     marker->duration = seconds;
     timer_restart(marker->timer);
 
-    editor.SetFlags(ZSetFlags(editor.flags, ZepEditorFlags::FastUpdate));
+    EndFlash();
 }
 
 } // namespace Zep

@@ -141,7 +141,6 @@ struct ZepMode : public ZepComponent {
     virtual void Begin(ZepWindow *pWindow);
     void Notify(const std::shared_ptr<ZepMessage> &) override {}
     virtual uint32_t ModifyWindowFlags(uint32_t windowFlags) { return windowFlags; }
-    virtual EditorMode GetEditorMode() const;
     virtual EditorMode DefaultMode() const = 0;
     virtual bool UsesRelativeLines() const { return false; }
 
@@ -166,6 +165,7 @@ struct ZepMode : public ZepComponent {
     virtual std::vector<Airline> GetAirlines(ZepWindow &) const { return std::vector<Airline>{}; }
 
     ZepWindow *currentWindow = nullptr;
+    EditorMode currentMode = EditorMode::Normal;
 
 protected:
     // Do the actual input handling
@@ -187,14 +187,13 @@ protected:
 
     void ClampCursorForMode();
     bool HandleExCommand(std::string strCommand);
-    std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
+    static std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
 
     virtual bool HandleIgnoredInput(CommandContext &) { return false; };
 
 protected:
     std::stack<std::shared_ptr<ZepCommand>> m_undoStack;
     std::stack<std::shared_ptr<ZepCommand>> m_redoStack;
-    EditorMode m_currentMode = EditorMode::Normal;
     bool m_lineWise = false;
     GlyphIterator m_visualBegin;
     GlyphIterator m_visualEnd;

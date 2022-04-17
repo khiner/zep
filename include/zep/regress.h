@@ -13,7 +13,7 @@ struct ZepRegressExCommand : public ZepExCommand {
     void Tick();
     void Run(const std::vector<std::string> &tokens) override;
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
-    const char *ExCommandName() const override;
+    const char *ExCommandName() const override { return "ZRegress"; }
 
 private:
     timer m_timer;

@@ -59,7 +59,6 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     bool IntersectsRange(const ByteRange &i) const;
 
     void SetRange(ByteRange range);
-    const ByteRange &GetRange() const;
     void SetBackgroundColor(ThemeColor color);
     void SetColors(ThemeColor back = ThemeColor::None, ThemeColor text = ThemeColor::Text, ThemeColor highlight = ThemeColor::Text);
     void SetAlpha(float a);
@@ -83,9 +82,9 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     bool enabled = true;
     Zep::timer timer;
 
-protected:
-    ByteRange m_range;
+    ByteRange range;
 
+protected:
     Zep::scoped_connection onPreBufferInsert;
 };
 

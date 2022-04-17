@@ -23,16 +23,15 @@ struct ZepFont {
     virtual void SetPixelHeight(int height) = 0;
     virtual NVec2f GetTextSize(const uint8_t *pBegin, const uint8_t *pEnd = nullptr) const = 0;
 
-    virtual int GetPixelHeight() const { return m_pixelHeight; }
-
     virtual const NVec2f &GetDefaultCharSize();
     virtual void BuildCharCache();
     virtual void InvalidateCharCache();
     virtual NVec2f GetCharSize(const uint8_t *pChar);
 
     NVec2f dotSize;
+    int pixelHeight{};
+
 protected:
-    int m_pixelHeight{};
     bool m_charCacheDirty = true;
     std::unordered_map<uint32_t, NVec2f> m_charCache;
     NVec2f m_charCacheASCII[256];
