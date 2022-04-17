@@ -189,13 +189,9 @@ void ZepWindow::Notify(const std::shared_ptr<ZepMessage> &payload) {
 void ZepWindow::SetDisplayRegion(const NRectf &region) {
     if (m_bufferRegion->rect == region) return;
 
-    m_displayRect = region;
-
     m_layoutDirty = true;
     m_bufferRegion->rect = region;
-
     m_airlineRegion->fixed_size = NVec2f(0.0f, float(editor.display->GetFont(ZepTextType::UI).GetPixelHeight()));
-
     m_defaultLineSize = editor.display->GetFont(ZepTextType::Text).GetPixelHeight();
 }
 
@@ -395,7 +391,6 @@ void ZepWindow::UpdateLineSpans() {
         lineInfo->padding = topPadding;
         lineInfo->lineTextSizePx.x = xOffset;
         lineInfo->lineTextSizePx.y = float(textHeight);
-        lineInfo->isSplitContinuation = false;
 
         auto inlineMargins = editor.Dpi(editor.config.inlineWidgetMargins);
 
@@ -452,7 +447,6 @@ void ZepWindow::UpdateLineSpans() {
                     lineInfo->padding = topPadding;
                     lineInfo->lineTextSizePx.y = float(textHeight);
                     lineInfo->lineTextSizePx.x = xOffset;
-                    lineInfo->isSplitContinuation = true;
                     lineInfo->pFont = &font;
 
                     xOffset = m_xPad;
@@ -600,13 +594,6 @@ NVec4f ZepWindow::GetBlendedColor(ThemeColor color) const {
         }
     }
     return col;
-}
-
-NRectf SquareRect(const NRectf &rc) {
-    auto minSize = std::min(rc.Width(), rc.Height());
-    auto xMargin = (rc.Width() - minSize) / 2;
-    auto yMargin = (rc.Height() - minSize) / 2;
-    return {rc.topLeftPx + NVec2f(xMargin, yMargin), rc.bottomRightPx - NVec2f(xMargin, yMargin)};
 }
 
 void ZepWindow::UpdateMarkers() {

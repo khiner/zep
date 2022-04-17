@@ -23,8 +23,7 @@ struct IZepReplProvider {
     virtual bool ReplIsFormComplete(const std::string &input, int &depth) = 0;
 };
 
-class ZepReplExCommand : public ZepExCommand {
-public:
+struct ZepReplExCommand : public ZepExCommand {
     ZepReplExCommand(ZepEditor &editor, IZepReplProvider *pProvider);
 
     static void Register(ZepEditor &editor, IZepReplProvider *pProvider);
@@ -32,7 +31,7 @@ public:
     void Run(const std::vector<std::string> &args) override;
     const char *ExCommandName() const override { return "ZRepl"; }
     const KeyMap *GetKeyMappings(ZepMode &) const override { return &m_keymap; }
-    virtual bool AddKeyPress(uint32_t key, uint32_t modifiers);
+    bool AddKeyPress(uint32_t key, uint32_t modifiers);
 
 private:
     void Prompt();
@@ -46,8 +45,7 @@ private:
     GlyphIterator m_startLocation;
 };
 
-class ZepReplEvaluateOuterCommand : public ZepExCommand {
-public:
+struct ZepReplEvaluateOuterCommand : public ZepExCommand {
     ZepReplEvaluateOuterCommand(ZepEditor &editor, IZepReplProvider *provide);
 
     static void Register(ZepEditor &editor, IZepReplProvider *provider);
@@ -61,8 +59,7 @@ private:
     KeyMap m_keymap;
 };
 
-class ZepReplEvaluateCommand : public ZepExCommand {
-public:
+struct ZepReplEvaluateCommand : public ZepExCommand {
     ZepReplEvaluateCommand(ZepEditor &editor, IZepReplProvider *pProvider);
 
     static void Register(ZepEditor &editor, IZepReplProvider *pProvider);
@@ -76,8 +73,7 @@ private:
     KeyMap m_keymap;
 };
 
-class ZepReplEvaluateInnerCommand : public ZepExCommand {
-public:
+struct ZepReplEvaluateInnerCommand : public ZepExCommand {
     ZepReplEvaluateInnerCommand(ZepEditor &editor, IZepReplProvider *pProvider);
 
     static void Register(ZepEditor &editor, IZepReplProvider *pProvider);

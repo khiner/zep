@@ -501,10 +501,6 @@ GlyphRange ZepMode::GetInclusiveVisualRange() const {
     return {startOffset, endOffset};
 }
 
-const std::string &ZepMode::GetLastCommand() const {
-    return m_dotCommand;
-}
-
 bool ZepMode::GetCommand(CommandContext &context) {
     auto bufferCursor = currentWindow->GetBufferCursor();
     auto *buffer = currentWindow->buffer;
@@ -538,9 +534,6 @@ bool ZepMode::GetCommand(CommandContext &context) {
         pEx->Run();
         return true;
     }
-
-    // Inherited modes can handle extra commands this way
-    if (HandleSpecialCommand(context)) return true;
 
     if (mappedCommand == id_NormalMode) {
         // TODO: I think this should be a 'command' which would get replayed with dot;

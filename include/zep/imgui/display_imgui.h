@@ -12,8 +12,7 @@ inline ImVec2 toImVec2(const NVec2f &im) { return {im.x, im.y}; }
 
 static ImWchar greek_range[] = {0x300, 0x52F, 0x1f00, 0x1fff, 0, 0};
 
-class ZepFont_ImGui : public ZepFont {
-public:
+struct ZepFont_ImGui : public ZepFont {
     ZepFont_ImGui(ZepDisplay &display, ImFont *pFont, int pixelHeight) : ZepFont(display), font(pFont) {
         SetPixelHeight(pixelHeight);
     }
@@ -39,8 +38,7 @@ public:
     ImFont *font;
 };
 
-class ZepDisplay_ImGui : public ZepDisplay {
-public:
+struct ZepDisplay_ImGui : public ZepDisplay {
     ZepDisplay_ImGui() : ZepDisplay() {}
 
     void DrawChars(ZepFont &font, const NVec2f &pos, const NVec4f &col, const uint8_t *text_begin, const uint8_t *text_end) const override {

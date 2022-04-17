@@ -4,8 +4,7 @@
 
 namespace Zep {
 
-class ZepMode_Vim : public ZepMode {
-public:
+struct ZepMode_Vim : public ZepMode {
     explicit ZepMode_Vim(ZepEditor &editor);
     ~ZepMode_Vim() override;
 
@@ -17,7 +16,7 @@ public:
     const char *Name() const override { return StaticName(); }
     EditorMode DefaultMode() const override { return EditorMode::Normal; }
     void PreDisplay(ZepWindow &win) override;
-    virtual void SetupKeyMaps();
+    void SetupKeyMaps();
     bool UsesRelativeLines() const override { return true; }
 };
 

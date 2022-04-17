@@ -14,7 +14,7 @@
 // For example, tooltips, underlines, inline widgets, etc.
 // Try :ZTestMarkers 5 or :ZTestMarkers 3 after selecting a region of text
 namespace Zep {
-class ZepBuffer;
+struct ZepBuffer;
 
 namespace RangeMarkerType {
 enum {
@@ -58,13 +58,13 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     bool ContainsLocation(const GlyphIterator &loc) const;
     bool IntersectsRange(const ByteRange &i) const;
 
-    virtual void SetRange(ByteRange range);
-    virtual const ByteRange &GetRange() const;
-    virtual void SetBackgroundColor(ThemeColor color);
-    virtual void SetTextColor(ThemeColor color);
-    virtual void SetHighlightColor(ThemeColor color);
-    virtual void SetColors(ThemeColor back = ThemeColor::None, ThemeColor text = ThemeColor::Text, ThemeColor highlight = ThemeColor::Text);
-    virtual void SetAlpha(float a);
+    void SetRange(ByteRange range);
+    const ByteRange &GetRange() const;
+    void SetBackgroundColor(ThemeColor color);
+    void SetTextColor(ThemeColor color);
+    void SetHighlightColor(ThemeColor color);
+    void SetColors(ThemeColor back = ThemeColor::None, ThemeColor text = ThemeColor::Text, ThemeColor highlight = ThemeColor::Text);
+    void SetAlpha(float a);
 
     void HandleBufferInsert(ZepBuffer &buffer, const GlyphIterator &itrStart, const std::string &str);
     void HandleBufferDelete(ZepBuffer &buffer, const GlyphIterator &itr, const GlyphIterator &itrEnd);

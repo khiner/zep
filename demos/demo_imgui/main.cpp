@@ -183,17 +183,6 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         } else {
             spEditor->InitWithText("Shader.vert", shader);
         }
-
-        // File watcher not used on apple yet ; needs investigating as to why it doesn't compile/run
-        // The watcher is being used currently to update the config path, but clients may want to do more interesting things
-        // by setting up watches for the current dir, etc.
-        /*fileWatcher.start([=](std::string path, FileStatus status) {
-            if (spEditor)
-            {
-                ZLOG(DBG, "Config File Change: " << path);
-                spEditor->OnFileChanged(spEditor->fileSystem->GetConfigPath() / path);
-            }
-        });*/
     }
 
     ~ZepContainerImGui() {

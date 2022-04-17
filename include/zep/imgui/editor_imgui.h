@@ -41,10 +41,9 @@ namespace Zep {
 #define ZEP_KEY_Z 0x1d // Keyboard z and Z
 #define ZEP_KEY_SPACE 0x2c // Keyboard Spacebar
 
-class ZepDisplay_ImGui;
-class ZepTabWindow;
-class ZepEditor_ImGui : public ZepEditor {
-public:
+struct ZepDisplay_ImGui;
+struct ZepTabWindow;
+struct ZepEditor_ImGui : public ZepEditor {
     explicit ZepEditor_ImGui(const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr)
         : ZepEditor(new ZepDisplay_ImGui(), root, flags, pFileSystem) {}
 

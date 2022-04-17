@@ -38,18 +38,18 @@
 // The Modes receive key presses and act on a buffer region
 namespace Zep {
 
-class ZepBuffer;
-class ZepMode;
-class ZepMode_Vim;
-class ZepMode_Standard;
-class ZepEditor;
-class ZepSyntax;
-class ZepTabWindow;
-class ZepWindow;
-class ZepTheme;
-class ZepDisplay;
-class IZepFileSystem;
-class Indexer;
+struct ZepBuffer;
+struct ZepMode;
+struct ZepMode_Vim;
+struct ZepMode_Standard;
+struct ZepEditor;
+struct ZepSyntax;
+struct ZepTabWindow;
+struct ZepWindow;
+struct ZepTheme;
+struct ZepDisplay;
+struct IZepFileSystem;
+struct Indexer;
 
 struct Region;
 
@@ -67,12 +67,7 @@ enum {
 };
 };
 
-enum class ZepMouseButton {
-    Left,
-    Middle,
-    Right,
-    Unknown
-};
+enum class ZepMouseButton { Left, Right, Unknown };
 
 enum class Msg {
     HandleCommand,
@@ -90,8 +85,7 @@ enum class Msg {
 };
 
 struct IZepComponent;
-class ZepMessage {
-public:
+struct ZepMessage {
     explicit ZepMessage(Msg id, std::string strIn = {}) : messageId(id), str(std::move(strIn)) {}
     ZepMessage(Msg id, const NVec2f &p, ZepMouseButton b = ZepMouseButton::Unknown) : messageId(id), pos(p), button(b) {}
     ZepMessage(Msg id, IZepComponent *pComp) : messageId(id), pComponent(pComp) {}
@@ -172,8 +166,7 @@ struct TabRegionTab : public Region {
 };
 
 
-class ZepEditor {
-public:
+struct ZepEditor {
     // Root path is the path to search for a config file
     ZepEditor(ZepDisplay *pDisplay, const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr);
     ~ZepEditor();
@@ -263,8 +256,6 @@ public:
     NVec2f Dpi(NVec2f value) const;
     NRectf Dpi(NRectf value) const;
 
-    // Used to inform when a file changes - called from outside zep by the platform specific code, if possible
-    virtual void OnFileChanged(const ZepPath &path);
     virtual void HandleInput() {};
 
     std::set<IZepComponent *> notifyClients;

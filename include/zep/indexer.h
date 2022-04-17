@@ -9,7 +9,7 @@
 
 namespace Zep {
 
-class ZepEditor;
+struct ZepEditor;
 
 // List of files found in the directory search
 struct FileIndexResult {
@@ -19,13 +19,7 @@ struct FileIndexResult {
     std::string errors;
 };
 
-struct SymbolDetails {
-    int line = 0;
-    int column = 0;
-};
-
-class Indexer : public ZepComponent {
-public:
+struct Indexer : public ZepComponent {
     explicit Indexer(ZepEditor &editor);
 
     void Notify(const std::shared_ptr<ZepMessage> &message) override;

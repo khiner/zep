@@ -10,7 +10,7 @@
 
 namespace Zep {
 
-class ZepEditor;
+struct ZepEditor;
 
 // NOTE: These are input keys mapped to Zep's internal keymapping; they live below 'space'/32
 // Key mapping needs a rethink for international keyboards.  But for modes, this is the remapped key definitions for anything that isn't
@@ -133,8 +133,7 @@ public:
     bool foundCommand = false;
 };
 
-class ZepMode : public ZepComponent {
-public:
+struct ZepMode : public ZepComponent {
     explicit ZepMode(ZepEditor &editor);
 
     virtual void Init() {};
@@ -151,8 +150,8 @@ public:
     virtual void PreDisplay(ZepWindow &) {};
 
     // Called when we begin editing in this mode
-    virtual void Undo();
-    virtual void Redo();
+    void Undo();
+    void Redo();
 
     virtual CursorType GetCursorType() const;
 
@@ -171,28 +170,25 @@ public:
 
 protected:
     // Do the actual input handling
-    virtual void HandleMappedInput(const std::string &input);
+    void HandleMappedInput(const std::string &input);
 
-    virtual void AddCommand(std::shared_ptr<ZepCommand> spCmd);
+    void AddCommand(std::shared_ptr<ZepCommand> spCmd);
 
-    virtual const std::string &GetLastCommand() const;
-    virtual bool GetCommand(CommandContext &context);
-    virtual void ResetCommand();
+    bool GetCommand(CommandContext &context);
+    void ResetCommand();
 
-    virtual bool HandleSpecialCommand(CommandContext &) { return false; };
+    bool GetOperationRange(const std::string &op, EditorMode currentMode, GlyphIterator &beginRange, GlyphIterator &endRange) const;
 
-    virtual bool GetOperationRange(const std::string &op, EditorMode currentMode, GlyphIterator &beginRange, GlyphIterator &endRange) const;
-
-    virtual void UpdateVisualSelection();
+    void UpdateVisualSelection();
 
     void AddGlobalKeyMaps();
     void AddNavigationKeyMaps(bool allowInVisualMode = true);
     void AddSearchKeyMaps();
     static void AddKeyMapWithCountRegisters(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &id);
 
-    virtual void ClampCursorForMode();
-    virtual bool HandleExCommand(std::string strCommand);
-    virtual std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
+    void ClampCursorForMode();
+    bool HandleExCommand(std::string strCommand);
+    std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
 
     virtual bool HandleIgnoredInput(CommandContext &) { return false; };
 

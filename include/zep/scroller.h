@@ -5,14 +5,13 @@
 #include "zep/mcommon/animation/timer.h"
 
 namespace Zep {
-class ZepTheme;
-class ZepEditor;
+struct ZepTheme;
+struct ZepEditor;
 
-class Scroller : public ZepComponent {
-public:
+struct Scroller : public ZepComponent {
     Scroller(ZepEditor &editor, Region &parent);
 
-    virtual void Display(ZepTheme &theme);
+    void Display(ZepTheme &theme);
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     float vScrollVisiblePercent = 1.0f;

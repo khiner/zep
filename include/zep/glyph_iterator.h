@@ -5,7 +5,7 @@
 
 namespace Zep {
 
-class ZepBuffer;
+struct ZepBuffer;
 
 using ByteIndex = long;
 struct ByteRange {

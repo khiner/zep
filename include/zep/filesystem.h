@@ -13,7 +13,7 @@ namespace Zep {
 // If you want to expose your app's view of the world, you need to implement this minimal set of functions.
 class IZepFileSystem {
 public:
-    virtual ~IZepFileSystem() = default;;
+    virtual ~IZepFileSystem() = default;
     virtual std::string Read(const ZepPath &filePath) = 0;
     virtual bool Write(const ZepPath &filePath, const void *pData, size_t size) = 0;
 
@@ -48,8 +48,7 @@ public:
 // A generic file system using cross-platform `fs::` and `tinydir` for searches.
 // This is typically the only one that is used for normal desktop usage.
 // But you could make your own if your files were stored in a compressed folder, or the target system didn't have a traditional file system...
-class ZepFileSystemCPP : public IZepFileSystem {
-public:
+struct ZepFileSystemCPP : public IZepFileSystem {
     explicit ZepFileSystemCPP(const ZepPath &configPath);
     ~ZepFileSystemCPP() override;
     std::string Read(const ZepPath &filePath) override;

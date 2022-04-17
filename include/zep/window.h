@@ -8,9 +8,9 @@
 
 namespace Zep {
 
-class ZepTabWindow;
-class ZepDisplay;
-class Scroller;
+struct ZepTabWindow;
+struct ZepDisplay;
+struct Scroller;
 
 struct Region;
 
@@ -20,7 +20,7 @@ struct LineCharInfo {
     GlyphIterator iterator;
 };
 
-class ZepFont;
+struct ZepFont;
 // Line information, calculated during display update.
 // A collection of spans that show split lines on the display
 struct SpanInfo {
@@ -31,7 +31,6 @@ struct SpanInfo {
     NVec2f lineTextSizePx = NVec2f(0.0f);          // Pixel size of the text 
     int spanLineIndex = 0;                         // The index of this line in spans; might be more than buffer index
     NVec2f padding = NVec2f(1.0f, 1.0f);           // Padding above and below the line
-    bool isSplitContinuation = false;
     NVec2f lineWidgetHeights;
     ZepFont *pFont = nullptr;
 
@@ -94,32 +93,31 @@ struct ToolTipMessage : public ZepMessage {
 // Window shows a buffer, and is parented by a TabWindow
 // The buffer can change, but the window must always have an active buffer
 // Editor operations such as select and change are local to a displayed pane
-class ZepWindow : public ZepComponent {
-public:
+struct ZepWindow : public ZepComponent {
     ZepWindow(ZepTabWindow &window, ZepBuffer *buffer);
     ~ZepWindow() override;
 
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
 
     // Display
-    virtual void SetDisplayRegion(const NRectf &region);
-    virtual void Display();
+    void SetDisplayRegion(const NRectf &region);
+    void Display();
 
     // Cursor
-    virtual GlyphIterator GetBufferCursor();
-    virtual void SetBufferCursor(const GlyphIterator &location);
-    virtual void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
-    virtual NVec2i BufferToDisplay();
+    GlyphIterator GetBufferCursor();
+    void SetBufferCursor(const GlyphIterator &location);
+    void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
+    NVec2i BufferToDisplay();
 
     // Flags
-    virtual void SetWindowFlags(uint32_t windowFlags);
-    virtual uint32_t GetWindowFlags() const;
-    virtual void ToggleFlag(uint32_t flag);
+    void SetWindowFlags(uint32_t windowFlags);
+    uint32_t GetWindowFlags() const;
+    void ToggleFlag(uint32_t flag);
 
-    virtual long GetMaxDisplayLines();
-    virtual long GetNumDisplayedLines();
+    long GetMaxDisplayLines();
+    long GetNumDisplayedLines();
 
-    virtual void SetBuffer(ZepBuffer *pBuffer);
+    void SetBuffer(ZepBuffer *pBuffer);
 
     NVec4f FilterActiveColor(const NVec4f &col, float atten = 1.0f);
 
@@ -176,7 +174,6 @@ private:
     NVec2f GetSpanPixelRange(SpanInfo &span) const;
 
 private:
-    NRectf m_displayRect;
     std::shared_ptr<Region> m_bufferRegion;  // region of the display we are showing on.
     std::shared_ptr<Region> m_editRegion;   // region of the window buffer editing 
     std::shared_ptr<Region> m_textRegion;    // region of the display for text.

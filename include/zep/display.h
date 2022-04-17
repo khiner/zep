@@ -5,7 +5,7 @@
 
 namespace Zep {
 
-class ZepTabWindow;
+struct ZepTabWindow;
 
 enum class ZepTextType {
     UI,
@@ -16,8 +16,7 @@ enum class ZepTextType {
     Count
 };
 
-class ZepFont {
-public:
+struct ZepFont {
     explicit ZepFont(ZepDisplay &display) : m_display(display) {}
 
     // Implemented in API specific ways
@@ -42,8 +41,7 @@ protected:
 };
 
 // Display interface
-class ZepDisplay {
-public:
+struct ZepDisplay {
     virtual ~ZepDisplay() = default;;
     ZepDisplay();
 

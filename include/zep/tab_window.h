@@ -5,21 +5,15 @@
 
 namespace Zep {
 
-class ZepWindow;
-class ZepDisplay;
+struct ZepWindow;
+struct ZepDisplay;
 struct Region;
 
-enum class WindowMotion {
-    Left,
-    Right,
-    Up,
-    Down
-};
+enum class WindowMotion { Left, Right, Up, Down };
 
 // Display state for a single pane of text.
 // Editor operations such as select and change are local to a displayed pane
-class ZepTabWindow : public ZepComponent {
-public:
+struct ZepTabWindow : public ZepComponent {
     explicit ZepTabWindow(ZepEditor &editor);
     ~ZepTabWindow() override;
 
@@ -28,7 +22,6 @@ public:
     ZepWindow *DoMotion(WindowMotion motion);
     ZepWindow *AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent = nullptr, RegionLayoutType layoutType = RegionLayoutType::HBox);
     void RemoveWindow(ZepWindow *pWindow);
-    //void WalkRegions();
     void SetActiveWindow(ZepWindow *pBuffer);
     ZepWindow *GetActiveWindow() const { return m_pActiveWindow; }
     void CloseActiveWindow();
@@ -41,7 +34,6 @@ public:
 
     void Display();
 
-private:
     NRectf m_lastRegionRect;
 
     tWindows m_windows;

@@ -230,7 +230,7 @@ public:
     A get_allocator() const { return _alloc; }
 
     // No assign/copy for now
-    GapBuffer(int size = 0, int gapSize = DEFAULT_GAP)
+    explicit GapBuffer(int size = 0, int gapSize = DEFAULT_GAP)
         : m_defaultGap(gapSize) {
         if (size == 0) {
             clear();
@@ -304,14 +304,10 @@ public:
     // Resize the gap to this fixed_size
     void resizeGap(size_t newGapSize) {
         auto sizeIncrease = int64_t(newGapSize) - int64_t(CurrentGapSize());
-        if (sizeIncrease <= 0) {
-            // We never shrink the gap
-            return;
-        }
+        if (sizeIncrease <= 0) return; // We never shrink the gap
 
         // New total fixed_size and new gap fixed_size
         auto bufferSize = CurrentSizeWithGap() + sizeIncrease;
-
         // Make the new buffer
         auto pNewStart = get_allocator().allocate((const size_t) bufferSize);
 

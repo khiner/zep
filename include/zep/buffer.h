@@ -15,9 +15,9 @@
 
 namespace Zep {
 
-class ZepSyntax;
-class ZepTheme;
-class ZepMode;
+struct ZepSyntax;
+struct ZepTheme;
+struct ZepMode;
 enum class ThemeColor;
 
 enum class Direction {
@@ -31,7 +31,6 @@ enum : uint32_t {
     Begin = (1 << 1),
     End = (1 << 2),
     Word = (1 << 3),
-    SingleLine = (1 << 4)
 };
 };
 
@@ -70,16 +69,10 @@ enum class BufferType {
 //static const iterator MaxCursorMove = iterator(0xFFFFFFF);
 //const long InvalidByteIndex = -1;
 
-enum class ExpressionType {
-    Inner,
-    Outer
-};
+enum class ExpressionType { Inner, Outer };
 
 // The type of replacement that happens in the buffer
-enum class ReplaceRangeMode {
-    Fill,
-    Replace,
-};
+enum class ReplaceRangeMode { Fill, Replace };
 
 struct ChangeRecord {
     std::string strDeleted;
@@ -95,8 +88,7 @@ struct ChangeRecord {
 };
 
 using fnKeyNotifier = std::function<bool(uint32_t key, uint32_t modifier)>;
-class ZepBuffer : public ZepComponent {
-public:
+struct ZepBuffer : public ZepComponent {
     ZepBuffer(ZepEditor &editor, std::string strName);
     ZepBuffer(ZepEditor &editor, const ZepPath &path);
 

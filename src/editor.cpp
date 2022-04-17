@@ -109,14 +109,6 @@ ZepEditor::~ZepEditor() {
     delete fileSystem;
 }
 
-void ZepEditor::OnFileChanged(const ZepPath &path) {
-    if (path.filename() == "zep.cfg") {
-        ZLOG(INFO, "Reloading config");
-        LoadConfig(path);
-        Broadcast(std::make_shared<ZepMessage>(Msg::ConfigChanged));
-    }
-}
-
 // If you pass a valid path to a 'zep.cfg' file, then editor settings will serialize from that
 // You can even edit it inside zep for immediate changes :)
 void ZepEditor::LoadConfig(const ZepPath &config_path) {

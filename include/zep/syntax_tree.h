@@ -4,8 +4,7 @@
 
 namespace Zep {
 
-class ZepSyntax_Tree : public ZepSyntax {
-public:
+struct ZepSyntax_Tree : public ZepSyntax {
     explicit ZepSyntax_Tree(ZepBuffer &buffer,
                             const std::unordered_set<std::string> &keywords = std::unordered_set<std::string>{},
                             const std::unordered_set<std::string> &identifiers = std::unordered_set<std::string>{},

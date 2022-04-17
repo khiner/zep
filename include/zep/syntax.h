@@ -34,9 +34,8 @@ struct SyntaxResult : SyntaxData {
     NVec4f customForegroundColor;
 };
 
-class ZepSyntaxAdorn;
-class ZepSyntax : public ZepComponent {
-public:
+struct ZepSyntaxAdorn;
+struct ZepSyntax : public ZepComponent {
     explicit ZepSyntax(ZepBuffer &buffer,
                        std::unordered_set<std::string> keywords = std::unordered_set<std::string>{},
                        std::unordered_set<std::string> identifiers = std::unordered_set<std::string>{},
@@ -56,10 +55,10 @@ public:
     const NVec4f &ToBackgroundColor(const SyntaxResult &res) const;
     const NVec4f &ToForegroundColor(const SyntaxResult &res) const;
 
-    virtual void IgnoreLineHighlight() { m_flags |= ZepSyntaxFlags::IgnoreLineHighlight; }
+    void IgnoreLineHighlight() { m_flags |= ZepSyntaxFlags::IgnoreLineHighlight; }
 
 private:
-    virtual void QueueUpdateSyntax(const GlyphIterator &startLocation, const GlyphIterator &endLocation);
+    void QueueUpdateSyntax(const GlyphIterator &startLocation, const GlyphIterator &endLocation);
 
 protected:
     ZepBuffer &m_buffer;
@@ -76,8 +75,7 @@ protected:
     uint32_t m_flags;
 };
 
-class ZepSyntaxAdorn : public ZepComponent {
-public:
+struct ZepSyntaxAdorn : public ZepComponent {
     ZepSyntaxAdorn(ZepSyntax &syntax, ZepBuffer &buffer) : ZepComponent(syntax.editor), m_buffer(buffer) {}
     virtual SyntaxResult GetSyntaxAt(const GlyphIterator &offset, bool &found) const = 0;
 

@@ -10,8 +10,7 @@
 namespace Zep {
 
 typedef std::chrono::system_clock::time_point file_time_type;
-class ZepPath {
-public:
+struct ZepPath {
     typedef std::vector<std::string>::const_iterator const_iterator;
 
     ZepPath(std::string strPath = {}) : path(std::move(strPath)) {}

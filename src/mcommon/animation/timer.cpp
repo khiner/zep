@@ -4,17 +4,6 @@
 
 namespace Zep {
 
-struct TimedSection {
-    uint64_t elapsed = 0;
-    uint64_t count{};
-};
-
-timer globalTimer;
-
-uint64_t timer_get_time_now() {
-    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-}
-
 void timer_start(timer &timer) { timer_restart(timer); }
 
 void timer_restart(timer &timer) {

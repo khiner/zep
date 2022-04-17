@@ -12,31 +12,30 @@ enum {
 };
 }
 
-class ZepTreeNode {
-public:
+struct ZepTreeNode {
     using TNode = std::shared_ptr<ZepTreeNode>;
     using TChildren = std::vector<TNode>;
 
     explicit ZepTreeNode(std::string strName, uint32_t flags = ZepTreeNodeFlags::None);
 
-    virtual const std::string &GetName() const { return m_strName; }
-    virtual void SetName(const std::string &name) { m_strName = name; }
-    virtual ZepTreeNode *GetParent() const { return m_pParent; }
-    virtual TChildren GetChildren() const { return m_children; }
-    virtual bool HasChildren() const { return !m_children.empty(); }
+    const std::string &GetName() const { return m_strName; }
+    void SetName(const std::string &name) { m_strName = name; }
+    ZepTreeNode *GetParent() const { return m_pParent; }
+    TChildren GetChildren() const { return m_children; }
+    bool HasChildren() const { return !m_children.empty(); }
 
-    virtual ZepTreeNode *AddChild(const TNode &pNode) {
+    ZepTreeNode *AddChild(const TNode &pNode) {
         m_children.push_back(pNode);
         pNode->m_pParent = this;
         return pNode.get();
     }
 
-    virtual void ClearChildren() { m_children.clear(); }
+    void ClearChildren() { m_children.clear(); }
 
-    virtual bool IsExpanded() const { return m_expanded; }
-    virtual void Expand(bool expand) { m_expanded = expand; }
+    bool IsExpanded() const { return m_expanded; }
+    void Expand(bool expand) { m_expanded = expand; }
 
-    virtual void ExpandAll(bool expand) {
+    void ExpandAll(bool expand) {
         using fnVisit = std::function<void(ZepTreeNode *pNode, bool ex)>;
         fnVisit visitor = [&](ZepTreeNode *pNode, bool ex) {
             pNode->Expand(ex);
@@ -49,7 +48,7 @@ public:
         visitor(this, expand);
     }
 
-    virtual void SetParent(ZepTreeNode *pParent) { m_pParent = pParent; }
+    void SetParent(ZepTreeNode *pParent) { m_pParent = pParent; }
 protected:
     bool m_expanded = false;
     ZepTreeNode *m_pParent = nullptr;
@@ -62,19 +61,15 @@ struct ZepTree {
     ZepTreeNode::TNode root;
 };
 
-class ZepFileNode : public ZepTreeNode {
-public:
+struct ZepFileNode : public ZepTreeNode {
     explicit ZepFileNode(const std::string &name, uint32_t flags = ZepTreeNodeFlags::None) : ZepTreeNode(name, flags) {}
 };
 
-class ZepFileTree : public ZepTree {
-public:
+struct ZepFileTree : public ZepTree {
     ZepFileTree();
-
 };
 
-class ZepMode_Tree : public ZepMode_Vim {
-public:
+struct ZepMode_Tree : public ZepMode_Vim {
     ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &replWindow);
     ~ZepMode_Tree() override;
 

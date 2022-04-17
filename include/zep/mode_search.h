@@ -9,9 +9,8 @@
 
 namespace Zep {
 
-class ZepWindow;
-class ZepMode_Search : public ZepMode {
-public:
+struct ZepWindow;
+struct ZepMode_Search : public ZepMode {
     ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, ZepPath startPath);
     ~ZepMode_Search() override;
 

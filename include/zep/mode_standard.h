@@ -4,8 +4,7 @@
 
 namespace Zep {
 
-class ZepMode_Standard : public ZepMode {
-public:
+struct ZepMode_Standard : public ZepMode {
     explicit ZepMode_Standard(ZepEditor &editor);
     ~ZepMode_Standard() override;
 

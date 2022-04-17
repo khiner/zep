@@ -4,7 +4,7 @@
 
 namespace Zep {
 
-class ZepEditor;
+struct ZepEditor;
 
 // Faust syntax highlighting https://github.com/grame-cncm/faust/tree/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting
 // The simplest one is probably https://github.com/grame-cncm/faust/blob/bc9536414dcaf3ff199be54888eea5d93dee90b9/syntax-highlighting/faust.nanorc

@@ -12,7 +12,7 @@
 
 namespace Zep {
 
-class ZepMode;
+struct ZepMode;
 
 #define DECLARE_COMMANDID(name) const StringId id_##name(#name);
 
