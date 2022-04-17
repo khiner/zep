@@ -532,7 +532,7 @@ ZepExCommand *ZepEditor::FindExCommand(const std::string &commandName) {
 ZepExCommand *ZepEditor::FindExCommand(const StringId &Id) {
     if (Id.id == 0) return nullptr;
 
-    for (auto&[name, pEx]: m_mapExCommands) {
+    for (auto &[name, pEx]: m_mapExCommands) {
         if (pEx->ExCommandId() == Id) return pEx.get();
     }
 
@@ -685,11 +685,6 @@ void ZepEditor::SetRegister(const char reg, const char *text) {
     if (reg == '+' || reg == '*') WriteClipboard();
 }
 
-Register &ZepEditor::GetRegister(const std::string &reg) {
-    if (reg == "+" || reg == "*") ReadClipboard();
-    return m_registers[reg];
-}
-
 Register &ZepEditor::GetRegister(const char reg) {
     if (reg == '+' || reg == '*') ReadClipboard();
     std::string str({reg});
@@ -746,7 +741,7 @@ bool ZepEditor::GetCursorBlinkState() const {
     return m_lastCursorBlink;
 }
 
-void ZepEditor::SetDisplayRegion(const NRectf &rect) {
+void ZepEditor::SetDisplayRegion(const NRectf &rect) const {
     editorRegion->rect = rect;
     UpdateSize();
 }
@@ -917,7 +912,7 @@ void ZepEditor::SetFlags(uint32_t newFlags) {
 
 std::vector<const KeyMap *> ZepEditor::GetGlobalKeyMaps(ZepMode &mode) {
     std::vector<const KeyMap *> maps;
-    for (auto&[id, spMap]: m_mapExCommands) {
+    for (auto &[id, spMap]: m_mapExCommands) {
         auto pMap = spMap->GetKeyMappings(mode);
         if (pMap) maps.push_back(pMap);
     }

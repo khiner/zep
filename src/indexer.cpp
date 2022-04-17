@@ -25,23 +25,6 @@ enum TypeName {
     t_int8_t
 };
 
-std::map<std::string, TypeName> MapToType = {
-    {"class",    t_class},
-    {"void",     t_void},
-    {"byte",     t_byte},
-    {"char",     t_char},
-    {"int",      t_int},
-    {"long",     t_long},
-    {"float",    t_float},
-    {"double",   t_double},
-    {"uint32_t", t_uint32_t},
-    {"uint8_t",  t_uint8_t},
-    {"uint64_t", t_uint64_t},
-    {"int32_t",  t_int32_t},
-    {"int64_t",  t_int64_t},
-    {"int8_t",   t_int8_t}
-};
-
 Indexer::Indexer(ZepEditor &editor) : ZepComponent(editor) {}
 
 void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector<std::string> &ignore_patterns, std::vector<std::string> &include_patterns, std::string &errors) {

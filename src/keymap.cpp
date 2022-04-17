@@ -8,46 +8,6 @@
 
 namespace Zep {
 
-// Keyboard mapping strings such as <PageDown> get converted here
-ExtKeys::Key MapStringToExKey(const std::string &str) {
-#define COMPARE(a, b)              \
-    if (string_tolower(str) == #a) \
-        return b;
-
-    COMPARE(return, ExtKeys::RETURN)
-    COMPARE(escape, ExtKeys::ESCAPE)
-    COMPARE(backspace, ExtKeys::BACKSPACE)
-    COMPARE(left, ExtKeys::LEFT)
-    COMPARE(right, ExtKeys::RIGHT)
-    COMPARE(up, ExtKeys::UP)
-    COMPARE(down, ExtKeys::DOWN)
-    COMPARE(tab, ExtKeys::TAB)
-    COMPARE(del, ExtKeys::DEL)
-    COMPARE(home, ExtKeys::HOME)
-    COMPARE(end, ExtKeys::END)
-    COMPARE(pagedown, ExtKeys::PAGEDOWN)
-    COMPARE(pageup, ExtKeys::PAGEUP)
-    COMPARE(f1, ExtKeys::F1)
-    COMPARE(f2, ExtKeys::F2)
-    COMPARE(f3, ExtKeys::F3)
-    COMPARE(f4, ExtKeys::F4)
-    COMPARE(f5, ExtKeys::F5)
-    COMPARE(f6, ExtKeys::F6)
-    COMPARE(f7, ExtKeys::F7)
-    COMPARE(f8, ExtKeys::F8)
-    COMPARE(f9, ExtKeys::F9)
-    COMPARE(f10, ExtKeys::F10)
-    COMPARE(f11, ExtKeys::F11)
-    COMPARE(f12, ExtKeys::F12)
-
-    return ExtKeys::NONE;
-}
-
-// Keyboard mapping strings such as <PageDown> get converted here
-std::string keymap_string(const std::string &str) {
-    return str;
-}
-
 // Splitting the input into groups of <> or ch
 std::string NextToken(std::string::const_iterator &itrChar, std::string::const_iterator itrEnd) {
     std::ostringstream str;
@@ -77,21 +37,8 @@ std::string NextToken(std::string::const_iterator &itrChar, std::string::const_i
         str << *itrChar++;
     }
 
-    // Return the converted string
     return str.str();
 }
-
-/*
-static bool ends_with(const std::string& str, const std::string& suffix)
-{
-    return str.size() >= suffix.size() && 0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
-}
-
-static bool starts_with(const std::string& str, const std::string& prefix)
-{
-    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
-}
-*/
 
 // Add a collection of commands to a collection of mappings
 bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &commandId, KeyMapAdd option) {
@@ -151,13 +98,7 @@ void keymap_dump(const KeyMap &map, std::ostringstream &str) {
     fnDump(map.spRoot, 0);
 }
 
-// std::isdigit asserts on unicode characters!
-bool isDigit(const char ch) {
-    if (ch >= '0' && ch <= '9') {
-        return true;
-    }
-    return false;
-}
+bool isDigit(const char ch) { return ch >= '0' && ch <= '9'; }
 
 // Walk the tree of tokens, figuring out which command this is
 // Input to this function:
@@ -278,8 +219,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
                         result.needMoreChars = true;
                     } else {
                         // Walk down to the next level
-                        if (fnSearch(spChildNode, itr, itrEnd, nodeCaptures, result))
-                            return true;
+                        if (fnSearch(spChildNode, itr, itrEnd, nodeCaptures, result)) return true;
                     }
                 } else {
                     // This is the find result, note it and record the capture groups for the find
@@ -326,8 +266,6 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
             }
         }
     }
-
-    //ZLOG(DBG, strCommand << " - " << findResult.searchPath);
 }
 
 } // namespace Zep

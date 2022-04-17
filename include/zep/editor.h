@@ -213,7 +213,6 @@ public:
 
     void SetRegister(char reg, const Register &val);
     void SetRegister(char reg, const char *text);
-    Register &GetRegister(const std::string &reg);
     Register &GetRegister(char reg);
     const std::map<std::string, Register> &GetRegisters();
 
@@ -249,7 +248,7 @@ public:
 
     void UpdateWindowState();
 
-    void SetDisplayRegion(const NRectf &rect);
+    void SetDisplayRegion(const NRectf &rect) const;
     void UpdateSize() const;
 
     bool OnMouseMove(const NVec2f &pos);
