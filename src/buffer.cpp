@@ -532,7 +532,7 @@ void ZepBuffer::Load(const ZepPath &path) {
 }
 
 bool ZepBuffer::Save(int64_t &size) {
-    if ((m_fileFlags & FileFlags::Locked) || (m_fileFlags & FileFlags::ReadOnly)) return false;
+    if ((fileFlags & FileFlags::Locked) || (fileFlags & FileFlags::ReadOnly)) return false;
 
     auto str = workingBuffer.string();
 
@@ -541,19 +541,19 @@ bool ZepBuffer::Save(int64_t &size) {
     // It replaces the /r on files that had it afterwards
     // Alternatively we could manage them 'in place', but that would make parsing more complex.
     // And then what do you do if there are 2 different styles in the file.
-    if (m_fileFlags & FileFlags::StrippedCR) {
+    if (fileFlags & FileFlags::StrippedCR) {
         // TODO: faster way to replace newlines
         string_replace_in_place(str, "\n", "\r\n");
     }
 
     // Remove the appended 0 if necessary
     size = (int64_t) str.size();
-    if (m_fileFlags & FileFlags::TerminatedWithZero) size--;
+    if (fileFlags & FileFlags::TerminatedWithZero) size--;
 
     if (size <= 0) return true;
 
     if (editor.fileSystem->Write(filePath, &str[0], (size_t) size)) {
-        m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
+        fileFlags = ZClearFlags(fileFlags, FileFlags::Dirty);
         return true;
     }
 
@@ -579,7 +579,7 @@ void ZepBuffer::SetFilePath(const ZepPath &path) {
 // Clients can use these values to figure out update times and dirty state
 void ZepBuffer::MarkUpdate() {
     updateCount++;
-    m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::Dirty);
+    fileFlags = ZSetFlags(fileFlags, FileFlags::Dirty);
 }
 
 // Clear this buffer.  If it was previously not clear, it has been updated.
@@ -590,7 +590,7 @@ void ZepBuffer::Clear() {
         workingBuffer.clear();
         workingBuffer.push_back(0);
         lineEnds.clear();
-        m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
+        fileFlags = ZSetFlags(fileFlags, FileFlags::TerminatedWithZero);
         lineEnds.push_back(End().index + 1);
         return;
     }
@@ -601,7 +601,7 @@ void ZepBuffer::Clear() {
     workingBuffer.clear();
     workingBuffer.push_back(0);
     lineEnds.clear();
-    m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::TerminatedWithZero);
+    fileFlags = ZSetFlags(fileFlags, FileFlags::TerminatedWithZero);
     lineEnds.push_back(End().index + 1);
 
     {
@@ -627,17 +627,17 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
         // We remove \r, we only care about \n
         for (auto &ch: text) {
             if (ch == '\r') {
-                m_fileFlags |= FileFlags::StrippedCR;
+                fileFlags |= FileFlags::StrippedCR;
             } else {
                 input.push_back(ch);
                 if (ch == '\n') {
                     lineEnds.push_back(ByteIndex(input.size()));
                     lastWasSpace = false;
                 } else if (ch == '\t') {
-                    m_fileFlags |= FileFlags::HasTabs;
+                    fileFlags |= FileFlags::HasTabs;
                     lastWasSpace = false;
                 } else if (ch == ' ') {
-                    if (lastWasSpace) m_fileFlags |= FileFlags::HasSpaceTabs;
+                    if (lastWasSpace) fileFlags |= FileFlags::HasSpaceTabs;
                     lastWasSpace = true;
                 } else {
                     lastWasSpace = false;
@@ -649,11 +649,11 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
 
     // If file is only tabs, then force tab mode
     if (HasFileFlags(FileFlags::HasTabs) && !HasFileFlags(FileFlags::HasSpaceTabs)) {
-        m_fileFlags = ZSetFlags(m_fileFlags, FileFlags::InsertTabs);
+        fileFlags = ZSetFlags(fileFlags, FileFlags::InsertTabs);
     }
 
     if (workingBuffer[workingBuffer.size() - 1] != 0) {
-        m_fileFlags |= FileFlags::TerminatedWithZero;
+        fileFlags |= FileFlags::TerminatedWithZero;
         workingBuffer.push_back(0);
     }
 
@@ -669,7 +669,7 @@ void ZepBuffer::SetText(const std::string &text, bool initFromFile) {
         editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::Loaded, Begin(), End()));
 
         // Doc is not dirty
-        m_fileFlags = ZClearFlags(m_fileFlags, FileFlags::Dirty);
+        fileFlags = ZClearFlags(fileFlags, FileFlags::Dirty);
     } else {
         editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::TextAdded, Begin(), End()));
     }
@@ -945,18 +945,18 @@ void ZepBuffer::SetSelection(const GlyphRange &sel) {
 }
 
 void ZepBuffer::AddRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
-    m_rangeMarkers[spMarker->GetRange().first].insert(spMarker);
+    rangeMarkers[spMarker->GetRange().first].insert(spMarker);
 
     // TODO: Why is this necessary; marks the whole buffer
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
 void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
-    auto itr = m_rangeMarkers.find(spMarker->GetRange().first);
-    if (itr != m_rangeMarkers.end()) {
+    auto itr = rangeMarkers.find(spMarker->GetRange().first);
+    if (itr != rangeMarkers.end()) {
         itr->second.erase(spMarker);
         if (itr->second.empty()) {
-            m_rangeMarkers.erase(spMarker->GetRange().first);
+            rangeMarkers.erase(spMarker->GetRange().first);
         }
     }
 
@@ -987,7 +987,7 @@ bool OverlapInclusive(ByteRange r1, ByteRange r2) {
 void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, std::function<bool(const std::shared_ptr<RangeMarker> &)> fnCB) const {
     ByteRange inclusive = ByteRange(begin.index, end.Peek(-1).index);
     if (dir == Direction::Forward) {
-        for (const auto &m_rangeMarker: m_rangeMarkers) {
+        for (const auto &m_rangeMarker: rangeMarkers) {
             for (int pass = 0; pass < 2; pass++) {
                 for (auto &markerItem: m_rangeMarker.second) {
                     if ((markerItem->markerType & markerType) == 0) continue;
@@ -1005,8 +1005,8 @@ void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIte
             }
         }
     } else {
-        auto itrREnd = std::make_reverse_iterator(m_rangeMarkers.begin());
-        auto itrRStart = std::make_reverse_iterator(m_rangeMarkers.end());
+        auto itrREnd = std::make_reverse_iterator(rangeMarkers.begin());
+        auto itrRStart = std::make_reverse_iterator(rangeMarkers.end());
 
         for (auto itr = itrRStart; itr != itrREnd; itr++) {
             for (auto &markerItem: itr->second) {
@@ -1075,8 +1075,8 @@ GlyphIterator ZepBuffer::GetLastEditLocation() {
     return lastEditLocation;
 }
 
-ZepMode *ZepBuffer::GetMode() const { return m_mode ? m_mode.get() : editor.GetGlobalMode(); }
-void ZepBuffer::SetMode(std::shared_ptr<ZepMode> mode) { m_mode = std::move(mode); }
+ZepMode *ZepBuffer::GetMode() const { return mode ? mode.get() : editor.GetGlobalMode(); }
+void ZepBuffer::SetMode(std::shared_ptr<ZepMode> mode) { mode = std::move(mode); }
 
 tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) const {
     ByteRange range;
@@ -1098,11 +1098,11 @@ bool ZepBuffer::IsHidden() const {
     return windows.empty();
 }
 
-void ZepBuffer::SetFileFlags(uint32_t flags, bool set) { m_fileFlags = ZSetFlags(m_fileFlags, flags, set); }
-bool ZepBuffer::HasFileFlags(uint32_t flags) const { return m_fileFlags & flags; }
+void ZepBuffer::SetFileFlags(uint32_t flags, bool set) { fileFlags = ZSetFlags(fileFlags, flags, set); }
+bool ZepBuffer::HasFileFlags(uint32_t flags) const { return fileFlags & flags; }
 
 void ZepBuffer::ToggleFileFlag(uint32_t flags) {
-    m_fileFlags = ZSetFlags(m_fileFlags, flags, !(m_fileFlags & flags));
+    fileFlags = ZSetFlags(fileFlags, flags, !(fileFlags & flags));
 }
 
 GlyphRange ZepBuffer::GetExpression(ExpressionType expressionType, const GlyphIterator &location, const std::vector<char> &beginExpression, const std::vector<char> &endExpression) const {

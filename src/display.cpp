@@ -49,7 +49,7 @@ NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
 }
 
 ZepDisplay::ZepDisplay() : pixelScale(Zep::NVec2f(1.0f)) {
-    for (auto &m_font: m_fonts) {
+    for (auto &m_font: fonts) {
         m_font = nullptr;
     }
 }
@@ -62,12 +62,12 @@ void ZepDisplay::DrawRect(const NRectf &rc, const NVec4f &col) const {
 }
 
 void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont) {
-    m_fonts[(int) type] = std::move(spFont);
+    fonts[(int) type] = std::move(spFont);
 }
 
 void ZepDisplay::Bigger() {
-    for (int i = 0; i < (int) m_fonts.size(); i++) {
-        if (m_fonts[i] != nullptr) {
+    for (int i = 0; i < (int) fonts.size(); i++) {
+        if (fonts[i] != nullptr) {
             switch ((ZepTextType) i) {
                 case ZepTextType::Text:
                 case ZepTextType::Heading1:
@@ -83,8 +83,8 @@ void ZepDisplay::Bigger() {
 }
 
 void ZepDisplay::Smaller() {
-    for (int i = 0; i < (int) m_fonts.size(); i++) {
-        if (m_fonts[i] != nullptr) {
+    for (int i = 0; i < (int) fonts.size(); i++) {
+        if (fonts[i] != nullptr) {
             switch ((ZepTextType) i) {
                 case ZepTextType::Text:
                 case ZepTextType::Heading1:

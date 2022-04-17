@@ -135,11 +135,11 @@ struct ZepBuffer : public ZepComponent {
     GlyphIterator Begin() const;
 
     void SetSyntaxProvider(const SyntaxProvider &provider) {
-        if (provider.syntaxID != m_syntaxProvider.syntaxID) {
+        if (provider.syntaxID != syntaxProvider.syntaxID) {
             if (provider.factory) syntax = provider.factory(this);
             else syntax.reset();
 
-            m_syntaxProvider = provider;
+            syntaxProvider = provider;
         }
     }
 
@@ -189,7 +189,7 @@ struct ZepBuffer : public ZepComponent {
 
     ZepPath filePath;
     uint64_t updateCount = 0;
-    GlyphIterator lastEditLocation;// = 0;
+    GlyphIterator lastEditLocation;
 
     std::shared_ptr<ZepSyntax> syntax;
 
@@ -198,14 +198,13 @@ struct ZepBuffer : public ZepComponent {
     fnKeyNotifier postKeyNotifier;
     BufferType type = BufferType::Normal;
 
-private:
-    void MarkUpdate();
+    uint32_t fileFlags = 0;
+    SyntaxProvider syntaxProvider;
+    tRangeMarkers rangeMarkers;
+    std::shared_ptr<ZepMode> mode;
 
 private:
-    uint32_t m_fileFlags = 0;
-    SyntaxProvider m_syntaxProvider;
-    tRangeMarkers m_rangeMarkers; // Selections
-    std::shared_ptr<ZepMode> m_mode; // Modes
+    void MarkUpdate();
 };
 
 // Notification payload

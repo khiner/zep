@@ -285,7 +285,6 @@ private:
     void RegisterSyntaxProvider(const std::vector<std::string> &mappings, const SyntaxProvider &provider);
     void RegisterSyntaxProviders();
 
-private:
     mutable std::map<std::string, Register> m_registers;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;

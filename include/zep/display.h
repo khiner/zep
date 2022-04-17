@@ -42,7 +42,7 @@ protected:
 
 // Display interface
 struct ZepDisplay {
-    virtual ~ZepDisplay() = default;;
+    virtual ~ZepDisplay() = default;
     ZepDisplay();
 
     // Renderer specific overrides
@@ -62,8 +62,7 @@ struct ZepDisplay {
 
     NVec2f pixelScale;
     bool layoutDirty = false;
-protected:
-    std::array<std::shared_ptr<ZepFont>, (int) ZepTextType::Count> m_fonts;
+    std::array<std::shared_ptr<ZepFont>, (int) ZepTextType::Count> fonts;
 };
 
 } // namespace Zep
