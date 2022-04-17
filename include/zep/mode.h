@@ -94,7 +94,7 @@ enum {
 struct CommandResult {
     uint32_t flags = CommandResultFlags::None;
     EditorMode modeSwitch = EditorMode::None;
-    std::shared_ptr<ZepCommand> spCommand;
+    std::shared_ptr<ZepCommand> command;
 };
 
 class CommandContext {
@@ -172,7 +172,7 @@ protected:
     // Do the actual input handling
     void HandleMappedInput(const std::string &input);
 
-    void AddCommand(std::shared_ptr<ZepCommand> spCmd);
+    void AddCommand(std::shared_ptr<ZepCommand> cmd);
 
     bool GetCommand(CommandContext &context);
     void ResetCommand();

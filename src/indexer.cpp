@@ -28,24 +28,24 @@ enum TypeName {
 Indexer::Indexer(ZepEditor &editor) : ZepComponent(editor) {}
 
 void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector<std::string> &ignore_patterns, std::vector<std::string> &include_patterns, std::string &errors) {
-    ZepPath config = path / ".zep" / "project.cfg";
+    ZepPath configPath = path / ".zep" / "project.cfg";
 
-    if (editor.fileSystem->Exists(config)) {
+    if (editor.fileSystem->Exists(configPath)) {
         try {
-            auto spConfig = cpptoml::parse_file(config.string());
-            if (spConfig != nullptr) {
-                ignore_patterns = spConfig->get_qualified_array_of<std::string>("search.ignore").value_or(std::vector<std::string>{});
-                include_patterns = spConfig->get_qualified_array_of<std::string>("search.include").value_or(std::vector<std::string>{});
+            auto config = cpptoml::parse_file(configPath.string());
+            if (config != nullptr) {
+                ignore_patterns = config->get_qualified_array_of<std::string>("search.ignore").value_or(std::vector<std::string>{});
+                include_patterns = config->get_qualified_array_of<std::string>("search.include").value_or(std::vector<std::string>{});
             }
         }
         catch (cpptoml::parse_exception &ex) {
             std::ostringstream str;
-            str << config.filename().string() << " : Failed to parse. " << ex.what();
+            str << configPath.filename().string() << " : Failed to parse. " << ex.what();
             errors = str.str();
         }
         catch (...) {
             std::ostringstream str;
-            str << config.filename().string() << " : Failed to parse. ";
+            str << configPath.filename().string() << " : Failed to parse. ";
             errors = str.str();
         }
     }
@@ -69,15 +69,15 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
     std::string errors;
     GetSearchPaths(editor, startPath, ignorePaths, includePaths, errors);
 
-    auto spResult = std::make_shared<FileIndexResult>();
+    auto result = std::make_shared<FileIndexResult>();
     if (!errors.empty()) {
-        spResult->errors = errors;
-        return make_ready_future(spResult);
+        result->errors = errors;
+        return make_ready_future(result);
     }
 
     auto *fileSystem = editor.fileSystem;
     return editor.threadPool->enqueue([=](ZepPath root) {
-            spResult->root = root;
+            result->root = root;
 
             try {
                 // Index the whole subtree, ignoring any patterns supplied to us
@@ -118,14 +118,14 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
                     // Not adding directories to the search list
                     if (bDir) return true;
 
-                    spResult->paths.push_back(rel);
-                    spResult->lowerPaths.push_back(string_tolower(rel.string()));
+                    result->paths.push_back(rel);
+                    result->lowerPaths.push_back(string_tolower(rel.string()));
 
                     return true;
                 });
             } catch (std::exception &) {}
 
-            return spResult;
+            return result;
         },
         startPath);
 }
@@ -137,16 +137,16 @@ void Indexer::Notify(const std::shared_ptr<ZepMessage> &message) {
 
             m_fileSearchActive = false;
 
-            m_spFilePaths = m_indexResult.get();
-            if (!m_spFilePaths->errors.empty()) {
-                editor.SetCommandText(m_spFilePaths->errors);
+            m_filePaths = m_indexResult.get();
+            if (!m_filePaths->errors.empty()) {
+                editor.SetCommandText(m_filePaths->errors);
                 return;
             }
 
             {
                 // Queue the files to be searched
                 std::lock_guard<std::mutex> guard(m_queueMutex);
-                for (auto &p: m_spFilePaths->paths) {
+                for (auto &p: m_filePaths->paths) {
                     m_searchQueue.push_back(p);
                 }
             }

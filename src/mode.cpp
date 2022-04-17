@@ -325,26 +325,26 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     editor.SetCommandText("");
 
     // Figure out the command we have typed. foundCommand means that the command was interpreted and understood.
-    // If spCommand is returned, then there is an atomic command operation that needs to be done.
-    auto spContext = std::make_shared<CommandContext>(m_currentCommand, *this, m_currentMode);
+    // If command is returned, then there is an atomic command operation that needs to be done.
+    auto context = std::make_shared<CommandContext>(m_currentCommand, *this, m_currentMode);
 
     // Before handling the command, change the command text, since the command might override it
     if (editor.config.showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual)) {
-        editor.SetCommandText(spContext->keymap.searchPath);
+        editor.SetCommandText(context->keymap.searchPath);
     }
 
-    spContext->foundCommand = GetCommand(*spContext);
+    context->foundCommand = GetCommand(*context);
 
     // Stay in insert mode unless commanded otherwise
-    if (spContext->commandResult.modeSwitch == EditorMode::None && spContext->foundCommand) {
+    if (context->commandResult.modeSwitch == EditorMode::None && context->foundCommand) {
         if (m_modeFlags & ModeFlags::StayInInsertMode) {
-            spContext->commandResult.modeSwitch = EditorMode::Insert;
+            context->commandResult.modeSwitch = EditorMode::Insert;
         }
     }
 
     // A lambda to check for a pending mode switch after the command
     auto enteringMode = [=](auto mode) {
-        return m_currentMode != spContext->commandResult.modeSwitch && spContext->commandResult.modeSwitch == mode;
+        return m_currentMode != context->commandResult.modeSwitch && context->commandResult.modeSwitch == mode;
     };
 
     // Escape Nukes the current command - we handle it in the keyboard mappings after that
@@ -354,14 +354,14 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     }
 
     // Did we find something to do?
-    if (spContext->foundCommand) {
+    if (context->foundCommand) {
         // It's an undoable command  - add it
         // Note: a command here is something that modifies the text.  It can be something like a delete
         // or a simple insert
-        if (spContext->commandResult.spCommand) {
+        if (context->commandResult.command) {
             // If not in insert mode, begin the group, because we have started a new operation
-            if (m_currentMode != EditorMode::Insert || (spContext->commandResult.flags & CommandResultFlags::BeginUndoGroup)) {
-                AddCommand(std::make_shared<ZepCommand_GroupMarker>(spContext->buffer));
+            if (m_currentMode != EditorMode::Insert || (context->commandResult.flags & CommandResultFlags::BeginUndoGroup)) {
+                AddCommand(std::make_shared<ZepCommand_GroupMarker>(context->buffer));
 
                 // Record for the dot command
                 m_dotCommand = m_currentCommand;
@@ -371,34 +371,34 @@ void ZepMode::HandleMappedInput(const std::string &input) {
             }
 
             // Do the command
-            AddCommand(spContext->commandResult.spCommand);
+            AddCommand(context->commandResult.command);
         } else {
             // This command didn't change anything, but switched into insert mode, so
             // remember the dot command that did it
             if (enteringMode(EditorMode::Insert)) {
-                AddCommand(std::make_shared<ZepCommand_GroupMarker>(spContext->buffer));
+                AddCommand(std::make_shared<ZepCommand_GroupMarker>(context->buffer));
                 m_dotCommand = m_currentCommand;
             }
         }
 
         // If the command can't manage the count, we do it
         // Maybe all commands should handle the count?  What are the implications of that?  This bit is a bit messy
-        if (!(spContext->commandResult.flags & CommandResultFlags::HandledCount)) {
+        if (!(context->commandResult.flags & CommandResultFlags::HandledCount)) {
             // Ignore count == 1, we already did it
-            for (int i = 1; i < spContext->keymap.TotalCount(); i++) {
+            for (int i = 1; i < context->keymap.TotalCount(); i++) {
                 // May immediate execute and not return a command...
-                // Create a new 'inner' spContext-> for the next command, because we need to re-initialize the command
-                // spContext-> for 'after' what just happened!
+                // Create a new 'inner' context-> for the next command, because we need to re-initialize the command
+                // context-> for 'after' what just happened!
                 CommandContext contextInner(m_currentCommand, *this, m_currentMode);
-                if (GetCommand(contextInner) && contextInner.commandResult.spCommand) {
+                if (GetCommand(contextInner) && contextInner.commandResult.command) {
                     // Actually queue/do command
-                    AddCommand(contextInner.commandResult.spCommand);
+                    AddCommand(contextInner.commandResult.command);
                 }
             }
         }
 
         // A mode to switch to after the command is done
-        SwitchMode(spContext->commandResult.modeSwitch);
+        SwitchMode(context->commandResult.modeSwitch);
 
         // If not in ex mode, wait for a new command
         // Can this be cleaner?
@@ -411,7 +411,7 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     } else {
         // If not found, and there was no request for more characters, and we aren't in Ex mode
         if (m_currentMode != EditorMode::Ex) {
-            if (HandleIgnoredInput(*spContext) || !spContext->keymap.needMoreChars) {
+            if (HandleIgnoredInput(*context) || !context->keymap.needMoreChars) {
                 ResetCommand();
             }
         }
@@ -419,22 +419,22 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     ClampCursorForMode();
 }
 
-void ZepMode::AddCommand(std::shared_ptr<ZepCommand> spCmd) {
+void ZepMode::AddCommand(std::shared_ptr<ZepCommand> cmd) {
     if (currentWindow == nullptr) return;
 
     // Ignore commands on buffers because we are view only,
     // and all commands currently modify the buffer!
     if (currentWindow->buffer->HasFileFlags(FileFlags::Locked)) return;
 
-    spCmd->Redo();
-    m_undoStack.push(spCmd);
+    cmd->Redo();
+    m_undoStack.push(cmd);
 
     // Can't redo anything beyond this point
     std::stack<std::shared_ptr<ZepCommand>> empty;
     m_redoStack.swap(empty);
 
-    if (spCmd->cursorAfter.Valid()) {
-        currentWindow->SetBufferCursor(spCmd->cursorAfter);
+    if (cmd->cursorAfter.Valid()) {
+        currentWindow->SetBufferCursor(cmd->cursorAfter);
     }
 }
 
@@ -447,17 +447,17 @@ void ZepMode::Redo() {
     }
 
     while (!m_redoStack.empty()) {
-        auto &spCommand = m_redoStack.top();
-        spCommand->Redo();
+        auto &command = m_redoStack.top();
+        command->Redo();
 
-        if (spCommand->cursorAfter.Valid()) {
-            currentWindow->SetBufferCursor(spCommand->cursorAfter);
+        if (command->cursorAfter.Valid()) {
+            currentWindow->SetBufferCursor(command->cursorAfter);
         }
 
-        m_undoStack.push(spCommand);
+        m_undoStack.push(command);
         m_redoStack.pop();
 
-        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) break;
+        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(command) != nullptr) break;
     };
 }
 
@@ -470,17 +470,17 @@ void ZepMode::Undo() {
     }
 
     while (!m_undoStack.empty()) {
-        auto &spCommand = m_undoStack.top();
-        spCommand->Undo();
+        auto &command = m_undoStack.top();
+        command->Undo();
 
-        if (spCommand->cursorBefore.Valid()) {
-            currentWindow->SetBufferCursor(spCommand->cursorBefore);
+        if (command->cursorBefore.Valid()) {
+            currentWindow->SetBufferCursor(command->cursorBefore);
         }
 
-        m_redoStack.push(spCommand);
+        m_redoStack.push(command);
         m_undoStack.pop();
 
-        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(spCommand) != nullptr) break;
+        if (std::dynamic_pointer_cast<ZepCommand_GroupMarker>(command) != nullptr) break;
     };
 }
 
@@ -1393,7 +1393,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             context.endRange,
             context.bufferCursor,
             context.cursorAfterOverride);
-        context.commandResult.spCommand = std::static_pointer_cast<ZepCommand>(cmd);
+        context.commandResult.command = std::static_pointer_cast<ZepCommand>(cmd);
         context.commandResult.flags = ZSetFlags(context.commandResult.flags, CommandResultFlags::BeginUndoGroup);
         return true;
     } else if (context.op == CommandOperation::Insert && !context.pRegister->text.empty()) {
@@ -1403,7 +1403,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             context.pRegister->text,
             context.bufferCursor,
             context.cursorAfterOverride);
-        context.commandResult.spCommand = std::static_pointer_cast<ZepCommand>(cmd);
+        context.commandResult.command = std::static_pointer_cast<ZepCommand>(cmd);
         return true;
     } else if (context.op == CommandOperation::Replace && !context.pRegister->text.empty()) {
         auto cmd = std::make_shared<ZepCommand_ReplaceRange>(
@@ -1414,7 +1414,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
             context.pRegister->text,
             context.bufferCursor,
             context.cursorAfterOverride);
-        context.commandResult.spCommand = std::static_pointer_cast<ZepCommand>(cmd);
+        context.commandResult.command = std::static_pointer_cast<ZepCommand>(cmd);
         return true;
     } else if (context.op == CommandOperation::Copy || context.op == CommandOperation::CopyLines) {
         // Put the cursor where the command says it should be
@@ -1787,11 +1787,11 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
 
                     start = found + 1;
 
-                    auto spMarker = std::make_shared<RangeMarker>(*buffer);
-                    spMarker->SetColors(ThemeColor::VisualSelectBackground, ThemeColor::Text);
-                    spMarker->SetRange(ByteRange(found.index, found.PeekByteOffset(long(searchString.size())).index));
-                    spMarker->displayType = RangeMarkerDisplayType::Background;
-                    spMarker->markerType = RangeMarkerType::Search;
+                    auto marker = std::make_shared<RangeMarker>(*buffer);
+                    marker->SetColors(ThemeColor::VisualSelectBackground, ThemeColor::Text);
+                    marker->SetRange(ByteRange(found.index, found.PeekByteOffset(long(searchString.size())).index));
+                    marker->displayType = RangeMarkerDisplayType::Background;
+                    marker->markerType = RangeMarkerType::Search;
 
                     numMarkers++;
                 }

@@ -133,15 +133,15 @@ bool ReadCommandLine(int argc, char *argv[], int &exitCode) {
 // A helper struct to init the editor and handle callbacks
 struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     ZepContainerImGui(const std::string &startupFilePath, const std::string &configPath)
-        : spEditor(std::make_unique<ZepEditor_ImGui>(configPath, pixelScale))
-    //, fileWatcher(spEditor->fileSystem->GetConfigPath(), std::chrono::seconds(2))
+        : editor(std::make_unique<ZepEditor_ImGui>(configPath, pixelScale))
+    //, fileWatcher(editor->fileSystem->GetConfigPath(), std::chrono::seconds(2))
     {
         chibi_init(scheme, SDL_GetBasePath());
 
         // ZepEditor_ImGui will have created the fonts for us; but we need to build
         // the font atlas
         auto fontPath = std::string(SDL_GetBasePath()) + "Cousine-Regular.ttf";
-        auto &display = static_cast<ZepDisplay_ImGui &>(spEditor->GetDisplay());
+        auto &display = static_cast<ZepDisplay_ImGui &>(editor->GetDisplay());
 
         int fontPixelHeight = (int) dpi_pixel_height_from_point_size(DemoFontPtSize, pixelScale.y);
 
@@ -168,20 +168,20 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         unsigned int flags = 0; // ImGuiFreeType::NoHinting;
         ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, flags);
 
-        spEditor->RegisterCallback(this);
+        editor->RegisterCallback(this);
 
-        ZepRegressExCommand::Register(*spEditor);
+        ZepRegressExCommand::Register(*editor);
 
         // Repl
-        ZepReplExCommand::Register(*spEditor, this);
-        ZepReplEvaluateOuterCommand::Register(*spEditor, this);
-        ZepReplEvaluateInnerCommand::Register(*spEditor, this);
-        ZepReplEvaluateCommand::Register(*spEditor, this);
+        ZepReplExCommand::Register(*editor, this);
+        ZepReplEvaluateOuterCommand::Register(*editor, this);
+        ZepReplEvaluateInnerCommand::Register(*editor, this);
+        ZepReplEvaluateCommand::Register(*editor, this);
 
         if (!startupFilePath.empty()) {
-            spEditor->InitWithFileOrDir(startupFilePath);
+            editor->InitWithFileOrDir(startupFilePath);
         } else {
-            spEditor->InitWithText("Shader.vert", shader);
+            editor->InitWithText("Shader.vert", shader);
         }
     }
 
@@ -189,8 +189,8 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     }
 
     void Destroy() {
-        spEditor->UnRegisterCallback(this);
-        spEditor.reset();
+        editor->UnRegisterCallback(this);
+        editor.reset();
     }
 
     virtual std::string ReplParse(ZepBuffer &buffer, const GlyphIterator &cursorOffset, ReplParseType type) override {
@@ -267,24 +267,24 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         } else if (message->messageId == Msg::RequestQuit) {
             quit = true;
         } else if (message->messageId == Msg::ToolTip) {
-            auto spTipMsg = std::static_pointer_cast<ToolTipMessage>(message);
-            if (spTipMsg->location.Valid() && spTipMsg->pBuffer) {
-                auto pSyntax = spTipMsg->pBuffer->GetSyntax();
+            auto tipMsg = std::static_pointer_cast<ToolTipMessage>(message);
+            if (tipMsg->location.Valid() && tipMsg->pBuffer) {
+                auto pSyntax = tipMsg->pBuffer->GetSyntax();
                 if (pSyntax) {
-                    if (pSyntax->GetSyntaxAt(spTipMsg->location).foreground == ThemeColor::Identifier) {
-                        auto spMarker = std::make_shared<RangeMarker>(*spTipMsg->pBuffer);
-                        spMarker->SetDescription("This is an identifier");
-                        spMarker->SetHighlightColor(ThemeColor::Identifier);
-                        spMarker->SetTextColor(ThemeColor::Text);
-                        spTipMsg->spMarker = spMarker;
-                        spTipMsg->handled = true;
-                    } else if (pSyntax->GetSyntaxAt(spTipMsg->location).foreground == ThemeColor::Keyword) {
-                        auto spMarker = std::make_shared<RangeMarker>(*spTipMsg->pBuffer);
-                        spMarker->SetDescription("This is a keyword");
-                        spMarker->SetHighlightColor(ThemeColor::Keyword);
-                        spMarker->SetTextColor(ThemeColor::Text);
-                        spTipMsg->spMarker = spMarker;
-                        spTipMsg->handled = true;
+                    if (pSyntax->GetSyntaxAt(tipMsg->location).foreground == ThemeColor::Identifier) {
+                        auto marker = std::make_shared<RangeMarker>(*tipMsg->pBuffer);
+                        marker->SetDescription("This is an identifier");
+                        marker->SetHighlightColor(ThemeColor::Identifier);
+                        marker->SetTextColor(ThemeColor::Text);
+                        tipMsg->marker = marker;
+                        tipMsg->handled = true;
+                    } else if (pSyntax->GetSyntaxAt(tipMsg->location).foreground == ThemeColor::Keyword) {
+                        auto marker = std::make_shared<RangeMarker>(*tipMsg->pBuffer);
+                        marker->SetDescription("This is a keyword");
+                        marker->SetHighlightColor(ThemeColor::Keyword);
+                        marker->SetTextColor(ThemeColor::Text);
+                        tipMsg->marker = marker;
+                        tipMsg->handled = true;
                     }
                 }
             }
@@ -292,7 +292,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
     }
 
     bool quit = false;
-    std::unique_ptr<ZepEditor_ImGui> spEditor;
+    std::unique_ptr<ZepEditor_ImGui> editor;
     //FileWatcher fileWatcher;
 };
 
@@ -415,7 +415,7 @@ int main(int argc, char *argv[]) {
         } else {
             // Save battery by skipping display if not required.
             // This will check for cursor flash, for example, to keep that updated.
-            if (!zep.spEditor->RefreshRequired()) {
+            if (!zep.editor->RefreshRequired()) {
                 continue;
             }
         }
@@ -509,12 +509,12 @@ int main(int argc, char *argv[]) {
         // Fill the window
         max.x = min.x + max.x;
         max.y = min.y + max.y;
-        zep.spEditor->SetDisplayRegion({{min.x, min.y},
+        zep.editor->SetDisplayRegion({{min.x, min.y},
                                         {max.x, max.y}});
 
         // Display the editor inside this window
-        zep.spEditor->Display();
-        zep.spEditor->HandleInput();
+        zep.editor->Display();
+        zep.editor->HandleInput();
 
         ImGui::End();
         ImGui::PopStyleVar(4);

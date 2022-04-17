@@ -53,30 +53,30 @@ bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string
 }
 
 bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &commandId, KeyMapAdd option) {
-    auto spCurrent = map.spRoot;
+    auto current = map.root;
 
     std::ostringstream str;
     auto itrChar = strCommand.begin();
     while (itrChar != strCommand.end()) {
         auto search = NextToken(itrChar, strCommand.end());
 
-        auto itrRoot = spCurrent->children.find(search);
-        if (itrRoot == spCurrent->children.end()) {
-            auto spNode = std::make_shared<CommandNode>();
-            spNode->token = search;
-            spCurrent->children[search] = spNode;
-            spCurrent = spNode;
+        auto itrRoot = current->children.find(search);
+        if (itrRoot == current->children.end()) {
+            auto node = std::make_shared<CommandNode>();
+            node->token = search;
+            current->children[search] = node;
+            current = node;
         } else {
-            spCurrent = itrRoot->second;
+            current = itrRoot->second;
         }
     }
 
-    if (spCurrent->commandId != 0 && option == KeyMapAdd::New) {
+    if (current->commandId != 0 && option == KeyMapAdd::New) {
         assert(!"Adding twice?");
         return false;
     }
 
-    spCurrent->commandId = commandId;
+    current->commandId = commandId;
     return true;
 }
 
@@ -95,7 +95,7 @@ void keymap_dump(const KeyMap &map, std::ostringstream &str) {
             fnDump(child.second, depth + 2);
         }
     };
-    fnDump(map.spRoot, 0);
+    fnDump(map.root, 0);
 }
 
 bool isDigit(const char ch) { return ch >= '0' && ch <= '9'; }
@@ -105,8 +105,8 @@ bool isDigit(const char ch) { return ch >= '0' && ch <= '9'; }
 // <C-x>fgh
 // i.e. Keyboard mappings are fed in as <> strings.
 void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult &findResult) {
-    auto consumeDigits = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<int> &result, std::ostringstream &str) {
-        if (spNode->token == "<D>") {
+    auto consumeDigits = [](std::shared_ptr<CommandNode> &node, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<int> &result, std::ostringstream &str) {
+        if (node->token == "<D>") {
             // Walk along grabbing digits
             auto itrStart = itrChar;
             while (itrChar != itrEnd && isDigit(*itrChar)) {
@@ -130,8 +130,8 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
         return false;
     };
 
-    auto consumeChar = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &chars, std::ostringstream &str) {
-        if (spNode->token == "<.>") {
+    auto consumeChar = [](std::shared_ptr<CommandNode> &node, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &chars, std::ostringstream &str) {
+        if (node->token == "<.>") {
             // Special match groups
             if (itrChar != itrEnd) {
                 chars.push_back(*itrChar);
@@ -143,8 +143,8 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
         return false;
     };
 
-    auto consumeRegister = [](std::shared_ptr<CommandNode> &spNode, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &registers, std::ostringstream &str) {
-        if (spNode->token == "<R>") {
+    auto consumeRegister = [](std::shared_ptr<CommandNode> &node, std::string::const_iterator &itrChar, std::string::const_iterator itrEnd, std::vector<char> &registers, std::ostringstream &str) {
+        if (node->token == "<R>") {
             // Grab register
             if (itrChar != itrEnd && *itrChar == '"') {
                 itrChar++;
@@ -166,9 +166,9 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
     };
 
     std::function<bool(std::shared_ptr<CommandNode>, std::string::const_iterator, std::string::const_iterator, const Captures &captures, KeyMapResult &)> fnSearch;
-    fnSearch = [&](std::shared_ptr<CommandNode> spNode, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures &captures, KeyMapResult &result) {
-        for (auto &child: spNode->children) {
-            auto spChildNode = child.second;
+    fnSearch = [&](std::shared_ptr<CommandNode> node, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures &captures, KeyMapResult &result) {
+        for (auto &child: node->children) {
+            auto childNode = child.second;
             std::string::const_iterator itr = itrChar;
 
             Captures nodeCaptures;
@@ -177,12 +177,12 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
             std::string token;
 
             // Consume wildcards
-            if (consumeDigits(spChildNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures)) {
-                token = spChildNode->token;
-            } else if (consumeRegister(spChildNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures)) {
-                token = spChildNode->token;
-            } else if (consumeChar(spChildNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures)) {
-                token = spChildNode->token;
+            if (consumeDigits(childNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures)) {
+                token = childNode->token;
+            } else if (consumeRegister(childNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures)) {
+                token = childNode->token;
+            } else if (consumeChar(childNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures)) {
+                token = childNode->token;
             } else {
                 // Grab full <C-> tokens
                 token = string_slurp_if(itr, itrEnd, '<', '>');
@@ -193,7 +193,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
                 }
             }
 
-            if (token.empty() && child.second->commandId == StringId() && !spChildNode->children.empty()) {
+            if (token.empty() && child.second->commandId == StringId() && !childNode->children.empty()) {
                 result.searchPath += "(...)";
                 result.needMoreChars = true;
                 continue;
@@ -205,7 +205,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
                 result.searchPath += strCaptures.str() + "(" + token + ")";
 
                 // Remember if this is a valid match for something
-                result.foundMapping = spChildNode->commandId;
+                result.foundMapping = childNode->commandId;
 
                 // Append our capture groups to the current hierarchy level
                 nodeCaptures.captureChars.insert(nodeCaptures.captureChars.end(), captures.captureChars.begin(), captures.captureChars.end());
@@ -215,15 +215,15 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
                 // This node doesn't have a mapping, so look harder
                 if (result.foundMapping == StringId()) {
                     // There are more children, and we haven't got any more characters, keep asking for more
-                    if (!spChildNode->children.empty() && itr == itrEnd) {
+                    if (!childNode->children.empty() && itr == itrEnd) {
                         result.needMoreChars = true;
                     } else {
                         // Walk down to the next level
-                        if (fnSearch(spChildNode, itr, itrEnd, nodeCaptures, result)) return true;
+                        if (fnSearch(childNode, itr, itrEnd, nodeCaptures, result)) return true;
                     }
                 } else {
                     // This is the find result, note it and record the capture groups for the find
-                    result.searchPath += " : " + spChildNode->commandId.ToString();
+                    result.searchPath += " : " + childNode->commandId.ToString();
                     result.captureChars = nodeCaptures.captureChars;
                     result.captureNumbers = nodeCaptures.captureNumbers;
                     result.captureRegisters = nodeCaptures.captureRegisters;
@@ -241,7 +241,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
     findResult.needMoreChars = false;
 
     Captures captures;
-    bool found = fnSearch(map.spRoot, strCommand.begin(), strCommand.end(), captures, findResult);
+    bool found = fnSearch(map.root, strCommand.begin(), strCommand.end(), captures, findResult);
     if (!found) {
         if (findResult.needMoreChars) {
             findResult.searchPath += "(...)";

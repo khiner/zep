@@ -61,8 +61,8 @@ void ZepDisplay::DrawRect(const NRectf &rc, const NVec4f &col) const {
     DrawLine(rc.BottomLeft(), rc.bottomRightPx, col);
 }
 
-void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont) {
-    fonts[(int) type] = std::move(spFont);
+void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> font) {
+    fonts[(int) type] = std::move(font);
 }
 
 void ZepDisplay::Bigger() {

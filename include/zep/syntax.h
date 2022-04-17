@@ -19,7 +19,7 @@ namespace ZepSyntaxFlags {
 enum {
     CaseInsensitive = (1 << 0),
     IgnoreLineHighlight = (1 << 1),
-    LispLike = (1 << 2)
+    Lilike = (1 << 2)
 };
 };
 

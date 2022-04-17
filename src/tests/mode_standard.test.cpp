@@ -16,40 +16,40 @@ public:
     StandardTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
-        spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
-        pBuffer = spEditor->InitWithText("Test Buffer", "");
+        editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
+        pBuffer = editor->InitWithText("Test Buffer", "");
 
-        pTabWindow = spEditor->activeTabWindow;
-        pWindow = spEditor->activeTabWindow->GetActiveWindow();
+        pTabWindow = editor->activeTabWindow;
+        pWindow = editor->activeTabWindow->GetActiveWindow();
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
-        spEditor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
+        editor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
 
         pWindow->SetBufferCursor(pBuffer->Begin());
 
-        spEditor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
-        spMode = spEditor->GetGlobalMode();
+        editor->SetGlobalMode(Zep::ZepMode_Standard::StaticName());
+        mode = editor->GetGlobalMode();
     }
 
     ~StandardTest() {
     }
 
 public:
-    std::shared_ptr<ZepEditor> spEditor;
+    std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
     ZepWindow *pWindow;
     ZepTabWindow *pTabWindow;
-    ZepMode *spMode;
+    ZepMode *mode;
 };
 
 TEST_F(StandardTest, CheckDisplaySucceeds
 )
 {
 pBuffer->SetText("Some text to display\nThis is a test.");
-spEditor->
+editor->
 SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f})
 );
-ASSERT_NO_FATAL_FAILURE(spEditor
+ASSERT_NO_FATAL_FAILURE(editor
 ->
 Display()
 );
@@ -88,38 +88,38 @@ empty()
             }                                                 \
             else if (ch == 'r')                               \
             {                                                 \
-                spMode->AddKeyPress(ExtKeys::RIGHT, mod);     \
+                mode->AddKeyPress(ExtKeys::RIGHT, mod);     \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'l')                               \
             {                                                 \
-                spMode->AddKeyPress(ExtKeys::LEFT, mod);      \
+                mode->AddKeyPress(ExtKeys::LEFT, mod);      \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'u')                               \
             {                                                 \
-                spMode->AddKeyPress(ExtKeys::UP, mod);        \
+                mode->AddKeyPress(ExtKeys::UP, mod);        \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'd')                               \
             {                                                 \
-                spMode->AddKeyPress(ExtKeys::DOWN, mod);      \
+                mode->AddKeyPress(ExtKeys::DOWN, mod);      \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'x')                               \
             {                                                 \
-                spMode->AddKeyPress(ExtKeys::BACKSPACE, mod); \
+                mode->AddKeyPress(ExtKeys::BACKSPACE, mod); \
                 mod = 0;                                      \
             }                                                 \
         }                                                     \
         else if (ch == '\n')                                  \
         {                                                     \
-            spMode->AddKeyPress(ExtKeys::RETURN, mod);        \
+            mode->AddKeyPress(ExtKeys::RETURN, mod);        \
             mod = 0;                                          \
         }                                                     \
         else                                                  \
         {                                                     \
-            spMode->AddKeyPress(ch, mod);                     \
+            mode->AddKeyPress(ch, mod);                     \
             mod = 0;                                          \
         }                                                     \
     }
@@ -151,8 +151,8 @@ empty()
     {                                                                       \
         pBuffer->SetText(source);                                           \
         PARSE_COMMAND(command)                                              \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.index, start); \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.index, end);  \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().first.index, start); \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().second.index, end);  \
     }
 
 TEST_F(StandardTest, UndoRedo
@@ -160,12 +160,12 @@ TEST_F(StandardTest, UndoRedo
 {
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello");
-spMode->AddCommandText(" ");
-spMode->
+mode->AddCommandText(" ");
+mode->
 Undo();
-spMode->
+mode->
 Redo();
-spMode->
+mode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
@@ -176,10 +176,10 @@ string()
 c_str(),
 "Hello");
 
-spMode->AddCommandText("iYo, ");
-spMode->
+mode->AddCommandText("iYo, ");
+mode->
 Undo();
-spMode->
+mode->
 Redo();
 ASSERT_STREQ(pBuffer
 ->
@@ -196,24 +196,24 @@ TEST_F(StandardTest, copy_pasteover_paste
 {
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello Goodbye");
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-spMode->AddKeyPress('c', ModifierKey::Ctrl);
+mode->AddKeyPress('c', ModifierKey::Ctrl);
 
-spMode->AddKeyPress('v', ModifierKey::Ctrl);
+mode->AddKeyPress('v', ModifierKey::Ctrl);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -225,7 +225,7 @@ c_str(),
 
 // Note this is incorrect for what we expect, but a side effect of the test: Fix it.
 // The actual behavior in the editor is correct!
-spMode->AddKeyPress('v', ModifierKey::Ctrl);
+mode->AddKeyPress('v', ModifierKey::Ctrl);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -248,16 +248,16 @@ TEST_F(StandardTest, BackToInsertIfShiftReleased
 {
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("abc");
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
 );
-ASSERT_EQ(spMode
+ASSERT_EQ(mode
 ->
 GetEditorMode(), EditorMode::Visual
 );
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT);
-ASSERT_EQ(spMode
+ASSERT_EQ(mode
 ->
 GetEditorMode(), EditorMode::Insert
 );
@@ -267,17 +267,17 @@ TEST_F(StandardTest, down_a_shorter_line
 {
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello Goodbye\nF");
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT);
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT);
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT);
-spMode->
+mode->
 AddKeyPress(ExtKeys::RIGHT);
-spMode->
+mode->
 AddKeyPress(ExtKeys::DOWN);
-spMode->AddKeyPress('o');
+mode->AddKeyPress('o');
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -292,9 +292,9 @@ TEST_F(StandardTest, DELETE
 )
 {
 pBuffer->SetText("Hello");
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
@@ -305,8 +305,8 @@ string()
 c_str(),
 "llo");
 
-spMode->AddCommandText("vll");
-spMode->
+mode->AddCommandText("vll");
+mode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
@@ -321,7 +321,7 @@ c_str(),
 // Is this a behavior expectation or a bug?  Should the cursor clamp to the previously
 // set text end, or reset to 0??
 pBuffer->SetText("H");
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
@@ -332,7 +332,7 @@ string()
 c_str(),
 "H");
 
-spMode->
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
@@ -348,10 +348,10 @@ TEST_F(StandardTest, BACKSPACE
 )
 {
 pBuffer->SetText("Hello");
-spMode->AddCommandText("ll");
-spMode->
+mode->AddCommandText("ll");
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
-spMode->
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
@@ -368,8 +368,8 @@ GetBufferCursor()
 Index(),
 0);
 
-spMode->AddCommandText("lli");
-spMode->
+mode->AddCommandText("lli");
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->

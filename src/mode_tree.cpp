@@ -10,8 +10,8 @@ ZepFileTree::ZepFileTree() {
     root->Expand(true);
 }
 
-ZepMode_Tree::ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &window)
-    : ZepMode_Vim(editor), m_spTree(std::move(spTree)), m_window(window) {}
+ZepMode_Tree::ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> tree, ZepWindow &launchWindow, ZepWindow &window)
+    : ZepMode_Vim(editor), m_tree(std::move(tree)), m_window(window) {}
 
 ZepMode_Tree::~ZepMode_Tree() = default;
 
@@ -36,8 +36,8 @@ void ZepMode_Tree::BuildTree() {
         }
     };
 
-    if (m_spTree->root->IsExpanded()) {
-        for (const auto &pChild: m_spTree->root->GetChildren()) {
+    if (m_tree->root->IsExpanded()) {
+        for (const auto &pChild: m_tree->root->GetChildren()) {
             fnVisit(pChild.get(), 0);
         }
     }

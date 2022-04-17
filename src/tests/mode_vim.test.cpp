@@ -22,18 +22,18 @@ public:
     VimTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
-        spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
-        spMode = std::make_shared<ZepMode_Vim>(*spEditor);
-        spMode->Init();
+        editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
+        mode = std::make_shared<ZepMode_Vim>(*editor);
+        mode->Init();
 
-        pBuffer = spEditor->InitWithText("Test Buffer", "");
+        pBuffer = editor->InitWithText("Test Buffer", "");
 
-        pTabWindow = spEditor->activeTabWindow;
-        pWindow = spEditor->activeTabWindow->GetActiveWindow();
-        spMode->Begin(pWindow);
+        pTabWindow = editor->activeTabWindow;
+        pWindow = editor->activeTabWindow->GetActiveWindow();
+        mode->Begin(pWindow);
 
         // Setup editor with a default fixed_size so that text doesn't wrap and confuse the tests!
-        spEditor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
+        editor->SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f});
 
         pWindow->SetBufferCursor(pBuffer->Begin());
 
@@ -41,8 +41,8 @@ public:
         //COMMAND_TEST(delete_cw, "one two three", "cwabc", "abc two three");
         //COMMAND_TEST(delete_ciw_on_newline, "one\n\nthree", "jciwtwo", "one\ntwo\nthree");
         /*pBuffer->SetText("one\n\nthree");
-        spEditor->Display(*spDisplay);
-        spMode->AddCommandText("jciwtwo");               
+        editor->Display(*display);
+        mode->AddCommandText("jciwtwo");
         assert(pBuffer->workingBuffer.string() == "abc two three");
         */
     }
@@ -51,11 +51,11 @@ public:
     }
 
 public:
-    std::shared_ptr<ZepEditor> spEditor;
+    std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
     ZepWindow *pWindow;
     ZepTabWindow *pTabWindow;
-    std::shared_ptr<ZepMode_Vim> spMode;
+    std::shared_ptr<ZepMode_Vim> mode;
 };
 
 #define HANDLE_VIM_COMMAND(command)               \
@@ -65,11 +65,11 @@ public:
             continue;                             \
         if (ch == '\n')                           \
         {                                         \
-            spMode->AddKeyPress(ExtKeys::RETURN); \
+            mode->AddKeyPress(ExtKeys::RETURN); \
         }                                         \
         else                                      \
         {                                         \
-            spMode->AddKeyPress(ch);              \
+            mode->AddKeyPress(ch);              \
         }                                         \
     }
 
@@ -87,8 +87,8 @@ public:
     {                                                      \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().first.index, start); \
-        ASSERT_EQ(spMode->GetInclusiveVisualRange().second.index, end);  \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().first.index, start); \
+        ASSERT_EQ(mode->GetInclusiveVisualRange().second.index, end);  \
     };
 
 // Given a sample text, a keystroke list and a target text, check the test returns the right thing
@@ -96,7 +96,7 @@ public:
     TEST_F(VimTest, name)                                               \
     {                                                                   \
         pBuffer->SetText(source);                                       \
-        spMode->AddCommandText(command);                                \
+        mode->AddCommandText(command);                                \
         ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
@@ -104,8 +104,8 @@ public:
     TEST_F(VimTest, name)                                               \
     {                                                                   \
         pBuffer->SetText(source);                                       \
-        spMode->AddCommandText(command);                                \
-        spMode->AddKeyPress(ExtKeys::RETURN);                           \
+        mode->AddCommandText(command);                                \
+        mode->AddKeyPress(ExtKeys::RETURN);                           \
         ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
@@ -113,10 +113,10 @@ TEST_F(VimTest, CheckDisplaySucceeds
 )
 {
 pBuffer->SetText("Some text to display\nThis is a test.");
-spEditor->
+editor->
 SetDisplayRegion({0.0f, 0.0f, 1024.0f, 1024.0f})
 );
-ASSERT_NO_FATAL_FAILURE(spEditor
+ASSERT_NO_FATAL_FAILURE(editor
 ->
 Display()
 );
@@ -132,7 +132,7 @@ TEST_F(VimTest, CheckDisplayWrap
 )
 {
 pBuffer->SetText("Some text to display\nThis is a test.");
-ASSERT_NO_FATAL_FAILURE(spEditor
+ASSERT_NO_FATAL_FAILURE(editor
 ->
 Display()
 );
@@ -148,12 +148,12 @@ TEST_F(VimTest, UndoRedo
 {
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello");
-spMode->AddCommandText("3x");
-spMode->
+mode->AddCommandText("3x");
+mode->
 Undo();
-spMode->
+mode->
 Redo();
-spMode->
+mode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
@@ -164,10 +164,10 @@ string()
 c_str(),
 "Hello");
 
-spMode->AddCommandText("iYo, jk");
-spMode->
+mode->AddCommandText("iYo, jk");
+mode->
 Undo();
-spMode->
+mode->
 Redo();
 ASSERT_STREQ(pBuffer
 ->
@@ -183,9 +183,9 @@ TEST_F(VimTest, DELETE
 )
 {
 pBuffer->SetText("Hello");
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
@@ -196,8 +196,8 @@ string()
 c_str(),
 "llo");
 
-spMode->AddCommandText("vll");
-spMode->
+mode->AddCommandText("vll");
+mode->
 AddKeyPress(ExtKeys::DEL);
 ASSERT_STREQ(pBuffer
 ->
@@ -209,9 +209,9 @@ c_str(),
 "");
 
 pBuffer->SetText("H");
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
-spMode->
+mode->
 AddKeyPress(ExtKeys::DEL);
 }
 
@@ -219,10 +219,10 @@ TEST_F(VimTest, ESCAPE
 )
 {
 pBuffer->SetText("Hello");
-spMode->AddCommandText("iHi, ");
-spMode->
+mode->AddCommandText("iHi, ");
+mode->
 AddKeyPress(ExtKeys::ESCAPE);
-spMode->
+mode->
 Undo();
 ASSERT_STREQ(pBuffer
 ->
@@ -238,15 +238,15 @@ TEST_F(VimTest, RETURN
 )
 {
 pBuffer->SetText("Õne\ntwo");
-spMode->
+mode->
 AddKeyPress(ExtKeys::RETURN);
 ASSERT_EQ(pWindow
 ->
 BufferToDisplay()
 .y, 1);
 
-spMode->AddCommandText("li");
-spMode->
+mode->AddCommandText("li");
+mode->
 AddKeyPress(ExtKeys::RETURN);
 ASSERT_STREQ(pBuffer
 ->
@@ -262,8 +262,8 @@ TEST_F(VimTest, TAB
 )
 {
 pBuffer->SetText("HellÕ");
-spMode->AddCommandText("llllllllli");
-spMode->
+mode->AddCommandText("llllllllli");
+mode->
 AddKeyPress(ExtKeys::TAB);
 ASSERT_STREQ(pBuffer
 ->
@@ -279,10 +279,10 @@ TEST_F(VimTest, BACKSPACE
 )
 {
 pBuffer->SetText("Hello");
-spMode->AddCommandText("ll");
-spMode->
+mode->AddCommandText("ll");
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
-spMode->
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
@@ -299,8 +299,8 @@ GetBufferCursor()
 Index(),
 0);
 
-spMode->AddCommandText("lli");
-spMode->
+mode->AddCommandText("lli");
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->
@@ -314,10 +314,10 @@ c_str(),
 // Check that appending on the line then hitting backspace removes the last char
 // A bug that showed up at some point
 pBuffer->SetText("AB");
-spMode->
+mode->
 AddKeyPress(ExtKeys::ESCAPE);
-spMode->AddCommandText("AC");
-spMode->
+mode->AddCommandText("AC");
+mode->
 AddKeyPress(ExtKeys::BACKSPACE);
 ASSERT_STREQ(pBuffer
 ->

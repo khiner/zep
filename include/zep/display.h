@@ -54,7 +54,7 @@ struct ZepDisplay {
 
     virtual void DrawRect(const NRectf &rc, const NVec4f &col = NVec4f(1.0f)) const;
 
-    virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
+    virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> font);
     virtual ZepFont &GetFont(ZepTextType type) = 0;
 
     void Bigger();

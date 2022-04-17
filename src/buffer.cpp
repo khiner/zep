@@ -944,19 +944,19 @@ void ZepBuffer::SetSelection(const GlyphRange &sel) {
     }
 }
 
-void ZepBuffer::AddRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
-    rangeMarkers[spMarker->GetRange().first].insert(spMarker);
+void ZepBuffer::AddRangeMarker(const std::shared_ptr<RangeMarker> &marker) {
+    rangeMarkers[marker->GetRange().first].insert(marker);
 
     // TODO: Why is this necessary; marks the whole buffer
     editor.Broadcast(std::make_shared<BufferMessage>(this, BufferMessageType::MarkersChanged, Begin(), End()));
 }
 
-void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker) {
-    auto itr = rangeMarkers.find(spMarker->GetRange().first);
+void ZepBuffer::ClearRangeMarker(const std::shared_ptr<RangeMarker> &marker) {
+    auto itr = rangeMarkers.find(marker->GetRange().first);
     if (itr != rangeMarkers.end()) {
-        itr->second.erase(spMarker);
+        itr->second.erase(marker);
         if (itr->second.empty()) {
-            rangeMarkers.erase(spMarker->GetRange().first);
+            rangeMarkers.erase(marker->GetRange().first);
         }
     }
 
@@ -1018,18 +1018,18 @@ void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIte
 }
 
 void ZepBuffer::HideMarkers(uint32_t markerType) const {
-    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &spMarker) {
-        if ((spMarker->markerType & markerType) != 0) {
-            spMarker->displayType = RangeMarkerDisplayType::Hidden;
+    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
+        if ((marker->markerType & markerType) != 0) {
+            marker->displayType = RangeMarkerDisplayType::Hidden;
         }
         return true;
     });
 }
 
 void ZepBuffer::ShowMarkers(uint32_t markerType, uint32_t displayType) const {
-    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &spMarker) {
-        if ((spMarker->markerType & markerType) != 0) {
-            spMarker->displayType = displayType;
+    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
+        if ((marker->markerType & markerType) != 0) {
+            marker->displayType = displayType;
         }
         return true;
     });
@@ -1037,9 +1037,9 @@ void ZepBuffer::ShowMarkers(uint32_t markerType, uint32_t displayType) const {
 
 tRangeMarkers ZepBuffer::GetRangeMarkers(uint32_t markerType) const {
     tRangeMarkers markers;
-    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &spMarker) {
-        if ((spMarker->markerType & markerType) != 0) {
-            markers[spMarker->GetRange().first].insert(spMarker);
+    ForEachMarker(markerType, Direction::Forward, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
+        if ((marker->markerType & markerType) != 0) {
+            markers[marker->GetRange().first].insert(marker);
         }
         return true;
     });
@@ -1049,25 +1049,25 @@ tRangeMarkers ZepBuffer::GetRangeMarkers(uint32_t markerType) const {
 std::shared_ptr<RangeMarker> ZepBuffer::FindNextMarker(GlyphIterator start, Direction dir, uint32_t markerType) const {
     start.Clamp();
 
-    std::shared_ptr<RangeMarker> spFound;
+    std::shared_ptr<RangeMarker> found;
     auto search = [&]() {
         ForEachMarker(markerType, dir, Begin(), End(), [&](const std::shared_ptr<RangeMarker> &marker) {
             if (dir == Direction::Forward) {
                 if (marker->GetRange().first <= start.index) return true;
             } else if (marker->GetRange().first >= start.index) return true;
 
-            spFound = marker;
+            found = marker;
             return false;
         });
     };
 
     search();
-    if (spFound == nullptr) {
+    if (found == nullptr) {
         // Wrap
         start = (dir == Direction::Forward ? Begin() : End());
         search();
     }
-    return spFound;
+    return found;
 }
 
 GlyphIterator ZepBuffer::GetLastEditLocation() {
@@ -1127,15 +1127,15 @@ GlyphRange ZepBuffer::GetExpression(ExpressionType expressionType, const GlyphIt
 
         for (auto &exp: beginExpression) {
             if (exp == ch) {
-                auto spChild = std::make_shared<Expression>();
+                auto child = std::make_shared<Expression>();
                 if (pCurrent) {
-                    pCurrent->children.push_back(spChild);
-                    spChild->pParent = pCurrent;
-                    spChild->depth = pCurrent->depth + 1;
+                    pCurrent->children.push_back(child);
+                    child->pParent = pCurrent;
+                    child->depth = pCurrent->depth + 1;
                 } else {
-                    topLevel.push_back(spChild);
+                    topLevel.push_back(child);
                 }
-                pCurrent = spChild.get();
+                pCurrent = child.get();
                 pCurrent->range.first = itr;
             }
         }
@@ -1202,13 +1202,13 @@ void ZepBuffer::EndFlash() const {
 void ZepBuffer::BeginFlash(float seconds, FlashType flashType, const GlyphRange &range) {
     if (range.first == range.second) return;
 
-    auto spMarker = std::make_shared<RangeMarker>(*this);
-    spMarker->SetRange(ByteRange(range.first.index, range.second.index));
-    spMarker->SetBackgroundColor(ThemeColor::FlashColor);
-    spMarker->displayType = RangeMarkerDisplayType::Timed | RangeMarkerDisplayType::Background;
-    spMarker->markerType = RangeMarkerType::Mark;
-    spMarker->duration = seconds;
-    timer_restart(spMarker->timer);
+    auto marker = std::make_shared<RangeMarker>(*this);
+    marker->SetRange(ByteRange(range.first.index, range.second.index));
+    marker->SetBackgroundColor(ThemeColor::FlashColor);
+    marker->displayType = RangeMarkerDisplayType::Timed | RangeMarkerDisplayType::Background;
+    marker->markerType = RangeMarkerType::Mark;
+    marker->duration = seconds;
+    timer_restart(marker->timer);
 
     editor.SetFlags(ZSetFlags(editor.flags, ZepEditorFlags::FastUpdate));
 }

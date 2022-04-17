@@ -33,11 +33,11 @@ void RangeMarker::SetColors(ThemeColor back, ThemeColor text, ThemeColor highlig
 void RangeMarker::SetAlpha(float a) { alpha = a; }
 
 void RangeMarker::SetRange(ByteRange range) {
-    auto spMarker = shared_from_this();
-    buffer.ClearRangeMarker(spMarker);
+    auto marker = shared_from_this();
+    buffer.ClearRangeMarker(marker);
 
     m_range = range;
-    buffer.AddRangeMarker(spMarker);
+    buffer.AddRangeMarker(marker);
 }
 
 const ByteRange &RangeMarker::GetRange() const { return m_range; }

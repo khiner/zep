@@ -103,9 +103,9 @@ void ZepMode_Search::Notify(const std::shared_ptr<ZepMessage> &message) {
 
             fileSearchActive = false;
 
-            m_spFilePaths = m_indexResult.get();
-            if (!m_spFilePaths->errors.empty()) {
-                editor.SetCommandText(m_spFilePaths->errors);
+            m_filePaths = m_indexResult.get();
+            if (!m_filePaths->errors.empty()) {
+                editor.SetCommandText(m_filePaths->errors);
                 return;
             }
 
@@ -125,7 +125,7 @@ void ZepMode_Search::Notify(const std::shared_ptr<ZepMessage> &message) {
 void ZepMode_Search::InitSearchTree() {
     m_indexTree.clear();
     auto pInitSet = std::make_shared<IndexSet>();
-    for (uint32_t i = 0; i < (uint32_t) m_spFilePaths->paths.size(); i++) {
+    for (uint32_t i = 0; i < (uint32_t) m_filePaths->paths.size(); i++) {
         pInitSet->insert(std::make_pair(0, SearchResult{i, 0}));
     }
     m_indexTree.push_back(pInitSet);
@@ -138,7 +138,7 @@ void ZepMode_Search::ShowTreeResult() {
         if (!start) {
             str << std::endl;
         }
-        str << m_spFilePaths->paths[index.second.index].string();
+        str << m_filePaths->paths[index.second.index].string();
         start = false;
     }
     m_window.buffer->SetText(str.str());
@@ -158,8 +158,8 @@ void ZepMode_Search::OpenSelection(OpenType type) {
     long count = 0;
     for (auto &index: *m_indexTree.back()) {
         if (count == line) {
-            auto path = m_spFilePaths->paths[index.second.index];
-            auto full_path = m_spFilePaths->root / path;
+            auto path = m_filePaths->paths[index.second.index];
+            auto full_path = m_filePaths->root / path;
             auto pBuffer = editor.GetFileBuffer(full_path, 0, true);
             if (pBuffer != nullptr) {
                 switch (type) {
@@ -203,24 +203,24 @@ void ZepMode_Search::UpdateTree() {
             treeDepth--;
         };
     } else if (m_searchTerm.size() > treeDepth) {
-        std::shared_ptr<IndexSet> spStartSet;
-        spStartSet = m_indexTree[m_indexTree.size() - 1];
+        std::shared_ptr<IndexSet> startSet;
+        startSet = m_indexTree[m_indexTree.size() - 1];
         char startChar = m_searchTerm[m_indexTree.size() - 1];
 
         // Search for a match at the next level of the search tree
-        m_searchResult = editor.threadPool->enqueue([&](const std::shared_ptr<IndexSet> &spStartSet, const char startChar) {
-                auto spResult = std::make_shared<IndexSet>();
-                for (auto &searchPair: *spStartSet) {
+        m_searchResult = editor.threadPool->enqueue([&](const std::shared_ptr<IndexSet> &startSet, const char startChar) {
+                auto result = std::make_shared<IndexSet>();
+                for (auto &searchPair: *startSet) {
                     auto index = searchPair.second.index;
                     auto loc = searchPair.second.location;
                     auto dist = searchPair.first;
 
                     size_t pos;
                     if (m_caseImportant) {
-                        auto str = m_spFilePaths->paths[index].string();
+                        auto str = m_filePaths->paths[index].string();
                         pos = str.find_first_of(startChar, loc);
                     } else {
-                        auto str = m_spFilePaths->lowerPaths[index];
+                        auto str = m_filePaths->lowerPaths[index];
                         pos = str.find_first_of(startChar, loc);
                     }
 
@@ -236,12 +236,12 @@ void ZepMode_Search::UpdateTree() {
                             newDist = dist + 1;
                         }
 
-                        spResult->insert(std::make_pair(newDist, SearchResult{index, (uint32_t) pos}));
+                        result->insert(std::make_pair(newDist, SearchResult{index, (uint32_t) pos}));
                     }
                 }
-                return spResult;
+                return result;
             },
-            spStartSet, startChar);
+            startSet, startChar);
 
         treeSearchActive = true;
     }

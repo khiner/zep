@@ -115,11 +115,11 @@ void ZepEditor::LoadConfig(const ZepPath &config_path) {
     if (!fileSystem->Exists(config_path)) return;
 
     try {
-        std::shared_ptr<cpptoml::table> spConfig;
-        spConfig = cpptoml::parse_file(config_path.string());
-        if (spConfig == nullptr) return;
+        std::shared_ptr<cpptoml::table> config;
+        config = cpptoml::parse_file(config_path.string());
+        if (config == nullptr) return;
 
-        LoadConfig(spConfig);
+        LoadConfig(config);
     }
     catch (cpptoml::parse_exception &ex) {
         std::ostringstream str;
@@ -132,61 +132,28 @@ void ZepEditor::LoadConfig(const ZepPath &config_path) {
     }
 }
 
-void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
+void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &newConfig) {
     try {
-        config.showNormalModeKeyStrokes = spConfig->get_qualified_as<bool>("editor.show_normal_mode_keystrokes").value_or(false);
-        config.showIndicatorRegion = spConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
-        config.showLineNumbers = spConfig->get_qualified_as<bool>("editor.show_line_numbers").value_or(true);
-        config.autoHideCommandRegion = spConfig->get_qualified_as<bool>("editor.autohide_command_region").value_or(false);
-        config.cursorLineSolid = spConfig->get_qualified_as<bool>("editor.cursor_line_solid").value_or(true);
-        config.backgroundFadeTime = (float) spConfig->get_qualified_as<double>("editor.background_fade_time").value_or(60.0f);
-        config.backgroundFadeWait = (float) spConfig->get_qualified_as<double>("editor.background_fade_wait").value_or(60.0f);
-        config.showScrollBar = spConfig->get_qualified_as<uint32_t>("editor.show_scrollbar").value_or(1);
-        config.lineMargins.x = (float) spConfig->get_qualified_as<double>("editor.line_margin_top").value_or(1);
-        config.lineMargins.y = (float) spConfig->get_qualified_as<double>("editor.line_margin_bottom").value_or(1);
-        config.widgetMargins.x = (float) spConfig->get_qualified_as<double>("editor.widget_margin_top").value_or(1);
-        config.widgetMargins.y = (float) spConfig->get_qualified_as<double>("editor.widget_margin_bottom").value_or(1);
-        config.shortTabNames = spConfig->get_qualified_as<bool>("editor.short_tab_names").value_or(false);
-        auto styleStr = string_tolower(spConfig->get_qualified_as<std::string>("editor.style").value_or("normal"));
+        config.showNormalModeKeyStrokes = newConfig->get_qualified_as<bool>("editor.show_normal_mode_keystrokes").value_or(false);
+        config.showIndicatorRegion = newConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
+        config.showLineNumbers = newConfig->get_qualified_as<bool>("editor.show_line_numbers").value_or(true);
+        config.autoHideCommandRegion = newConfig->get_qualified_as<bool>("editor.autohide_command_region").value_or(false);
+        config.cursorLineSolid = newConfig->get_qualified_as<bool>("editor.cursor_line_solid").value_or(true);
+        config.backgroundFadeTime = (float) newConfig->get_qualified_as<double>("editor.background_fade_time").value_or(60.0f);
+        config.backgroundFadeWait = (float) newConfig->get_qualified_as<double>("editor.background_fade_wait").value_or(60.0f);
+        config.showScrollBar = newConfig->get_qualified_as<uint32_t>("editor.show_scrollbar").value_or(1);
+        config.lineMargins.x = (float) newConfig->get_qualified_as<double>("editor.line_margin_top").value_or(1);
+        config.lineMargins.y = (float) newConfig->get_qualified_as<double>("editor.line_margin_bottom").value_or(1);
+        config.widgetMargins.x = (float) newConfig->get_qualified_as<double>("editor.widget_margin_top").value_or(1);
+        config.widgetMargins.y = (float) newConfig->get_qualified_as<double>("editor.widget_margin_bottom").value_or(1);
+        config.shortTabNames = newConfig->get_qualified_as<bool>("editor.short_tab_names").value_or(false);
+        auto styleStr = string_tolower(newConfig->get_qualified_as<std::string>("editor.style").value_or("normal"));
         if (styleStr == "normal") {
             config.style = EditorStyle::Normal;
         } else if (styleStr == "minimal") {
             config.style = EditorStyle::Minimal;
         }
     } catch (...) {}
-}
-
-// TODO get rid of this
-void ZepEditor::SaveConfig(const std::shared_ptr<cpptoml::table> &spConfig) {
-    auto table = spConfig->get_table("editor");
-    if (!table) {
-        table = cpptoml::make_table();
-        spConfig->insert("editor", table);
-    }
-
-    table->insert("show_normal_mode_keystrokes", config.showNormalModeKeyStrokes);
-    table->insert("show_indicator_region", config.showIndicatorRegion);
-    table->insert("show_line_numbers", config.showLineNumbers);
-    table->insert("autohide_command_region", config.autoHideCommandRegion);
-    table->insert("cursor_line_solid", config.cursorLineSolid);
-    table->insert("short_tab_names", config.shortTabNames);
-    table->insert("background_fade_time", (double) config.backgroundFadeTime);
-    table->insert("background_fade_wait", (double) config.backgroundFadeWait);
-    table->insert("show_scrollbar", config.showScrollBar);
-
-    table->insert("line_margin_top", config.lineMargins.x);
-    table->insert("line_margin_bottom", config.lineMargins.y);
-    table->insert("widget_margin_top", config.widgetMargins.x);
-    table->insert("widget_margin_bottom", config.widgetMargins.y);
-
-    table->insert("style", config.style == EditorStyle::Minimal ? "minimal" : "normal");
-
-    /*
-    Example Write:
-    std::ofstream stream("d:/dev/out.txt");
-    cpptoml::toml_writer writer(stream, "");
-    writer.visit(*spConfig);
-    */
 }
 
 void ZepEditor::SaveBuffer(ZepBuffer &buffer) {
@@ -224,8 +191,8 @@ void ZepEditor::RemoveBuffer(ZepBuffer *buffer) {
     }
 
     // Find the buffer in the list of buffers owned by the editor and remove it
-    auto itr = std::find_if(buffers.begin(), buffers.end(), [buffer](const auto &spBuffer) {
-        return spBuffer.get() == buffer;
+    auto itr = std::find_if(buffers.begin(), buffers.end(), [buffer](const auto &bufferToCheck) {
+        return bufferToCheck.get() == buffer;
     });
 
     if (itr != buffers.end()) {
@@ -507,9 +474,9 @@ void ZepEditor::RemoveTabWindow(ZepTabWindow *tabWindow) {
     }
 }
 
-void ZepEditor::RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode) {
-    m_mapGlobalModes[spMode->Name()] = spMode;
-    spMode->Init();
+void ZepEditor::RegisterGlobalMode(const std::shared_ptr<ZepMode> &mode) {
+    m_mapGlobalModes[mode->Name()] = mode;
+    mode->Init();
 }
 
 void ZepEditor::RegisterExCommand(const std::shared_ptr<ZepExCommand> &command) {
@@ -853,15 +820,15 @@ void ZepEditor::Display() {
 
     // Now display the tabs
     for (auto &tab: tabRegion->children) {
-        auto spTabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
+        auto tabRegionTab = std::static_pointer_cast<TabRegionTab>(tab);
 
-        auto rc = spTabRegionTab->rect;
+        auto rc = tabRegionTab->rect;
         rc.Adjust(m_tabOffsetX, 0.0f);
 
         // Tab background rect
-        display->DrawRectFilled(rc, spTabRegionTab->color);
+        display->DrawRectFilled(rc, tabRegionTab->color);
 
-        auto lum = Luminosity(spTabRegionTab->color);
+        auto lum = Luminosity(tabRegionTab->color);
         auto textCol = NVec4f(1.0f);
         if (lum > .5f) {
             textCol.x = 0.0f;
@@ -870,7 +837,7 @@ void ZepEditor::Display() {
         }
 
         // Tab text
-        display->DrawChars(uiFont, rc.topLeftPx + Dpi(NVec2f(textBorder, 0.0f)), textCol, (const uint8_t *) spTabRegionTab->name.c_str());
+        display->DrawChars(uiFont, rc.topLeftPx + Dpi(NVec2f(textBorder, 0.0f)), textCol, (const uint8_t *) tabRegionTab->name.c_str());
     }
 
     if (activeTabWindow) activeTabWindow->Display();
@@ -904,8 +871,8 @@ void ZepEditor::SetFlags(uint32_t newFlags) {
 
 std::vector<const KeyMap *> ZepEditor::GetGlobalKeyMaps(ZepMode &mode) {
     std::vector<const KeyMap *> maps;
-    for (auto &[id, spMap]: m_mapExCommands) {
-        auto pMap = spMap->GetKeyMappings(mode);
+    for (auto &[id, map]: m_mapExCommands) {
+        auto pMap = map->GetKeyMappings(mode);
         if (pMap) maps.push_back(pMap);
     }
     return maps;

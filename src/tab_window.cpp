@@ -11,13 +11,13 @@
 namespace Zep {
 
 ZepTabWindow::ZepTabWindow(ZepEditor &editor) : ZepComponent(editor) {
-    m_spRootRegion = std::make_shared<Region>();
-    m_spRootRegion->flags = RegionFlags::Expanding;
+    m_rootRegion = std::make_shared<Region>();
+    m_rootRegion->flags = RegionFlags::Expanding;
 }
 
 ZepTabWindow::~ZepTabWindow() {
     std::for_each(m_windows.begin(), m_windows.end(), [](ZepWindow *w) { delete w; });
-    m_spRootRegion.reset();
+    m_rootRegion.reset();
     m_windowRegions.clear();
 }
 
@@ -123,25 +123,25 @@ ZepWindow *ZepTabWindow::AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent, Regio
     // No parent, inserting our window on top of whatever is already in the window
     if (pParent == nullptr) {
         // There is something in the child, so make a good
-        if (m_spRootRegion->children.size() > 1) {
+        if (m_rootRegion->children.size() > 1) {
             // Make a new parent to hold the children at the root, and replace the root region
             // with the new parent, putting the old root inside it!
             auto r1 = std::make_shared<Region>();
             r1->flags = RegionFlags::Expanding;
             r1->layoutType = layoutType;
-            r1->children.push_back(m_spRootRegion);
+            r1->children.push_back(m_rootRegion);
             r1->name = "Parented Root";
-            m_spRootRegion->pParent = r1.get();
-            m_spRootRegion = r1;
+            m_rootRegion->pParent = r1.get();
+            m_rootRegion = r1;
             r1->children.push_back(r);
         } else {
             // The root region has 0 or 1 children, so just set its split type and add our child
-            m_spRootRegion->children.push_back(r);
-            m_spRootRegion->layoutType = layoutType;
+            m_rootRegion->children.push_back(r);
+            m_rootRegion->layoutType = layoutType;
         }
 
         // New region has root as the parent.
-        r->pParent = m_spRootRegion.get();
+        r->pParent = m_rootRegion.get();
         m_windowRegions[pWin] = r;
     } else {
         // Get the parent region that holds the parent window!
@@ -219,16 +219,16 @@ void ZepTabWindow::WalkRegions()
 
         using fnCb = std::function<void(std::shared_ptr<Region>)>;
         using fnWalk = std::function<void(std::shared_ptr<Region>, fnCb)>;
-        fnWalk walk = [&](std::shared_ptr<Region> spRegion, fnCb cb) {
-            cb(spRegion);
-            for (auto& child : spRegion->children)
+        fnWalk walk = [&](std::shared_ptr<Region> region, fnCb cb) {
+            cb(region);
+            for (auto& child : region->children)
             {
                 walk(child, cb);
             }
         };
 
-        walk(m_spRootRegion, [&](std::shared_ptr<Region> spRegion) {
-            assert(!spRegion->children.empty());
+        walk(m_rootRegion, [&](std::shared_ptr<Region> region) {
+            assert(!region->children.empty());
         });
     }
 }
@@ -300,7 +300,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
 
     if (m_windows.empty()) {
         SetActiveWindow(nullptr);
-        m_spRootRegion.reset();
+        m_rootRegion.reset();
         editor.RemoveTabWindow(this);
     } else {
         if (m_pActiveWindow == pWindow) {
@@ -308,7 +308,7 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
             SetActiveWindow(m_windows[m_windows.size() - 1]);
         }
         SetDisplayRegion(m_lastRegionRect, true);
-        assert(!m_spRootRegion->children.empty());
+        assert(!m_rootRegion->children.empty());
     }
 }
 
@@ -330,9 +330,9 @@ void ZepTabWindow::SetDisplayRegion(const NRectf &region, bool force) {
     if (m_lastRegionRect != region || force) {
         m_lastRegionRect = region;
 
-        if (m_spRootRegion) {
-            m_spRootRegion->rect = region;
-            LayoutRegion(*m_spRootRegion);
+        if (m_rootRegion) {
+            m_rootRegion->rect = region;
+            LayoutRegion(*m_rootRegion);
         }
 
         for (auto &w: m_windows) {

@@ -86,7 +86,7 @@ struct ToolTipMessage : public ZepMessage {
 
     ZepBuffer *pBuffer;
     GlyphIterator location;
-    std::shared_ptr<RangeMarker> spMarker;
+    std::shared_ptr<RangeMarker> marker;
 };
 
 // Display state for a single pane of text.
@@ -165,7 +165,7 @@ private:
     NVec4f GetBlendedColor(ThemeColor color) const;
     void GetCursorInfo(NVec2f &pos, NVec2f &size);
 
-    void PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &spMarker);
+    void PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &marker);
 
     NVec2f ArrangeLineMarkers(tRangeMarkers &markers);
 

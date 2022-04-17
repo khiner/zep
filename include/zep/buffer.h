@@ -152,8 +152,8 @@ struct ZepBuffer : public ZepComponent {
     bool HasSelection() const;
     void ClearSelection();
 
-    void AddRangeMarker(const std::shared_ptr<RangeMarker> &spMarker);
-    void ClearRangeMarker(const std::shared_ptr<RangeMarker> &spMarker);
+    void AddRangeMarker(const std::shared_ptr<RangeMarker> &marker);
+    void ClearRangeMarker(const std::shared_ptr<RangeMarker> &marker);
     void ClearRangeMarkers(uint32_t types);
     tRangeMarkers GetRangeMarkers(uint32_t types) const;
     tRangeMarkers GetRangeMarkersOnLine(uint32_t types, long line) const;

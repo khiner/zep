@@ -38,7 +38,7 @@ struct ZepTabWindow : public ZepComponent {
 
     tWindows m_windows;
     tWindowRegions m_windowRegions;
-    std::shared_ptr<Region> m_spRootRegion;
+    std::shared_ptr<Region> m_rootRegion;
     ZepWindow *m_pActiveWindow = nullptr;
 };
 

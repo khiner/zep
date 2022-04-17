@@ -12,15 +12,15 @@ public:
     BufferTest() {
         // Disable threads for consistent tests, at the expense of not catching thread errors!
         // TODO : Fix/understand test failures with threading
-        spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
-        pBuffer = spEditor->InitWithText("", "");
+        editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
+        pBuffer = editor->InitWithText("", "");
     }
 
     ~BufferTest() {
     }
 
 public:
-    std::shared_ptr<ZepEditor> spEditor;
+    std::shared_ptr<ZepEditor> editor;
     ZepBuffer *pBuffer;
 };
 
@@ -38,7 +38,7 @@ size()
 TEST_F(BufferTest, DefaultConstructedWith0
 )
 {
-auto pNew = std::make_shared<ZepBuffer>(*spEditor, std::string("empty"));
+auto pNew = std::make_shared<ZepBuffer>(*editor, std::string("empty"));
 ASSERT_TRUE(pNew
 ->
 workingBuffer
@@ -50,7 +50,7 @@ size()
 TEST_F(BufferTest, FindFirstOf
 )
 {
-auto pNew = std::make_shared<ZepBuffer>(*spEditor, std::string("empty"));
+auto pNew = std::make_shared<ZepBuffer>(*editor, std::string("empty"));
 pNew->SetText("Hello");
 
 int32_t char_index;

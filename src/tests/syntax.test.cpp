@@ -11,21 +11,21 @@ using namespace Zep;
 class SyntaxTest : public testing::Test {
 public:
     SyntaxTest() {
-        spEditor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
+        editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
     }
 
     ~SyntaxTest() {
     }
 
 public:
-    std::shared_ptr<ZepEditor> spEditor;
+    std::shared_ptr<ZepEditor> editor;
 };
 
 // Given a filename and a sample text, check the syntax colouring returns the right thing
 #define SYNTAX_TEST(name, filename, source, offset, color)         \
     TEST_F(SyntaxTest, name)                                       \
     {                                                              \
-        ZepBuffer *pBuffer = spEditor->GetEmptyBuffer(filename);   \
+        ZepBuffer *pBuffer = editor->GetEmptyBuffer(filename);   \
         pBuffer->SetText(source);                                  \
         ASSERT_EQ(pBuffer->GetSyntax()->GetSyntaxAt(GlyphIterator(pBuffer, offset)).foreground, ThemeColor::color); \
     };

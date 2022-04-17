@@ -33,7 +33,7 @@ struct Indexer : public ZepComponent {
 private:
     bool m_fileSearchActive = false;
     std::future<std::shared_ptr<FileIndexResult>> m_indexResult;
-    std::shared_ptr<FileIndexResult> m_spFilePaths;
+    std::shared_ptr<FileIndexResult> m_filePaths;
 
     std::mutex m_queueMutex;
     std::deque<ZepPath> m_searchQueue;

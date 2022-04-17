@@ -266,14 +266,14 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
     bool underPad = false;
     std::vector<ByteIndex> markerStack;
     for (auto &[index, markerSet]: markers) {
-        for (auto &spMarker: markerSet) {
-            if (spMarker->displayType & RangeMarkerDisplayType::Underline) {
+        for (auto &marker: markerSet) {
+            if (marker->displayType & RangeMarkerDisplayType::Underline) {
                 // Stack the markers packed
                 uint32_t row = 0;
                 bool found = false;
                 for (auto &stack: markerStack) {
-                    if (stack <= spMarker->GetRange().first) {
-                        stack = spMarker->GetRange().second;
+                    if (stack <= marker->GetRange().first) {
+                        stack = marker->GetRange().second;
                         found = true;
                         break;
                     }
@@ -281,7 +281,7 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
                 }
 
                 if (!found) {
-                    markerStack.push_back(spMarker->GetRange().second);
+                    markerStack.push_back(marker->GetRange().second);
                     row = uint32_t(markerStack.size()) - 1;
 
                     // Make the height bigger due to new row depth
@@ -294,7 +294,7 @@ NVec2f ZepWindow::ArrangeLineMarkers(tRangeMarkers &markers) {
                     underPad = true;
                 }
 
-                spMarker->displayRow = row;
+                marker->displayRow = row;
             }
         }
     }
@@ -1152,9 +1152,9 @@ void ZepWindow::GetCursorInfo(NVec2f &pos, NVec2f &size) {
     size.y = cursorBufferLine.lineTextSizePx.y;
 }
 
-void ZepWindow::PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &spMarker) {
-    auto textSize = editor.display->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) spMarker->description.c_str(),
-        (const uint8_t *) (spMarker->description.c_str() + spMarker->description.size()));
+void ZepWindow::PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> &marker) {
+    auto textSize = editor.display->GetFont(ZepTextType::Text).GetTextSize((const uint8_t *) marker->description.c_str(),
+        (const uint8_t *) (marker->description.c_str() + marker->description.size()));
     float boxShadowWidth = TipBoxShadowWidth();
 
     NRectf tipBox;
@@ -1201,7 +1201,7 @@ void ZepWindow::PlaceToolTip(const NVec2f &pos, ToolTipPos location, uint32_t li
         }
     }
 
-    m_toolTips[tipBox.topLeftPx] = spMarker;
+    m_toolTips[tipBox.topLeftPx] = marker;
 }
 
 void ZepWindow::DisplayGridMarkers() {
@@ -1339,10 +1339,10 @@ void ZepWindow::Display() {
 
     // No tooltip and we can show one, then ask for tooltips from any client that wants to show them
     if (!m_tipDisabledTillMove && (timer_get_elapsed_seconds(m_toolTipTimer) > 0.5f) && m_toolTips.empty() && m_lastTipQueryPos != m_mouseHoverPos) {
-        auto spMsg = std::make_shared<ToolTipMessage>(buffer, m_mouseHoverPos, m_mouseBufferLocation);
-        editor.Broadcast(spMsg);
-        if (spMsg->handled && spMsg->spMarker != nullptr) {
-            PlaceToolTip(NVec2f(m_mouseHoverPos.x, m_mouseHoverPos.y), spMsg->spMarker->tipPos, 1, spMsg->spMarker);
+        auto msg = std::make_shared<ToolTipMessage>(buffer, m_mouseHoverPos, m_mouseBufferLocation);
+        editor.Broadcast(msg);
+        if (msg->handled && msg->marker != nullptr) {
+            PlaceToolTip(NVec2f(m_mouseHoverPos.x, m_mouseHoverPos.y), msg->marker->tipPos, 1, msg->marker);
         }
         m_lastTipQueryPos = m_mouseHoverPos;
     }

@@ -82,25 +82,25 @@ void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const Glyp
     //});
 }
 
-void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
+void ZepSyntax::Notify(const std::shared_ptr<ZepMessage> &msg) {
     // Handle any interesting buffer messages
-    if (spMsg->messageId == Msg::Buffer) {
-        auto spBufferMsg = std::static_pointer_cast<BufferMessage>(spMsg);
-        if (spBufferMsg->buffer != &m_buffer) return;
+    if (msg->messageId == Msg::Buffer) {
+        auto bufferMsg = std::static_pointer_cast<BufferMessage>(msg);
+        if (bufferMsg->buffer != &m_buffer) return;
 
-        if (spBufferMsg->type == BufferMessageType::PreBufferChange) {
+        if (bufferMsg->type == BufferMessageType::PreBufferChange) {
             Interrupt();
-        } else if (spBufferMsg->type == BufferMessageType::TextDeleted) {
+        } else if (bufferMsg->type == BufferMessageType::TextDeleted) {
             Interrupt();
-            m_syntax.erase(m_syntax.begin() + spBufferMsg->startLocation.index, m_syntax.begin() + spBufferMsg->endLocation.index);
-            QueueUpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
-        } else if (spBufferMsg->type == BufferMessageType::TextAdded || spBufferMsg->type == BufferMessageType::Loaded) {
+            m_syntax.erase(m_syntax.begin() + bufferMsg->startLocation.index, m_syntax.begin() + bufferMsg->endLocation.index);
+            QueueUpdateSyntax(bufferMsg->startLocation, bufferMsg->endLocation);
+        } else if (bufferMsg->type == BufferMessageType::TextAdded || bufferMsg->type == BufferMessageType::Loaded) {
             Interrupt();
-            m_syntax.insert(m_syntax.begin() + spBufferMsg->startLocation.index, ByteDistance(spBufferMsg->startLocation, spBufferMsg->endLocation), SyntaxData{});
-            QueueUpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
-        } else if (spBufferMsg->type == BufferMessageType::TextChanged) {
+            m_syntax.insert(m_syntax.begin() + bufferMsg->startLocation.index, ByteDistance(bufferMsg->startLocation, bufferMsg->endLocation), SyntaxData{});
+            QueueUpdateSyntax(bufferMsg->startLocation, bufferMsg->endLocation);
+        } else if (bufferMsg->type == BufferMessageType::TextChanged) {
             Interrupt();
-            QueueUpdateSyntax(spBufferMsg->startLocation, spBufferMsg->endLocation);
+            QueueUpdateSyntax(bufferMsg->startLocation, bufferMsg->endLocation);
         }
     }
 }
@@ -117,7 +117,7 @@ void ZepSyntax::UpdateSyntax() {
     std::string delim;
     std::string lineEnd("\n");
 
-    delim = std::string(m_flags & ZepSyntaxFlags::LispLike ? " \t.\n(){}[]" : " \t.\n;(){}[]=:");
+    delim = std::string(m_flags & ZepSyntaxFlags::Lilike ? " \t.\n(){}[]" : " \t.\n;(){}[]=:");
 
     // Walk backwards to previous delimiter
     while (itrCurrent > buffer.begin()) {
@@ -165,7 +165,7 @@ void ZepSyntax::UpdateSyntax() {
 
         auto themeColor = m_keywords.find(token) != m_keywords.end() ?
                           ThemeColor::Keyword :
-                          m_identifiers.find(token) != m_identifiers.end() || ((m_flags & ZepSyntaxFlags::LispLike) && token[0] == ':') ?
+                          m_identifiers.find(token) != m_identifiers.end() || ((m_flags & ZepSyntaxFlags::Lilike) && token[0] == ':') ?
                           ThemeColor::Identifier :
                           token.find_first_not_of("0123456789") == std::string::npos ?
                           ThemeColor::Number :
@@ -202,7 +202,7 @@ void ZepSyntax::UpdateSyntax() {
         findString('\"');
         findString('\'');
 
-        if (m_flags & ZepSyntaxFlags::LispLike) {
+        if (m_flags & ZepSyntaxFlags::Lilike) {
             // Lisp languages use ; or # for comments
             std::string commentStr = ";#";
             auto itrComment = buffer.find_first_of(itrFirst, itrLast, commentStr.begin(), commentStr.end());

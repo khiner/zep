@@ -10,20 +10,20 @@ ZepSyntaxAdorn_RainbowBrackets::ZepSyntaxAdorn_RainbowBrackets(ZepSyntax &syntax
     Update(buffer.Begin(), buffer.End());
 }
 
-void ZepSyntaxAdorn_RainbowBrackets::Notify(const std::shared_ptr<ZepMessage> &spMsg) {
+void ZepSyntaxAdorn_RainbowBrackets::Notify(const std::shared_ptr<ZepMessage> &msg) {
     // Handle any interesting buffer messages
-    if (spMsg->messageId == Msg::Buffer) {
-        auto spBufferMsg = std::static_pointer_cast<BufferMessage>(spMsg);
-        if (spBufferMsg->buffer != &m_buffer) return;
+    if (msg->messageId == Msg::Buffer) {
+        auto bufferMsg = std::static_pointer_cast<BufferMessage>(msg);
+        if (bufferMsg->buffer != &m_buffer) return;
 
-        else if (spBufferMsg->type == BufferMessageType::TextDeleted) {
-            Clear(spBufferMsg->startLocation, spBufferMsg->endLocation);
-        } else if (spBufferMsg->type == BufferMessageType::TextAdded ||
-            spBufferMsg->type == BufferMessageType::Loaded) {
-            Insert(spBufferMsg->startLocation, spBufferMsg->endLocation);
-            Update(spBufferMsg->startLocation, spBufferMsg->endLocation);
-        } else if (spBufferMsg->type == BufferMessageType::TextChanged) {
-            Update(spBufferMsg->startLocation, spBufferMsg->endLocation);
+        else if (bufferMsg->type == BufferMessageType::TextDeleted) {
+            Clear(bufferMsg->startLocation, bufferMsg->endLocation);
+        } else if (bufferMsg->type == BufferMessageType::TextAdded ||
+            bufferMsg->type == BufferMessageType::Loaded) {
+            Insert(bufferMsg->startLocation, bufferMsg->endLocation);
+            Update(bufferMsg->startLocation, bufferMsg->endLocation);
+        } else if (bufferMsg->type == BufferMessageType::TextChanged) {
+            Update(bufferMsg->startLocation, bufferMsg->endLocation);
         }
     }
 }

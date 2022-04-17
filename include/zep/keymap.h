@@ -178,7 +178,7 @@ struct CommandNode {
 };
 
 struct KeyMap {
-    std::shared_ptr<CommandNode> spRoot = std::make_shared<CommandNode>();
+    std::shared_ptr<CommandNode> root = std::make_shared<CommandNode>();
 };
 
 struct KeyMapResult {

@@ -70,7 +70,7 @@ struct ZepFileTree : public ZepTree {
 };
 
 struct ZepMode_Tree : public ZepMode_Vim {
-    ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> spTree, ZepWindow &launchWindow, ZepWindow &replWindow);
+    ZepMode_Tree(ZepEditor &editor, std::shared_ptr<ZepTree> tree, ZepWindow &launchWindow, ZepWindow &replWindow);
     ~ZepMode_Tree() override;
 
     static const char *StaticName() { return "TREE"; }
@@ -82,7 +82,7 @@ private:
     void BuildTree();
 
 private:
-    std::shared_ptr<ZepTree> m_spTree;
+    std::shared_ptr<ZepTree> m_tree;
     ZepWindow &m_window;
 };
 

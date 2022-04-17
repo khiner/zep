@@ -56,7 +56,7 @@ private:
     std::future<std::shared_ptr<IndexSet>> m_searchResult;
 
     // All files that can potentially match
-    std::shared_ptr<FileIndexResult> m_spFilePaths;
+    std::shared_ptr<FileIndexResult> m_filePaths;
 
     // A hierarchy of index results.
     // The 'top' of the tree is the narrowest finding from a set of 'n' characters

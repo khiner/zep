@@ -172,8 +172,7 @@ struct ZepEditor {
     ~ZepEditor();
 
     void LoadConfig(const ZepPath &config_path);
-    void LoadConfig(const std::shared_ptr<cpptoml::table> &spConfig);
-    void SaveConfig(const std::shared_ptr<cpptoml::table> &spConfig);
+    void LoadConfig(const std::shared_ptr<cpptoml::table> &newConfig);
     void RequestQuit();
 
     void Reset();
@@ -181,7 +180,7 @@ struct ZepEditor {
     ZepBuffer *InitWithText(const std::string &strName, const std::string &strText);
 
     ZepMode *GetGlobalMode();
-    void RegisterGlobalMode(const std::shared_ptr<ZepMode> &spMode);
+    void RegisterGlobalMode(const std::shared_ptr<ZepMode> &mode);
     void RegisterExCommand(const std::shared_ptr<ZepExCommand> &command);
     ZepExCommand *FindExCommand(const std::string &commandName);
     ZepExCommand *FindExCommand(const StringId &strName);
