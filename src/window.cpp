@@ -982,10 +982,7 @@ bool ZepWindow::DisplayLine(SpanInfo &lineInfo, int displayPass) {
 }
 
 bool ZepWindow::IsInsideVisibleText(NVec2i pos) const {
-    if (pos.y < m_visibleLineIndices.x || pos.y >= m_visibleLineIndices.y) {
-        return false;
-    }
-    return true;
+    return !(pos.y < m_visibleLineIndices.x || pos.y >= m_visibleLineIndices.y);
 }
 
 void ZepWindow::SetWindowFlags(uint32_t windowFlags) {

@@ -242,20 +242,15 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider {
         if (count < 0) {
             indent = -1;
             return false;
-        } else if (count == 0) {
-            return true;
         }
+        if (count == 0) return true;
 
         int count2 = 0;
         indent = 1;
         for (auto &ch: str) {
-            if (ch == '(')
-                count2++;
-            if (ch == ')')
-                count2--;
-            if (count2 == count) {
-                break;
-            }
+            if (ch == '(') count2++;
+            if (ch == ')') count2--;
+            if (count2 == count) break;
             indent++;
         }
         return false;

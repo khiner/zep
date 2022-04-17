@@ -22,8 +22,7 @@ ZepTabWindow::~ZepTabWindow() {
 }
 
 ZepWindow *ZepTabWindow::DoMotion(WindowMotion motion) {
-    if (!m_pActiveWindow)
-        return nullptr;
+    if (!m_pActiveWindow) return nullptr;
 
     auto pCurrentRegion = m_windowRegions[m_pActiveWindow];
     auto center = pCurrentRegion->rect.Center();
@@ -31,55 +30,40 @@ ZepWindow *ZepTabWindow::DoMotion(WindowMotion motion) {
     Region *pBestRegion = nullptr;
 
     auto overlap_x = [&](const NRectf &lhs, const NRectf &rhs) {
-        if ((lhs.topLeftPx.x < rhs.bottomRightPx.x) && (lhs.bottomRightPx.x > rhs.topLeftPx.x)) {
-            return true;
-        }
-        return false;
+        return (lhs.topLeftPx.x < rhs.bottomRightPx.x) && (lhs.bottomRightPx.x > rhs.topLeftPx.x);
     };
     auto overlap_y = [&](const NRectf &lhs, const NRectf &rhs) {
-        if ((lhs.topLeftPx.y < rhs.bottomRightPx.y) && (lhs.bottomRightPx.y > rhs.topLeftPx.y)) {
-            return true;
-        }
-        return false;
+        return (lhs.topLeftPx.y < rhs.bottomRightPx.y) && (lhs.bottomRightPx.y > rhs.topLeftPx.y);
     };
 
     for (auto &r: m_windowRegions) {
         auto &pRegion = r.second;
-        if (pCurrentRegion == pRegion)
-            continue;
+        if (pCurrentRegion == pRegion) continue;
 
         auto thisCenter = pRegion->rect.Center();
         float dist = 0.0f;
         switch (motion) {
             case WindowMotion::Right: {
-                if (overlap_x(pRegion->rect, pCurrentRegion->rect))
-                    continue;
-                if (!overlap_y(pRegion->rect, pCurrentRegion->rect))
-                    continue;
+                if (overlap_x(pRegion->rect, pCurrentRegion->rect)) continue;
+                if (!overlap_y(pRegion->rect, pCurrentRegion->rect)) continue;
                 dist = thisCenter.x - center.x;
             }
                 break;
             case WindowMotion::Left: {
-                if (overlap_x(pRegion->rect, pCurrentRegion->rect))
-                    continue;
-                if (!overlap_y(pRegion->rect, pCurrentRegion->rect))
-                    continue;
+                if (overlap_x(pRegion->rect, pCurrentRegion->rect)) continue;
+                if (!overlap_y(pRegion->rect, pCurrentRegion->rect)) continue;
                 dist = center.x - thisCenter.x;
             }
                 break;
             case WindowMotion::Up: {
-                if (overlap_y(pRegion->rect, pCurrentRegion->rect))
-                    continue;
-                if (!overlap_x(pRegion->rect, pCurrentRegion->rect))
-                    continue;
+                if (overlap_y(pRegion->rect, pCurrentRegion->rect)) continue;
+                if (!overlap_x(pRegion->rect, pCurrentRegion->rect)) continue;
                 dist = center.y - thisCenter.y;
             }
                 break;
             case WindowMotion::Down: {
-                if (overlap_y(pRegion->rect, pCurrentRegion->rect))
-                    continue;
-                if (!overlap_x(pRegion->rect, pCurrentRegion->rect))
-                    continue;
+                if (overlap_y(pRegion->rect, pCurrentRegion->rect)) continue;
+                if (!overlap_x(pRegion->rect, pCurrentRegion->rect)) continue;
                 dist = thisCenter.y - center.y;
             }
                 break;
@@ -173,10 +157,7 @@ ZepWindow *ZepTabWindow::AddWindow(ZepBuffer *pBuffer, ZepWindow *pParent, Regio
             // Add our newly created region into the parent region, since it is splitting in the same way as the parent's children
             // Try to find the right spot, so we effectively split the correct parent
             auto itrFound = std::find_if(pParentRegion->children.begin(), pParentRegion->children.end(), [&](auto pCurrent) {
-                if (pCurrent == m_windowRegions[pParent]) {
-                    return true;
-                }
-                return false;
+                return pCurrent == m_windowRegions[pParent];
             });
 
             // Insertion point should be _after_ the location we want
