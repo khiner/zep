@@ -4,7 +4,6 @@
 #cmakedefine TARGET_ANDROID 1
 #cmakedefine TARGET_MAC 1
 #cmakedefine TARGET_LINUX 1
-#cmakedefine PROJECT_CPP_FILESYSTEM 1
 #cmakedefine PROJECT_DEVICE_GL 1
 #cmakedefine PROJECT_DEVICE_NULL 1
 #cmakedefine PROJECT_DEVICE_DX12 1

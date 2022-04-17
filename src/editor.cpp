@@ -56,14 +56,14 @@ void ZepEditor::RegisterSyntaxProviders() {
         {"markdown", ([](auto *buffer) { return std::make_shared<ZepSyntax_Markdown>(*buffer, ZepSyntaxFlags::CaseInsensitive); })});
 }
 
-ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, IZepFileSystem *pFileSystem)
+ZepEditor::ZepEditor(ZepDisplay *pDisplay, const ZepPath &configRoot, uint32_t flags, ZepFileSystem *pFileSystem)
     : display(pDisplay), fileSystem(pFileSystem), flags(flags) {
 
-    if (fileSystem == nullptr) fileSystem = new ZepFileSystemCPP(configRoot);
+    if (fileSystem == nullptr) fileSystem = new ZepFileSystem(configRoot);
 
     threadPool = flags & ZepEditorFlags::DisableThreads ? std::make_unique<ThreadPool>(1) : std::make_unique<ThreadPool>();
 
-    LoadConfig(fileSystem->GetConfigPath() / "zep.cfg");
+    LoadConfig(fileSystem->configPath / "zep.cfg");
 
     theme = std::make_shared<ZepTheme>();
 
@@ -282,13 +282,13 @@ ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
         // If a directory, just return the default already created buffer.
         if (fileSystem->IsDirectory(startPath)) {
             // Remember the working directory 
-            fileSystem->SetWorkingDirectory(startPath);
+            fileSystem->workingDirectory = startPath;
             return activeTabWindow->GetActiveWindow()->buffer;
         }
         // Try to get the working directory from the parent path of the passed file
         auto parentDir = startPath.parent_path();
         if (fileSystem->Exists(parentDir) && fileSystem->IsDirectory(parentDir)) {
-            fileSystem->SetWorkingDirectory(startPath.parent_path());
+            fileSystem->workingDirectory = startPath.parent_path();
         }
     }
 

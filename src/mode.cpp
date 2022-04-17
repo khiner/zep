@@ -1645,27 +1645,24 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                 editor.activeTabWindow->CloseActiveWindow();
             }
         } else if (strCommand.find(":ZConfigPath") == 0) {
-            editor.SetCommandText(editor.fileSystem->GetConfigPath().string());
+            editor.SetCommandText(editor.fileSystem->configPath.string());
         } else if (strCommand.find(":ZConfig") == 0) {
-            auto pBuffer = editor.GetFileBuffer(editor.fileSystem->GetConfigPath() / "zep.cfg");
+            auto pBuffer = editor.GetFileBuffer(editor.fileSystem->configPath / "zep.cfg");
             currentWindow->SetBuffer(pBuffer);
         } else if (strCommand.find(":cd") == 0) {
-            editor.SetCommandText(editor.fileSystem->GetWorkingDirectory().string());
+            editor.SetCommandText(editor.fileSystem->configPath.string());
         } else if (strCommand.find(":ZTestFlash") == 0) {
             if (buffer->syntax) {
                 FlashType flashType = FlashType::Flash;
                 float time = 1.0f;
                 auto strTok = string_split(strCommand, " ");
-                if (strTok.size() > 1) {
-                    if (std::stoi(strTok[1]) > 0) {
-                        flashType = FlashType::Flash;
-                    }
+                if (strTok.size() > 1 && std::stoi(strTok[1]) > 0) {
+                    flashType = FlashType::Flash;
                 }
                 if (strTok.size() > 2) {
                     try {
                         time = std::stof(strTok[2]);
-                    } catch (std::exception &) {
-                    }
+                    } catch (std::exception &) {}
                 }
                 buffer->BeginFlash(time, flashType, GlyphRange(buffer->Begin(), buffer->End()));
             }

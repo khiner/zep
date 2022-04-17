@@ -4,49 +4,32 @@
 
 #undef ERROR
 
-#if defined(ZEP_FEATURE_CPP_FILE_SYSTEM)
-
-// Unix/Clang is behind
-#ifdef __unix__
-#include <experimental/filesystem>
-namespace cpp_fs = std::experimental::filesystem::v1;
-#else
-
 #include <filesystem>
 
 namespace cpp_fs = std::filesystem;
-#endif
 
 namespace Zep {
-ZepFileSystemCPP::ZepFileSystemCPP(const ZepPath &configPath) {
-    // Use the config path
-    m_configPath = configPath;
-
-    m_workingDirectory = ZepPath(cpp_fs::current_path().string());
+ZepFileSystem::ZepFileSystem(const ZepPath &configPath) : configPath(configPath) {
+    workingDirectory = ZepPath(cpp_fs::current_path().string());
 
     // Didn't find the config path, try the working directory
-    if (!Exists(m_configPath)) {
-        m_configPath = m_workingDirectory;
+    if (!Exists(configPath)) {
+        this->configPath = workingDirectory;
     }
 
-    ZLOG(INFO, "Config Dir: " << m_configPath.c_str());
-    ZLOG(INFO, "Working Dir: " << m_workingDirectory.c_str());
+    ZLOG(INFO, "Config Dir: " << configPath.c_str());
+    ZLOG(INFO, "Working Dir: " << workingDirectory.c_str());
 }
 
-ZepFileSystemCPP::~ZepFileSystemCPP() = default;
+bool ZepFileSystem::MakeDirectories(const ZepPath &path) { return cpp_fs::create_directories(path.c_str()); }
+bool ZepFileSystem::IsDirectory(const ZepPath &path) { return Exists(path) ? cpp_fs::is_directory(path.string()) : false; }
 
-void ZepFileSystemCPP::SetWorkingDirectory(const ZepPath &path) { m_workingDirectory = path; }
-const ZepPath &ZepFileSystemCPP::GetWorkingDirectory() const { return m_workingDirectory; }
-ZepPath ZepFileSystemCPP::GetConfigPath() const { return m_configPath; }
-bool ZepFileSystemCPP::MakeDirectories(const ZepPath &path) { return cpp_fs::create_directories(path.c_str()); }
-bool ZepFileSystemCPP::IsDirectory(const ZepPath &path) const { return Exists(path) ? cpp_fs::is_directory(path.string()) : false; }
-
-bool ZepFileSystemCPP::IsReadOnly(const ZepPath &path) const {
+bool ZepFileSystem::IsReadOnly(const ZepPath &path) {
     auto perms = cpp_fs::status(path.string()).permissions();
     return (perms & cpp_fs::perms::owner_write) == cpp_fs::perms::owner_write ? false : true;
 }
 
-std::string ZepFileSystemCPP::Read(const ZepPath &fileName) {
+std::string ZepFileSystem::Read(const ZepPath &fileName) {
     std::ifstream in(fileName, std::ios::in | std::ios::binary);
     if (in) {
         std::string contents;
@@ -62,7 +45,7 @@ std::string ZepFileSystemCPP::Read(const ZepPath &fileName) {
     return {};
 }
 
-bool ZepFileSystemCPP::Write(const ZepPath &fileName, const void *pData, size_t size) {
+bool ZepFileSystem::Write(const ZepPath &fileName, const void *pData, size_t size) {
     FILE *file = fopen(fileName.string().c_str(), "wb");
     if (!file) return false;
 
@@ -72,26 +55,7 @@ bool ZepFileSystemCPP::Write(const ZepPath &fileName, const void *pData, size_t 
     return true;
 }
 
-void ZepFileSystemCPP::ScanDirectory(const ZepPath &path, std::function<bool(const ZepPath &path, bool &dont_recurse)> fnScan) const {
-    for (auto itr = cpp_fs::recursive_directory_iterator(path.string()); itr != cpp_fs::recursive_directory_iterator(); itr++) {
-        auto p = ZepPath(itr->path().string());
-
-        bool recurse = true;
-        if (!fnScan(p, recurse)) return;
-    }
-}
-
-bool ZepFileSystemCPP::Exists(const ZepPath &path) const {
-    try {
-        return cpp_fs::exists(path.string());
-    } catch (cpp_fs::filesystem_error &err) {
-        ZEP_UNUSED(err);
-        ZLOG(ERROR, "Exception: " << err.what());
-        return false;
-    }
-}
-
-bool ZepFileSystemCPP::Equivalent(const ZepPath &path1, const ZepPath &path2) const {
+bool ZepFileSystem::Equivalent(const ZepPath &path1, const ZepPath &path2) {
     try {
         // The below API expects existing files! Best we can do is direct compare of paths
         return !cpp_fs::exists(path1.string()) || !cpp_fs::exists(path2.string()) ?
@@ -104,24 +68,17 @@ bool ZepFileSystemCPP::Equivalent(const ZepPath &path1, const ZepPath &path2) co
     }
 }
 
-ZepPath ZepFileSystemCPP::Canonical(const ZepPath &path) const {
+ZepPath ZepFileSystem::Canonical(const ZepPath &path) {
     try {
-#ifdef __unix__
-        // TODO: Remove when unix doesn't need <experimental/filesystem>
-        // I can't remember why weakly_connical is used....
-        return ZepPath(cpp_fs::canonical(path.string()).string());
-#else
-        return ZepPath(cpp_fs::weakly_canonical(path.string()).string());
-#endif
-    }
-    catch (cpp_fs::filesystem_error &err) {
+        return {cpp_fs::weakly_canonical(path.string()).string()};
+    } catch (cpp_fs::filesystem_error &err) {
         ZEP_UNUSED(err);
         ZLOG(ERROR, "Exception: " << err.what());
         return path;
     }
 }
 
-ZepPath ZepFileSystemCPP::GetSearchRoot(const ZepPath &start, bool &foundGit) const {
+ZepPath ZepFileSystem::GetSearchRoot(const ZepPath &start, bool &foundGit) const {
     foundGit = false;
     auto findStartPath = [&](const ZepPath &startPath) {
         if (!startPath.empty()) {
@@ -151,12 +108,30 @@ ZepPath ZepFileSystemCPP::GetSearchRoot(const ZepPath &start, bool &foundGit) co
 
     auto startPath = findStartPath(start);
     if (startPath.empty()) {
-        startPath = findStartPath(GetWorkingDirectory());
-        if (startPath.empty()) startPath = GetWorkingDirectory();
+        startPath = findStartPath(workingDirectory);
+        if (startPath.empty()) startPath = workingDirectory;
     }
 
     return startPath.empty() ? start : startPath;
 }
-} // namespace Zep
 
-#endif // CPP_FILESYSTEM
+void ZepFileSystem::ScanDirectory(const ZepPath &path, const std::function<bool(const ZepPath &path, bool &dont_recurse)> &fnScan) {
+    for (auto itr = cpp_fs::recursive_directory_iterator(path.string()); itr != cpp_fs::recursive_directory_iterator(); itr++) {
+        auto p = ZepPath(itr->path().string());
+
+        bool recurse = true;
+        if (!fnScan(p, recurse)) return;
+    }
+}
+
+bool ZepFileSystem::Exists(const ZepPath &path) {
+    try {
+        return cpp_fs::exists(path.string());
+    } catch (cpp_fs::filesystem_error &err) {
+        ZEP_UNUSED(err);
+        ZLOG(ERROR, "Exception: " << err.what());
+        return false;
+    }
+}
+
+} // namespace Zep

@@ -48,7 +48,7 @@ struct ZepTabWindow;
 struct ZepWindow;
 struct ZepTheme;
 struct ZepDisplay;
-struct IZepFileSystem;
+struct ZepFileSystem;
 struct Indexer;
 
 struct Region;
@@ -168,7 +168,7 @@ struct TabRegionTab : public Region {
 
 struct ZepEditor {
     // Root path is the path to search for a config file
-    ZepEditor(ZepDisplay *pDisplay, const ZepPath &root, uint32_t flags = 0, IZepFileSystem *pFileSystem = nullptr);
+    ZepEditor(ZepDisplay *pDisplay, const ZepPath &root, uint32_t flags = 0, ZepFileSystem *pFileSystem = nullptr);
     ~ZepEditor();
 
     void LoadConfig(const ZepPath &config_path);
@@ -262,7 +262,7 @@ struct ZepEditor {
     std::deque<std::shared_ptr<ZepBuffer>> buffers; // May or may not be visible
     std::shared_ptr<ZepTheme> theme;
     EditorConfig config;
-    IZepFileSystem *fileSystem;
+    ZepFileSystem *fileSystem;
     std::unique_ptr<ThreadPool> threadPool;
     uint32_t flags = 0;
     NVec2f mousePos = NVec2f(0.0f);

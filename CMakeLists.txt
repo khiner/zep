@@ -6,7 +6,6 @@ message(STATUS "CMakeLists: Zep")
 option(BUILD_IMGUI "Make Imgui Library" OFF)
 option(BUILD_DEMOS "Make the demo app" ON)
 option(BUILD_TESTS "Make the tests" ON)
-option(ZEP_FEATURE_CPP_FILE_SYSTEM "Default File system enabled" ON)
 
 # Global Settings
 set(CMAKE_CXX_STANDARD 17)
@@ -34,11 +33,6 @@ project(Zep
     )
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
-
-# Can I remove these now?
-if (ZEP_FEATURE_CPP_FILE_SYSTEM)
-    add_definitions(-DZEP_FEATURE_CPP_FILE_SYSTEM)
-endif ()
 
 # config_app.h checks
 # This makes a config_shared.h file which can be included for system settings

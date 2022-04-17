@@ -184,7 +184,7 @@ void Indexer::StartSymbolSearch() {
 
 bool Indexer::StartIndexing() {
     bool foundGit = false;
-    m_searchRoot = editor.fileSystem->GetSearchRoot(editor.fileSystem->GetWorkingDirectory(), foundGit);
+    m_searchRoot = editor.fileSystem->GetSearchRoot(editor.fileSystem->workingDirectory, foundGit);
     if (!foundGit) {
         ZLOG(INFO, "Not a git project");
         return false;
@@ -192,11 +192,9 @@ bool Indexer::StartIndexing() {
 
     auto *fs = editor.fileSystem;
     auto indexDBRoot = m_searchRoot / ".zep";
-    if (!fs->IsDirectory(indexDBRoot)) {
-        if (!fs->MakeDirectories(indexDBRoot)) {
-            ZLOG(ERROR, "Can't get the index folder");
-            return false;
-        }
+    if (!fs->IsDirectory(indexDBRoot) && !fs->MakeDirectories(indexDBRoot)) {
+        ZLOG(ERROR, "Can't get the index folder");
+        return false;
     }
 
     int v = 0;
