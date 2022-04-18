@@ -805,7 +805,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_MotionGotoLine) {
         if (!context.keymap.captureNumbers.empty()) {
             // In Vim, 0G means go to end!  1G is the first line...
-            long count = std::min(std::min(long(context.buffer.lineEnds.size()) - 1l, context.keymap.TotalCount() - 1l), 0l);
+            long count = std::max(std::min(long(context.buffer.lineEnds.size()) - 1l, context.keymap.TotalCount() - 1l), 0l);
 
             ByteRange range;
             if (context.buffer.GetLineOffsets(count, range)) {

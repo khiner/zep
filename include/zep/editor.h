@@ -8,12 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "math.h"
 #include "timer.h"
-#include "zep/threadpool.h"
 #include "path.h"
+#include "zep/threadpool.h"
 #include "zep/file/cpptoml.h"
-
 #include "zep/keymap.h"
 
 #include "splits.h"
@@ -126,9 +124,7 @@ struct SyntaxProvider {
     std::function<std::shared_ptr<ZepSyntax>(ZepBuffer *)> factory = nullptr;
 };
 
-const float bottomBorder = 2.0f;
 const float textBorder = 2.0f;
-const float tabSpacing = 1.0f;
 const float leftBorderChars = 3;
 
 enum class EditorStyle { Normal = 0, Minimal };
@@ -144,7 +140,6 @@ struct EditorConfig {
     bool shortTabNames = true;
     bool showIndicatorRegion = true;
     bool autoHideCommandRegion = false;
-    bool cursorLineSolid = false;
     bool showNormalModeKeyStrokes = false;
     float backgroundFadeTime = 60.0f;
     float backgroundFadeWait = 60.0f;
@@ -187,8 +182,6 @@ struct ZepEditor {
     void SetGlobalMode(const std::string &currentMode);
     std::vector<const KeyMap *> GetGlobalKeyMaps(ZepMode &mode);
 
-    void RegisterBufferMode(const std::string &strExtension, const std::shared_ptr<ZepMode> &mode);
-
     void Display();
 
     bool Broadcast(const std::shared_ptr<ZepMessage> &payload);
@@ -196,7 +189,6 @@ struct ZepEditor {
     void RegisterCallback(IZepComponent *client) { notifyClients.insert(client); }
     void UnRegisterCallback(IZepComponent *client) { notifyClients.erase(client); }
 
-    ZepBuffer *GetMRUBuffer() const;
     void SaveBuffer(ZepBuffer &buffer);
     ZepBuffer *GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags = 0, bool create = true);
     ZepBuffer *GetEmptyBuffer(const std::string &name, uint32_t fileFlags = 0);
@@ -247,7 +239,6 @@ struct ZepEditor {
     bool OnMouseUp(const NVec2f &pos, ZepMouseButton button);
 
     void SetBufferSyntax(ZepBuffer &buffer) const;
-    void SetBufferMode(ZepBuffer &buffer) const;
 
     float DpiX(float value) const;
     float DpiY(float value) const;
@@ -276,8 +267,6 @@ private:
     ZepBuffer *CreateNewBuffer(const std::string &bufferName);
     ZepBuffer *CreateNewBuffer(const ZepPath &path);
 
-    void InitBuffer(ZepBuffer &buffer) const;
-
     // Ensure there is a valid tab window and return it
     ZepTabWindow *EnsureTab();
     void RegisterSyntaxProvider(const std::vector<std::string> &mappings, const SyntaxProvider &provider);
@@ -285,7 +274,6 @@ private:
 
     mutable std::map<std::string, Register> m_registers;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
-    std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;
     Timer m_cursorTimer;
     Timer m_lastEditTimer;

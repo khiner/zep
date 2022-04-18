@@ -134,7 +134,6 @@ void ZepEditor::LoadConfig(const std::shared_ptr<cpptoml::table> &newConfig) {
         config.showIndicatorRegion = newConfig->get_qualified_as<bool>("editor.show_indicator_region").value_or(true);
         config.showLineNumbers = newConfig->get_qualified_as<bool>("editor.show_line_numbers").value_or(true);
         config.autoHideCommandRegion = newConfig->get_qualified_as<bool>("editor.autohide_command_region").value_or(false);
-        config.cursorLineSolid = newConfig->get_qualified_as<bool>("editor.cursor_line_solid").value_or(true);
         config.backgroundFadeTime = (float) newConfig->get_qualified_as<double>("editor.background_fade_time").value_or(60.0f);
         config.backgroundFadeWait = (float) newConfig->get_qualified_as<double>("editor.background_fade_wait").value_or(60.0f);
         config.showScrollBar = newConfig->get_qualified_as<uint32_t>("editor.show_scrollbar").value_or(1);
@@ -471,11 +470,6 @@ ZepExCommand *ZepEditor::FindExCommand(const StringId &Id) {
     return nullptr;
 }
 
-void ZepEditor::RegisterBufferMode(const std::string &extension, const std::shared_ptr<ZepMode> &mode) {
-    m_mapBufferModes[extension] = mode;
-    mode->Init();
-}
-
 void ZepEditor::SetGlobalMode(const std::string &currentMode) {
     auto itrMode = m_mapGlobalModes.find(currentMode);
     if (itrMode != m_mapGlobalModes.end()) {
@@ -492,30 +486,6 @@ ZepMode *ZepEditor::GetGlobalMode() {
     }
 
     return m_pCurrentMode;
-}
-
-void ZepEditor::SetBufferMode(ZepBuffer &buffer) const {
-    // Reset it in case we are changing the text in a buffer
-    buffer.mode = nullptr;
-
-    // TODO DRY
-    std::string ext;
-    std::string fileName;
-    if (buffer.filePath.has_filename() && buffer.filePath.filename().has_extension()) {
-        ext = string_tolower(buffer.filePath.filename().extension().string());
-        fileName = string_tolower(buffer.filePath.filename().string());
-    } else {
-        const auto &bufferName = buffer.name;
-        size_t dot_pos = bufferName.find_last_of('.');
-        if (dot_pos != std::string::npos) {
-            ext = string_tolower(bufferName.substr(dot_pos, bufferName.length() - dot_pos));
-        }
-    }
-
-    auto itr = m_mapBufferModes.find(ext);
-    if (itr != m_mapBufferModes.end()) {
-        buffer.mode = itr->second;
-    }
 }
 
 void ZepEditor::SetBufferSyntax(ZepBuffer &buffer) const {
@@ -567,27 +537,20 @@ bool ZepEditor::Broadcast(const std::shared_ptr<ZepMessage> &message) {
     return message->handled;
 }
 
-// Do any special buffer processing
-void ZepEditor::InitBuffer(ZepBuffer &buffer) const { SetBufferMode(buffer); }
-
+// TODO should only need one of these (string or ZepPath)
 ZepBuffer *ZepEditor::CreateNewBuffer(const std::string &str) {
-    auto pBuffer = std::make_shared<ZepBuffer>(*this, str);
+    auto buffer = std::make_shared<ZepBuffer>(*this, str);
     // For a new buffer, set the syntax based on the string name
-    SetBufferSyntax(*pBuffer);
-    buffers.push_front(pBuffer);
-
-    InitBuffer(*pBuffer);
-    return pBuffer.get();
+    SetBufferSyntax(*buffer);
+    buffers.push_front(buffer);
+    return buffer.get();
 }
 
 ZepBuffer *ZepEditor::CreateNewBuffer(const ZepPath &path) {
     auto buffer = std::make_shared<ZepBuffer>(*this, path);
     buffers.push_front(buffer);
-    InitBuffer(*buffer);
     return buffer.get();
 }
-
-ZepBuffer *ZepEditor::GetMRUBuffer() const { return buffers.front().get(); }
 
 void ZepEditor::ReadClipboard() {
     auto msg = std::make_shared<ZepMessage>(Msg::GetClipBoard);
@@ -682,7 +645,6 @@ void ZepEditor::UpdateSize() const {
     auto &uiFont = display->GetFont(ZepTextType::UI);
     auto commandCount = commandLines.size();
     const float commandSize = uiFont.pixelHeight * commandCount + DpiX(textBorder) * 2.0f;
-    auto displaySize = editorRegion->rect.Size();
 
     // Regions
     commandRegion->fixed_size = NVec2f(0.0f, commandSize);
@@ -717,16 +679,8 @@ void ZepEditor::Display() {
         UpdateSize();
     }
 
-    // Command plus output
-    long commandCount = long(commandLines.size());
-
     auto &uiFont = display->GetFont(ZepTextType::UI);
-    const float commandSize = uiFont.pixelHeight * commandCount + DpiX(textBorder) * 2.0f;
-
-    auto displaySize = editorRegion->rect.Size();
-
-    auto commandSpace = commandCount;
-    commandSpace = std::max(commandCount, 0l);
+    auto commandSpace = std::max(long(commandLines.size()), 0l);
 
     // This fill will effectively fill the region around the tabs in Normal mode
     if (config.style == EditorStyle::Normal) {
