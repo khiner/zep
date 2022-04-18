@@ -1,19 +1,12 @@
 # Contributing to Zep
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+[This branch of Zep](https://github.com/khiner/zep) has diverged a lot
+from [Rezonality's original repo](https://github.com/Rezonality/zep).
 
-The following is a set of guidelines for contributing to Zep.  These are mostly guidelines, not rules.
-Use your best judgment, and feel free to propose changes to this document in a pull request.
+**Please contribute Zep fixes or improvements to https://github.com/Rezonality/zep.**
 
-#### Table Of Contents
+The plan for this branch is to whittle down and customize a great deal how Zep works, especially in terms of state/event
+management.
 
-[Code of Conduct](#code-of-conduct)
-
-## Code of Conduct
-
-This project and everyone participating in it is governed by the [Zep Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to cmaughan.
-
-## How Can I Contribute?
-
-This document is incomplete, but either report an issue or send a pull request!
-
+I'm only trying to suit the needs of the [flowgrid](https://github.com/khiner/flowgrid2) application here in this
+branch.
