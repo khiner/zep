@@ -3,10 +3,10 @@
 #include <functional>
 #include <set>
 
-#include "zep/mcommon/file/path.h"
-#include "zep/mcommon/string/stringutils.h"
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/signals.h"
+#include "path.h"
+#include "stringutils.h"
+#include "zep/logger.h"
+#include "zep/signals.h"
 
 #include "zep/glyph_iterator.h"
 

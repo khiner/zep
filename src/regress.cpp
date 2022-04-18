@@ -2,7 +2,7 @@
 #include <random>
 
 #include "zep/editor.h"
-#include "zep/mcommon/animation/timer.h"
+#include "zep/timer.h"
 #include "zep/regress.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"

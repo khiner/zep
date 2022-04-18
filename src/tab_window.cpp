@@ -5,7 +5,7 @@
 #include "zep/mode.h"
 #include "zep/window.h"
 
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 // A 'window' is like a Vim Tab
 namespace Zep {

@@ -4,7 +4,7 @@
 #include "zep/keymap.h"
 #include "zep/mode.h"
 
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 namespace Zep {
 

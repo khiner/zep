@@ -2,7 +2,7 @@
 #include "zep/filesystem.h"
 #include "zep/syntax.h"
 #include "zep/tab_window.h"
-#include "zep/mcommon/threadutils.h"
+#include "zep/threadutils.h"
 
 #include "zep/mode_repl.h"
 

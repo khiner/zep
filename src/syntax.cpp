@@ -3,7 +3,7 @@
 #include "zep/syntax_rainbow_brackets.h"
 #include "zep/theme.h"
 
-#include "zep/mcommon/string/stringutils.h"
+#include "zep/stringutils.h"
 
 #include <string>
 #include <vector>

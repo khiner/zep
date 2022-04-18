@@ -1,6 +1,6 @@
 #include "zep/filesystem.h"
 #include "zep/editor.h"
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 #undef ERROR
 

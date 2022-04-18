@@ -3,10 +3,10 @@
 #include "zep/tab_window.h"
 #include "zep/window.h"
 
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/threadutils.h"
+#include "zep/logger.h"
+#include "zep/threadutils.h"
 
-#include "zep/mcommon/file/fnmatch.h"
+#include "zep/file/fnmatch.h"
 
 namespace Zep {
 

@@ -2,7 +2,7 @@
 
 #include "splits.h"
 #include "editor.h"
-#include "zep/mcommon/animation/timer.h"
+#include "timer.h"
 
 namespace Zep {
 struct ZepTheme;

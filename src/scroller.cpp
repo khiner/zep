@@ -3,7 +3,7 @@
 #include "zep/display.h"
 #include "zep/scroller.h"
 
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 namespace Zep {
 

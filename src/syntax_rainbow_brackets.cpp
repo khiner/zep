@@ -1,7 +1,7 @@
 #include "zep/syntax_rainbow_brackets.h"
 #include "zep/theme.h"
 
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 // A Simple adornment to add rainbow brackets to the syntax
 namespace Zep {

@@ -1,7 +1,7 @@
-#include "zep/mcommon/file/fnmatch.h"
-#include "zep/mcommon/logger.h"
-#include "zep/mcommon/string/stringutils.h"
-#include "zep/mcommon/threadutils.h"
+#include "zep/file/fnmatch.h"
+#include "zep/logger.h"
+#include "zep/stringutils.h"
+#include "zep/threadutils.h"
 
 #include "zep/filesystem.h"
 #include "zep/indexer.h"

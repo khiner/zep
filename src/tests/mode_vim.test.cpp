@@ -3,7 +3,7 @@
 #include "zep/buffer.h"
 #include "zep/display.h"
 #include "zep/editor.h"
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"

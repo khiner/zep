@@ -11,12 +11,12 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/include/zep/filesystem.h
     ${ZEP_ROOT}/include/zep/indexer.h
     ${ZEP_ROOT}/include/zep/keymap.h
-    ${ZEP_ROOT}/include/zep/mcommon/animation/timer.h
-    ${ZEP_ROOT}/include/zep/mcommon/file/cpptoml.h
-    ${ZEP_ROOT}/include/zep/mcommon/file/path.h
-    ${ZEP_ROOT}/include/zep/mcommon/logger.h
-    ${ZEP_ROOT}/include/zep/mcommon/string/stringutils.h
-    ${ZEP_ROOT}/include/zep/mcommon/threadutils.h
+    ${ZEP_ROOT}/include/zep/timer.h
+    ${ZEP_ROOT}/include/zep/file/cpptoml.h
+    ${ZEP_ROOT}/include/zep/path.h
+    ${ZEP_ROOT}/include/zep/logger.h
+    ${ZEP_ROOT}/include/zep/stringutils.h
+    ${ZEP_ROOT}/include/zep/threadutils.h
     ${ZEP_ROOT}/include/zep/mode.h
     ${ZEP_ROOT}/include/zep/mode_repl.h
     ${ZEP_ROOT}/include/zep/mode_search.h
@@ -43,9 +43,9 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/src/filesystem.cpp
     ${ZEP_ROOT}/src/indexer.cpp
     ${ZEP_ROOT}/src/keymap.cpp
-    ${ZEP_ROOT}/src/mcommon/animation/timer.cpp
-    ${ZEP_ROOT}/src/mcommon/file/path.cpp
-    ${ZEP_ROOT}/src/mcommon/string/stringutils.cpp
+    ${ZEP_ROOT}/src/timer.cpp
+    ${ZEP_ROOT}/src/path.cpp
+    ${ZEP_ROOT}/src/stringutils.cpp
     ${ZEP_ROOT}/src/mode.cpp
     ${ZEP_ROOT}/src/mode_repl.cpp
     ${ZEP_ROOT}/src/mode_search.cpp
@@ -65,7 +65,7 @@ SET(ZEP_SOURCE
 
 set(SOURCES ${ZEP_SOURCE})
 
-LIST(APPEND SRC_INCLUDE ${ZEP_ROOT}/src ${ZEP_ROOT}/src/mcommon)
+LIST(APPEND SRC_INCLUDE ${ZEP_ROOT}/src ${ZEP_ROOT}/src)
 
 # Create the library - No depenencies on anything else in this file
 add_library(Zep STATIC ${SOURCES})
@@ -73,7 +73,7 @@ add_library(Zep::Zep ALIAS Zep)
 
 target_include_directories(Zep
     PRIVATE
-    ${ZEP_ROOT}/src/mcommon
+    ${ZEP_ROOT}/src
     ${ZEP_ROOT}/src
     ${SRC_INCLUDE}
     ${CMAKE_BINARY_DIR}
@@ -117,7 +117,7 @@ install(DIRECTORY ${ZEP_ROOT}/include/zep
 
 
 # For IDE
-source_group(Zep\\common REGULAR_EXPRESSION "src/mcommon/.*")
-source_group(Zep\\common REGULAR_EXPRESSION "include/zep/mcommon/.*")
+source_group(Zep\\common REGULAR_EXPRESSION "src/.*")
+source_group(Zep\\common REGULAR_EXPRESSION "include/zep/.*")
 source_group(Zep REGULAR_EXPRESSION "src/.*")
 source_group(Zep\\include REGULAR_EXPRESSION "include/zep/.*")

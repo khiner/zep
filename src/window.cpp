@@ -9,7 +9,7 @@
 #include "zep/theme.h"
 #include "zep/window.h"
 
-#include "zep/mcommon/string/stringutils.h"
+#include "zep/stringutils.h"
 
 namespace {
 struct WindowPass {

@@ -3,7 +3,7 @@
 #include <memory>
 #include <map>
 #include <string>
-#include "zep/mcommon/file/path.h"
+#include "path.h"
 #include <functional>
 
 namespace Zep {

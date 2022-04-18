@@ -8,7 +8,7 @@
 #include <set>
 #include <numeric>
 
-#include "mcommon/string/stringutils.h"
+#include "stringutils.h"
 
 namespace Zep {
 

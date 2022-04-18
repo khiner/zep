@@ -3,7 +3,7 @@
 #include "zep/mode_vim.h"
 #include "zep/tab_window.h"
 
-#include "zep/mcommon/animation/timer.h"
+#include "zep/timer.h"
 
 // Note:
 // This is a very basic implementation of the common Vim commands that I use: the bare minimum I can live with.

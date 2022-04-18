@@ -8,8 +8,8 @@
 #include "zep/editor.h"
 #include "zep/filesystem.h"
 
-#include "zep/mcommon/file/path.h"
-#include "zep/mcommon/string/stringutils.h"
+#include "zep/path.h"
+#include "zep/stringutils.h"
 
 namespace Zep {
 

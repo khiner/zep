@@ -1,4 +1,4 @@
-#include "zep/mcommon/file/path.h"
+#include "zep/path.h"
 
 namespace Zep {
 

@@ -1,5 +1,5 @@
 #include "config_app.h"
-#include "zep/mcommon/logger.h"
+#include "zep/logger.h"
 
 #include "zep/buffer.h"
 #include "zep/display.h"

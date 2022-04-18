@@ -3,8 +3,8 @@
 #include <set>
 #include <map>
 
-#include "zep/mcommon/animation/timer.h"
-#include "zep/mcommon/signals.h"
+#include "timer.h"
+#include "zep/signals.h"
 
 #include "zep/glyph_iterator.h"
 #include "zep/theme.h"

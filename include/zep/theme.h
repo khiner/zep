@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "zep/mcommon/math/math.h"
+#include "math.h"
 
 namespace Zep {
 

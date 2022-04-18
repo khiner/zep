@@ -8,11 +8,11 @@
 #include <string>
 #include <vector>
 
-#include "zep/mcommon/math/math.h"
-#include "zep/mcommon/animation/timer.h"
-#include "zep/mcommon/threadpool.h"
-#include "zep/mcommon/file/path.h"
-#include "zep/mcommon/file/cpptoml.h"
+#include "math.h"
+#include "timer.h"
+#include "zep/threadpool.h"
+#include "path.h"
+#include "zep/file/cpptoml.h"
 
 #include "zep/keymap.h"
 

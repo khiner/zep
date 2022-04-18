@@ -8,8 +8,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "zep/mcommon/animation/timer.h"
-#include "zep/mcommon/math/math.h"
+#include "timer.h"
+#include "math.h"
 
 namespace Zep {
 
