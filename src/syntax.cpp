@@ -26,7 +26,7 @@ ZepSyntax::~ZepSyntax() {
 }
 
 SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
-    Zep::SyntaxResult result;
+    SyntaxResult result;
 
     Wait();
 

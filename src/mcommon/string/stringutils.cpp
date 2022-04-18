@@ -93,7 +93,7 @@ std::vector<std::string> string_split(const std::string &text, const char *delim
 // https://stackoverflow.com/a/7408245/18942
 void string_split(const std::string &text, const char *delims, std::vector<std::string> &tokens) {
     tokens.clear();
-    std::size_t start = text.find_first_not_of(delims), end = 0;
+    std::size_t start = text.find_first_not_of(delims), end;
 
     while ((end = text.find_first_of(delims, start)) != std::string::npos) {
         tokens.push_back(text.substr(start, end - start));
@@ -143,23 +143,6 @@ std::string string_slurp_if(std::string::const_iterator &itr, std::string::const
             itr = itrCurrent;
             return ret;
         }
-    }
-    return "";
-}
-
-std::string string_slurp_if(std::string::const_iterator &itr, std::string::const_iterator itrEnd, std::function<bool(char)> fnIs) {
-    if (itr == itrEnd) return "";
-
-    auto itrCurrent = itr;
-    while ((itrCurrent != itrEnd) && fnIs(*itrCurrent)) {
-        itrCurrent++;
-    }
-
-    if (itrCurrent != itr) {
-        auto ret = std::string(itr, itrCurrent);
-        itr = itrCurrent;
-
-        return ret;
     }
     return "";
 };

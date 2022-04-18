@@ -63,9 +63,8 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
             m_window.MoveCursorY(1);
         } else if (key == ExtKeys::UP) {
             m_window.MoveCursorY(-1);
-        }
+        } else if (std::isgraph(key)) {
             // TODO: UTF8
-        else if (std::isgraph(key)) {
             m_searchTerm += char(key);
             UpdateTree();
         }

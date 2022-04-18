@@ -31,13 +31,10 @@ std::string string_tolower(const std::string &str);
 
 struct StringId {
     uint32_t id = 0;
-    StringId() {
-    }
+    StringId() = default;
     explicit StringId(const char *pszString);
-    StringId(const std::string &str);
-    explicit StringId(uint32_t _id) {
-        id = _id;
-    }
+    explicit StringId(const std::string &str);
+    explicit StringId(uint32_t _id) { id = _id; }
 
     bool operator==(const StringId &rhs) const {
         return id == rhs.id;
@@ -52,10 +49,7 @@ struct StringId {
 
     std::string ToString() const {
         auto itr = GetStringLookup().find(id);
-        if (itr == GetStringLookup().end()) {
-            return "murmur:" + std::to_string(id);
-        }
-        return itr->second;
+        return itr == GetStringLookup().end() ? "murmur:" + std::to_string(id) : itr->second;
     }
 
     static std::unordered_map<uint32_t, std::string> &GetStringLookup();
@@ -68,8 +62,6 @@ inline std::ostream &operator<<(std::ostream &str, StringId id) {
 
 void string_split(const std::string &text, const char *delims, std::vector<std::string> &tokens);
 std::vector<std::string> string_split(const std::string &text, const char *delims);
-size_t string_first_of(const char *text, size_t start, size_t end, const char *delims);
-size_t string_first_not_of(const char *text, size_t start, size_t end, const char *delims);
 
 inline void string_eat_char(std::string::const_iterator &itr, std::string::const_iterator &itrEnd) { if (itr != itrEnd) itr++; }
 std::string string_slurp_if(std::string::const_iterator &itr, std::string::const_iterator itrEnd, char first, char last);
@@ -85,7 +77,6 @@ struct hash<Zep::StringId> {
         // Compute individual hash values for first,
         // second and third and combine them using XOR
         // and bit shifting:
-
         return std::hash<uint32_t>()(k.id);
     }
 };

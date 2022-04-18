@@ -48,7 +48,7 @@ NVec2f ZepFont::GetCharSize(const uint8_t *pCh) {
     return sz;
 }
 
-ZepDisplay::ZepDisplay() : pixelScale(Zep::NVec2f(1.0f)) {
+ZepDisplay::ZepDisplay() : pixelScale(NVec2f(1.0f)) {
     for (auto &m_font: fonts) {
         m_font = nullptr;
     }

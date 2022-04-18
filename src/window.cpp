@@ -236,7 +236,7 @@ void ZepWindow::ScrollToCursor() {
     m_cursorMoved = false;
 }
 
-void ZepWindow::GetCharPointer(const GlyphIterator &loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &special) {
+void ZepWindow::GetCharPointer(const GlyphIterator &loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &special) const {
     static char invalidChar;
     static const char blankSpace = ' ';
 

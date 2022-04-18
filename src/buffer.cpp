@@ -1082,7 +1082,7 @@ tRangeMarkers ZepBuffer::GetRangeMarkersOnLine(uint32_t markerTypes, long line) 
 
     tRangeMarkers rangeMarkersOnLine;
     ForEachMarker(markerTypes,
-        Zep::Direction::Forward,
+        Direction::Forward,
         GlyphIterator(this, range.first), GlyphIterator(this, range.second),
         [&](const std::shared_ptr<RangeMarker> &marker) {
             rangeMarkersOnLine[marker->range.first].insert(marker);

@@ -287,8 +287,8 @@ private:
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapGlobalModes;
     std::map<std::string, std::shared_ptr<ZepMode>> m_mapBufferModes;
     std::map<std::string, std::shared_ptr<ZepExCommand>> m_mapExCommands;
-    timer m_cursorTimer;
-    timer m_lastEditTimer;
+    Timer m_cursorTimer;
+    Timer m_lastEditTimer;
     ZepMode *m_pCurrentMode = nullptr;
     mutable std::atomic_bool m_bPendingRefresh = true;
     mutable bool m_lastCursorBlink = false;

@@ -146,7 +146,7 @@ private:
         Tab,
         Space
     };
-    void GetCharPointer(const GlyphIterator &loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &specialChar);
+    void GetCharPointer(const GlyphIterator &loc, const uint8_t *&pBegin, const uint8_t *&pEnd, SpecialChar &specialChar) const;
     const SpanInfo &GetCursorLineInfo(long y);
 
     float ToWindowY(float pos) const;
@@ -213,7 +213,7 @@ private:
     float m_xPad = 0.0f;
 
     // Tooltips
-    timer m_toolTipTimer;                // Timer for when the tip is shown
+    Timer m_toolTipTimer;                // Timer for when the tip is shown
     NVec2f m_mouseHoverPos;              // Current location for the tip
     GlyphIterator m_mouseBufferLocation;     // The character in the buffer the tip pos is over, or -1
     NVec2f m_lastTipQueryPos;            // last query location for the tip

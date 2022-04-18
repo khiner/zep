@@ -333,10 +333,8 @@ void ZepMode::HandleMappedInput(const std::string &input) {
     context->foundCommand = GetCommand(*context);
 
     // Stay in insert mode unless commanded otherwise
-    if (context->commandResult.modeSwitch == EditorMode::None && context->foundCommand) {
-        if (m_modeFlags & ModeFlags::StayInInsertMode) {
-            context->commandResult.modeSwitch = EditorMode::Insert;
-        }
+    if (context->commandResult.modeSwitch == EditorMode::None && context->foundCommand && m_modeFlags & ModeFlags::StayInInsertMode) {
+        context->commandResult.modeSwitch = EditorMode::Insert;
     }
 
     // A lambda to check for a pending mode switch after the command
@@ -573,7 +571,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         // It also only looks for a file with the same name and different extension!
         // it is good enough for my current needs...
         const auto &path = buffer->filePath;
-        if (!path.empty() && editor.fileSystem->Exists(path)) {
+        if (!path.empty() && ZepFileSystem::Exists(path)) {
             auto ext = path.extension();
             auto searchPaths = std::vector<ZepPath>{
                 path.parent_path(),
@@ -593,9 +591,9 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 // Look for the priority folder locations
                 std::vector<ZepPath> searchFolders{path.parent_path()};
                 for (auto &priorityFolder: priorityFolders) {
-                    editor.fileSystem->ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
+                    ZepFileSystem::ScanDirectory(p, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = false;
-                        if (editor.fileSystem->IsDirectory(currentPath)) {
+                        if (ZepFileSystem::IsDirectory(currentPath)) {
                             auto lower = string_tolower(currentPath.filename().string());
                             if (std::find(ignoreFolders.begin(), ignoreFolders.end(), lower) != ignoreFolders.end()) {
                                 return true;
@@ -612,7 +610,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
                 for (auto &folder: searchFolders) {
                     ZLOG(INFO, "Searching: " << folder.string());
 
-                    editor.fileSystem->ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
+                    ZepFileSystem::ScanDirectory(folder, [&](const ZepPath &currentPath, bool &recurse) {
                         recurse = true;
                         if (path.stem() == currentPath.stem() && !(currentPath.extension() == path.extension())) {
                             auto load = editor.GetFileBuffer(currentPath, 0, true);

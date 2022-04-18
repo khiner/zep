@@ -11,7 +11,7 @@ bool ZepEditor_ImGui::sendImGuiKeyPressToBuffer(ImGuiKey imGuiKey, uint32_t key,
     return false;
 }
 
-void Zep::ZepEditor_ImGui::handleMouseEventAndHideFromImGui(size_t mouseButtonIndex, ZepMouseButton zepMouseButton, bool down) {
+void ZepEditor_ImGui::handleMouseEventAndHideFromImGui(size_t mouseButtonIndex, ZepMouseButton zepMouseButton, bool down) {
     auto &io = ImGui::GetIO();
     if (down) {
         if (io.MouseClicked[mouseButtonIndex] && OnMouseDown(toNVec2f(io.MousePos), zepMouseButton)) io.MouseClicked[mouseButtonIndex] = false;

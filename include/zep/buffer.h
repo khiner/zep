@@ -177,8 +177,8 @@ struct ZepBuffer : public ZepComponent {
     void EndFlash() const;
     void BeginFlash(float seconds, FlashType flashType, const GlyphRange &range);
 
-    Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const std::string &)> sigPreInsert;
-    Zep::signal<void(ZepBuffer &buffer, const GlyphIterator &, const GlyphIterator &)> sigPreDelete;
+    signal<void(ZepBuffer &buffer, const GlyphIterator &, const std::string &)> sigPreInsert;
+    signal<void(ZepBuffer &buffer, const GlyphIterator &, const GlyphIterator &)> sigPreDelete;
 
     std::string name;
     GapBuffer<uint8_t> workingBuffer; // Buffer & record of the line end locations

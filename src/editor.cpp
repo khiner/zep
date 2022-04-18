@@ -14,11 +14,11 @@
 
 namespace Zep {
 #ifdef _DEBUG
-Zep::ZLogger logger = {true, Zep::ZLT::DBG};
+ZLogger logger = {true, ZLT::DBG};
 #else
-Zep::ZLogger logger = { false, Zep::ZLT::INFO };
+ZLogger logger = { false, ZLT::INFO };
 #endif
-bool Zep::ZLog::disabled = false;
+bool ZLog::disabled = false;
 } // namespace Zep
 
 namespace Zep {
@@ -110,16 +110,14 @@ ZepEditor::~ZepEditor() {
 // If you pass a valid path to a 'zep.cfg' file, then editor settings will serialize from that
 // You can even edit it inside zep for immediate changes :)
 void ZepEditor::LoadConfig(const ZepPath &config_path) {
-    if (!fileSystem->Exists(config_path)) return;
+    if (!ZepFileSystem::Exists(config_path)) return;
 
     try {
-        std::shared_ptr<cpptoml::table> config;
-        config = cpptoml::parse_file(config_path.string());
-        if (config == nullptr) return;
+        auto parsedConfig = cpptoml::parse_file(config_path.string());
+        if (parsedConfig == nullptr) return;
 
-        LoadConfig(config);
-    }
-    catch (cpptoml::parse_exception &ex) {
+        LoadConfig(parsedConfig);
+    } catch (cpptoml::parse_exception &ex) {
         std::ostringstream str;
         str << config_path.filename().string() << " : Failed to parse. " << ex.what();
         SetCommandText(str.str());
@@ -205,10 +203,10 @@ ZepBuffer *ZepEditor::GetEmptyBuffer(const std::string &name, uint32_t fileFlags
 }
 
 ZepBuffer *ZepEditor::GetFileBuffer(const ZepPath &filePath, uint32_t fileFlags, bool create) {
-    auto path = fileSystem->Exists(filePath) ? fileSystem->Canonical(filePath) : filePath;
+    auto path = ZepFileSystem::Exists(filePath) ? ZepFileSystem::Canonical(filePath) : filePath;
     if (!path.empty()) {
         for (auto &pBuffer: buffers) {
-            if (!pBuffer->filePath.empty() && fileSystem->Equivalent(pBuffer->filePath, path)) {
+            if (!pBuffer->filePath.empty() && ZepFileSystem::Equivalent(pBuffer->filePath, path)) {
                 return pBuffer.get();
             }
         }
@@ -256,17 +254,17 @@ void ZepEditor::Reset() {
 ZepBuffer *ZepEditor::InitWithFileOrDir(const std::string &str) {
     ZepPath startPath(str);
 
-    if (fileSystem->Exists(startPath)) {
-        startPath = fileSystem->Canonical(startPath);
+    if (ZepFileSystem::Exists(startPath)) {
+        startPath = ZepFileSystem::Canonical(startPath);
         // If a directory, just return the default already created buffer.
-        if (fileSystem->IsDirectory(startPath)) {
+        if (ZepFileSystem::IsDirectory(startPath)) {
             // Remember the working directory 
             fileSystem->workingDirectory = startPath;
             return activeTabWindow->GetActiveWindow()->buffer;
         }
         // Try to get the working directory from the parent path of the passed file
         auto parentDir = startPath.parent_path();
-        if (fileSystem->Exists(parentDir) && fileSystem->IsDirectory(parentDir)) {
+        if (ZepFileSystem::Exists(parentDir) && ZepFileSystem::IsDirectory(parentDir)) {
             fileSystem->workingDirectory = startPath.parent_path();
         }
     }

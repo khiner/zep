@@ -82,13 +82,12 @@ bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &comm
 
 void keymap_dump(const KeyMap &map, std::ostringstream &str) {
     std::function<void(std::shared_ptr<CommandNode>, int)> fnDump;
-    fnDump = [&](std::shared_ptr<CommandNode> node, int depth) {
+    fnDump = [&](const std::shared_ptr<CommandNode> &node, int depth) {
         for (int i = 0; i < depth; i++) {
             str << " ";
         }
         str << node->token;
-        if (node->commandId != 0)
-            str << " : " << node->commandId.ToString();
+        if (node->commandId != 0) str << " : " << node->commandId.ToString();
         str << std::endl;
 
         for (auto &child: node->children) {
@@ -166,7 +165,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
     };
 
     std::function<bool(std::shared_ptr<CommandNode>, std::string::const_iterator, std::string::const_iterator, const Captures &captures, KeyMapResult &)> fnSearch;
-    fnSearch = [&](std::shared_ptr<CommandNode> node, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures &captures, KeyMapResult &result) {
+    fnSearch = [&](const std::shared_ptr<CommandNode> &node, std::string::const_iterator itrChar, std::string::const_iterator itrEnd, const Captures &captures, KeyMapResult &result) {
         for (auto &child: node->children) {
             auto childNode = child.second;
             std::string::const_iterator itr = itrChar;
@@ -177,11 +176,9 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
             std::string token;
 
             // Consume wildcards
-            if (consumeDigits(childNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures)) {
-                token = childNode->token;
-            } else if (consumeRegister(childNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures)) {
-                token = childNode->token;
-            } else if (consumeChar(childNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures)) {
+            if (consumeDigits(childNode, itr, itrEnd, nodeCaptures.captureNumbers, strCaptures) ||
+                consumeRegister(childNode, itr, itrEnd, nodeCaptures.captureRegisters, strCaptures) ||
+                consumeChar(childNode, itr, itrEnd, nodeCaptures.captureChars, strCaptures)) {
                 token = childNode->token;
             } else {
                 // Grab full <C-> tokens

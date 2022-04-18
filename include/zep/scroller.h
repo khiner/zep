@@ -36,8 +36,8 @@ private:
     std::shared_ptr<Region> m_topButtonRegion;
     std::shared_ptr<Region> m_bottomButtonRegion;
     std::shared_ptr<Region> m_mainRegion;
-    timer m_start_delay_timer;
-    timer m_reclick_timer;
+    Timer m_start_delay_timer;
+    Timer m_reclick_timer;
     enum class ScrollState {
         None,
         ScrollDown,

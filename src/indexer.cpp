@@ -8,29 +8,12 @@
 
 namespace Zep {
 
-enum TypeName {
-    t_class,
-    t_void,
-    t_byte,
-    t_char,
-    t_int,
-    t_long,
-    t_float,
-    t_double,
-    t_uint32_t,
-    t_uint8_t,
-    t_uint64_t,
-    t_int32_t,
-    t_int64_t,
-    t_int8_t
-};
-
 Indexer::Indexer(ZepEditor &editor) : ZepComponent(editor) {}
 
 void Indexer::GetSearchPaths(ZepEditor &editor, const ZepPath &path, std::vector<std::string> &ignore_patterns, std::vector<std::string> &include_patterns, std::string &errors) {
     ZepPath configPath = path / ".zep" / "project.cfg";
 
-    if (editor.fileSystem->Exists(configPath)) {
+    if (ZepFileSystem::Exists(configPath)) {
         try {
             auto config = cpptoml::parse_file(configPath.string());
             if (config != nullptr) {
@@ -75,19 +58,18 @@ std::future<std::shared_ptr<FileIndexResult>> Indexer::IndexPaths(ZepEditor &edi
         return make_ready_future(result);
     }
 
-    auto *fileSystem = editor.fileSystem;
     return editor.threadPool->enqueue([=](ZepPath root) {
             result->root = root;
 
             try {
                 // Index the whole subtree, ignoring any patterns supplied to us
-                fileSystem->ScanDirectory(root, [&](const ZepPath &p, bool &recurse) -> bool {
+                ZepFileSystem::ScanDirectory(root, [&](const ZepPath &p, bool &recurse) -> bool {
                     recurse = true;
 
-                    auto bDir = fileSystem->IsDirectory(p);
+                    auto bDir = ZepFileSystem::IsDirectory(p);
 
                     // Add this one to our list
-                    auto targetZep = fileSystem->Canonical(p);
+                    auto targetZep = ZepFileSystem::Canonical(p);
                     auto rel = path_get_relative(root, targetZep);
 
                     bool matched = true;
@@ -168,12 +150,11 @@ void Indexer::StartSymbolSearch() {
                 m_searchQueue.pop_front();
             }
 
-            auto *fs = editor.fileSystem;
             std::string strLast;
             auto fullPath = m_searchRoot / path;
-            if (fs->Exists(fullPath)) {
+            if (ZepFileSystem::Exists(fullPath)) {
                 ZLOG(DBG, "Parsing: " << fullPath.c_str());
-                auto strFile = editor.fileSystem->Read(fullPath);
+                auto strFile = ZepFileSystem::Read(fullPath);
 
                 std::vector<std::string> tokens;
                 string_split(strFile, ";()[] \t\n\r&!\"\'*:,<>", tokens);
@@ -190,15 +171,14 @@ bool Indexer::StartIndexing() {
         return false;
     }
 
-    auto *fs = editor.fileSystem;
     auto indexDBRoot = m_searchRoot / ".zep";
-    if (!fs->IsDirectory(indexDBRoot) && !fs->MakeDirectories(indexDBRoot)) {
+    if (!ZepFileSystem::IsDirectory(indexDBRoot) && !ZepFileSystem::MakeDirectories(indexDBRoot)) {
         ZLOG(ERROR, "Can't get the index folder");
         return false;
     }
 
     int v = 0;
-    fs->Write(indexDBRoot / "indexdb", &v, 1);
+    ZepFileSystem::Write(indexDBRoot / "indexdb", &v, 1);
 
     m_fileSearchActive = true;
     m_indexResult = Indexer::IndexPaths(editor, m_searchRoot);

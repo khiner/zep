@@ -216,7 +216,7 @@ protected:
     uint32_t m_modeFlags = ModeFlags::None;
     uint32_t m_lastKey = 0;
 
-    timer m_lastKeyPressTimer;
+    Timer m_lastKeyPressTimer;
 };
 
 } // namespace Zep

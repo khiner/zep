@@ -80,12 +80,12 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker> {
     float duration = 1.0f;
     NVec2f inlineSize;
     bool enabled = true;
-    Zep::timer timer;
+    Timer timer;
 
     ByteRange range;
 
 protected:
-    Zep::scoped_connection onPreBufferInsert;
+    scoped_connection onPreBufferInsert;
 };
 
 using tRangeMarkers = std::map<ByteIndex, std::set<std::shared_ptr<RangeMarker>>>;

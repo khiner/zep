@@ -16,7 +16,7 @@ struct ZepRegressExCommand : public ZepExCommand {
     const char *ExCommandName() const override { return "ZRegress"; }
 
 private:
-    timer m_timer;
+    Timer m_timer;
     bool m_enable = false;
     uint32_t m_windowOperationCount = 0;
 };
