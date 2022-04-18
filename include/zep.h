@@ -11,7 +11,3 @@
 #include "zep/mode.h"
 #include "zep/mode_vim.h"
 #include "zep/mode_standard.h"
-
-#include "../../../src/display_imgui.h"
-#include "../../../src/editor_imgui.h"
-#include "../../../src/console_imgui.h"
