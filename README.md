@@ -199,17 +199,24 @@ target_link_libraries(MYPROJECT PRIVATE Zep::Zep)
 
 # 4. (Alternative) Use zep as a single header library
 
+_This branch gets rid of the `zep.h` header in favor of including the files you need directly._
+
 A typical example of including Zep as a single header library (see the sister integration project for an example):
 
-```
+```shell
 git submodule add zep https://github.com/Rezonality/zep
+```
 
 In CMakeLists:
-target_include_directories(myapp
-    PRIVATE
-    zep/include
 
-#include "zep\zep.h"
+```cmake
+target_include_directories(myapp PRIVATE zep/include)
+```
+
+Include what you need:
+
+```cpp
+#include "zep\editor.h"
 ```
 
 # Windows
