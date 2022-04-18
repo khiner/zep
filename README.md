@@ -43,8 +43,7 @@ and Qt backends is provided as an addendum to the core library; this enables Zep
 environment. After building and installing Zep on your system, only 2 lines are required in your CMakeLists to use it.
 An alternative would be to just copy and build the source files for the core library into your project.
 
-The demos for Qt and ImGui require dditional packages, but these aren't required to embed Zep in your application. The
-ImGui demo builds and runs on Windows, Linux and Mac OS. If you are a Vim user, you might often suffer the frustration
+If you are a Vim user, you might often suffer the frustration
 of not being able to use Vim keystrokes in your tools. Zep solves that.
 
 Key Features:
@@ -186,7 +185,7 @@ Here is a typical build instruction for windows, assuming you have just synced t
 ```
 mkdir build
 cd build
-cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_IMGUI=0 -DBUILD_TESTS=0 -DBUILD_DEMOS=0 ..
+cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_IMGUI=0 -DBUILD_TESTS=0 ..
 cmake --build . --target install
 ```
 
@@ -212,12 +211,6 @@ target_include_directories(myapp
 
 #include "zep\zep.h"
 ```
-
-# 5. Building the Demo
-
-The Zep demo now requires my external MUtils library in order to run. To make the demo, hop over
-to https://github.com/Rezonality/mutils and build/install it.
-Here's an example script for the complete process to build the support library and all of the zep demos.
 
 # Windows
 

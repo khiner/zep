@@ -61,7 +61,6 @@ SET(ZEP_SOURCE
     ${ZEP_ROOT}/src/tab_window.cpp
     ${ZEP_ROOT}/src/theme.cpp
     ${ZEP_ROOT}/src/window.cpp
-    ${ZEP_ROOT}/src/editor_imgui.cpp
     )
 
 set(SOURCES ${ZEP_SOURCE})
