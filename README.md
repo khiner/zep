@@ -10,7 +10,7 @@
 Zep is a simple embeddable editor, with a rendering agnostic design and optional Vim mode. It is built as a shared
 modern-cmake library, using a single header include, or as a static library. The core library is dependency-free (the
 demo application requires an installed package), and it is possible just to copy the files into your project and build
-it. Out of the box Zep can draw to a Qt Widget or an an ImGui window - useful for embedding in a game engine. A simple
+it. Out of the box Zep can draw to a Qt Widget or an ImGui window - useful for embedding in a game engine. A simple
 syntax highlighting engine is provided, and can easily be extended. Basic theming support is included, and window tabs
 and vertical/horizontal splits are also available. Zep is 'opinionated' in how it does things, but is easy to modify and
 supports many common features. It is heavliy influenced by Vim, but has a good notepad-style editing mode too. A simple
@@ -185,7 +185,7 @@ Here is a typical build instruction for windows, assuming you have just synced t
 ```
 mkdir build
 cd build
-cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_IMGUI=0 -DBUILD_TESTS=0 ..
+cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_TESTS=0 ..
 cmake --build . --target install
 ```
 

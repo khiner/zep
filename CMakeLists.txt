@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.2)
 message(STATUS "CMakeLists: Zep")
 
 # Global Options
-option(BUILD_IMGUI "Make Imgui Library" OFF)
 option(BUILD_TESTS "Make the tests" ON)
 
 # Global Settings

@@ -1,4 +1,3 @@
 ignore:
   - "m3rdparty/.*"
   - "main.cpp"
-  - "src/imgui/.*"
