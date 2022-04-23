@@ -78,7 +78,7 @@ struct ZepTheme {
 
     const NVec4f &GetColor(ThemeColor themeColor) const;
     NVec4f GetComplement(const NVec4f &col, const NVec4f &adjust = NVec4f(0.0f)) const;
-    ThemeColor GetUniqueColor(uint32_t id) const;
+    static ThemeColor GetUniqueColor(uint32_t id);
 
     void SetThemeType(ThemeType type);
     ThemeType GetThemeType() const;

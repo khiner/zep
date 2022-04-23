@@ -6,8 +6,8 @@ namespace utf8 {
 // The typedefs for 8-bit and 32-bit unsigned integers
 // You may need to change them to match your system.
 // These typedefs have the same names as ones from cstdint, or boost/cstdint
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
+using uint8_t = unsigned char;
+using uint32_t = unsigned int;
 
 // Helper code - not intended to be directly called by the library users. May be changed at any time
 namespace internal {

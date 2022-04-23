@@ -112,7 +112,7 @@ void ZepTheme::SetLightTheme() {
     m_colors[ThemeColor::FlashColor] = NVec4f(0.8f, .4f, .05f, 1.0f);
 }
 
-ThemeColor ZepTheme::GetUniqueColor(uint32_t index) const {
+ThemeColor ZepTheme::GetUniqueColor(uint32_t index) {
     return ThemeColor((uint32_t) ThemeColor::UniqueColor0 + (uint32_t) (index % (uint32_t) ThemeColor::UniqueColorLast));
 }
 
@@ -131,10 +131,7 @@ const NVec4f &ZepTheme::GetColor(ThemeColor themeColor) const {
 }
 
 NVec4f ZepTheme::GetComplement(const NVec4f &col, const NVec4f &adjust) const {
-    auto lum = Luminosity(col);
-    if (lum > 0.5f)
-        return GetColor(ThemeColor::Dark) + adjust;
-    return GetColor(ThemeColor::Light) - adjust;
+    return Luminosity(col) > 0.5f ? GetColor(ThemeColor::Dark) + adjust : GetColor(ThemeColor::Light) - adjust;
 }
 
 } // namespace Zep

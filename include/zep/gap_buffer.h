@@ -28,11 +28,11 @@ template<class T, class A = std::allocator<T>>
 struct GapBuffer {
     static const int DEFAULT_GAP = 1000;
 
-    typedef typename std::allocator_traits<A>::value_type value_type;
-    typedef typename std::allocator_traits<A>::difference_type difference_type;
-    typedef typename std::allocator_traits<A>::size_type size_type;
-    typedef value_type &reference;
-    typedef const value_type &const_reference;
+    using value_type = typename std::allocator_traits<A>::value_type;
+    using difference_type = typename std::allocator_traits<A>::difference_type;
+    using size_type = typename std::allocator_traits<A>::size_type;
+    using reference = value_type &;
+    using const_reference = const value_type &;
 
     T *m_pStart = nullptr;       // Start of the buffer
     T *m_pEnd = nullptr;         // Pointer after the end 
@@ -43,11 +43,11 @@ struct GapBuffer {
 
     // An iterator used to walk the buffer
     struct iterator {
-        typedef typename std::allocator_traits<A>::difference_type difference_type;
-        typedef typename std::allocator_traits<A>::value_type value_type;
-        typedef typename std::allocator_traits<A>::pointer pointer;
-        typedef std::random_access_iterator_tag iterator_category; //or another tag
-        typedef value_type &reference;
+        using difference_type = typename std::allocator_traits<A>::difference_type;
+        using value_type = typename std::allocator_traits<A>::value_type;
+        using pointer = typename std::allocator_traits<A>::pointer;
+        using iterator_category = std::random_access_iterator_tag; //or another tag
+        using reference = value_type &;
 
         bool skipGap = true;
         // Note: p is measured in actual characters, not entire buffer fixed_size.
@@ -111,11 +111,11 @@ struct GapBuffer {
     };
 
     struct const_iterator {
-        typedef typename std::allocator_traits<A>::difference_type difference_type;
-        typedef typename std::allocator_traits<A>::value_type value_type;
-        typedef typename std::allocator_traits<A>::pointer pointer;
-        typedef std::random_access_iterator_tag iterator_category; //or another tag
-        typedef value_type &reference;
+        using difference_type = typename std::allocator_traits<A>::difference_type;
+        using value_type = typename std::allocator_traits<A>::value_type;
+        using pointer = typename std::allocator_traits<A>::pointer;
+        using iterator_category = std::random_access_iterator_tag; //or another tag
+        using reference = value_type &;
 
         bool skipGap = true;
         size_t p = 0;
@@ -175,8 +175,8 @@ struct GapBuffer {
         reference operator[](size_type distance) const { return buffer.GetBufferPtr(p + distance, skipGap); }
     };
 
-    typedef std::reverse_iterator<iterator> reverse_iterator;
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     iterator begin() { return iterator(*this, 0); }
     const_iterator begin() const { return const_iterator(*this, 0); }
@@ -191,23 +191,16 @@ struct GapBuffer {
     // Size is fixed_size of buffer - the gap fixed_size
     inline size_type size() const { return (m_pEnd - m_pStart) - (m_pGapEnd - m_pGapStart); }
 
-    // No current limit ; not sure how to calculate the ram max fixed_size here
-    size_type max_size() const { return std::numeric_limits<size_t>::max(); }
-
-    // An empty buffer 
+    // An empty buffer
     inline bool empty() const { return size() == 0; }
 
     // Return the allocator
     A get_allocator() const { return _alloc; }
 
     // No assign/copy for now
-    explicit GapBuffer(int size = 0, int gapSize = DEFAULT_GAP)
-        : m_defaultGap(gapSize) {
-        if (size == 0) {
-            clear();
-        } else {
-            resize(size);
-        }
+    explicit GapBuffer(int size = 0, int gapSize = DEFAULT_GAP) : m_defaultGap(gapSize) {
+        if (size == 0) clear();
+        else resize(size);
     }
 
     // No copy constructor yet
@@ -381,9 +374,7 @@ struct GapBuffer {
     template<class iter>
     iterator insert(const_iterator pt, iter srcStart, iter srcEnd) {
         // Insert backwards - test it?
-        auto spaceRequired = std::distance(srcStart, srcEnd);
-        if (spaceRequired < 0)
-            spaceRequired = -spaceRequired;
+        auto spaceRequired = std::abs(std::distance(srcStart, srcEnd));
 
         EnsureGapPosAndSize(pt.p, spaceRequired);
 
@@ -404,9 +395,7 @@ struct GapBuffer {
         assert(start.p < size() && end.p < (size() + 1));
         MoveGap(start.p);
 
-        auto count = std::distance(start, end);
-        if (count < 0)
-            count = -count;
+        auto count = std::abs(std::distance(start, end));
         m_pGapEnd += count;
 
         DEBUG_FILL_GAP;

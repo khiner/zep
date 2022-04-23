@@ -9,9 +9,8 @@
 
 namespace Zep {
 
-typedef std::chrono::system_clock::time_point file_time_type;
 struct ZepPath {
-    typedef std::vector<std::string>::const_iterator const_iterator;
+    using const_iterator = std::vector<std::string>::const_iterator;
 
     ZepPath(std::string strPath = {}) : path(std::move(strPath)) {}
     ZepPath(const char *pszZepPath) : path(pszZepPath) {}
@@ -67,12 +66,6 @@ struct ZepPath {
         if (sep != std::string::npos) return path.substr(0, sep);
 
         return {""};
-    }
-
-    ZepPath &replace_extension(const std::string &extension) {
-        size_t dot = path.find_last_of('.');
-        path = (dot != std::string::npos ? path.substr(0, dot - 1) : path) + extension;
-        return *this;
     }
 
     const char *c_str() const { return path.c_str(); }

@@ -47,6 +47,7 @@ inline bool IsSpaceOrTerminal(const char c) {
 }
 
 } // namespace
+
 ZepBuffer::ZepBuffer(ZepEditor &editor, std::string strName) : ZepComponent(editor), name(std::move(strName)) {
     Clear();
 }
@@ -100,13 +101,9 @@ bool ZepBuffer::Skip(const fnMatch &IsToken, GlyphIterator &start, Direction dir
     if (!start.Valid()) return false;
 
     bool found = false;
-    auto itrEnd = End();
-    auto itrBegin = Begin();
-
     while (IsToken(start.Char())) {
         found = true;
-        if (!Move(start, dir))
-            break;
+        if (!Move(start, dir)) break;
     }
     return found;
 }
@@ -515,9 +512,9 @@ void ZepBuffer::Load(const ZepPath &path) {
     // TODO: I believe that some of this buffer config should move to Editor.cpp
     editor.SetBufferSyntax(*this);
 
-    if (editor.fileSystem->Exists(path)) {
-        filePath = editor.fileSystem->Canonical(path);
-        auto read = editor.fileSystem->Read(path);
+    if (Zep::ZepFileSystem::Exists(path)) {
+        filePath = Zep::ZepFileSystem::Canonical(path);
+        auto read = Zep::ZepFileSystem::Read(path);
 
         // Always set text, to ensure we prepare the buffer with 0 terminator,
         // even if string is empty
@@ -551,7 +548,7 @@ bool ZepBuffer::Save(int64_t &size) {
 
     if (size <= 0) return true;
 
-    if (editor.fileSystem->Write(filePath, &str[0], (size_t) size)) {
+    if (Zep::ZepFileSystem::Write(filePath, &str[0], (size_t) size)) {
         fileFlags = ZClearFlags(fileFlags, FileFlags::Dirty);
         return true;
     }
@@ -565,10 +562,10 @@ std::string ZepBuffer::GetDisplayName() const {
 
 void ZepBuffer::SetFilePath(const ZepPath &path) {
     auto testPath = path;
-    if (editor.fileSystem->Exists(testPath)) {
-        testPath = editor.fileSystem->Canonical(testPath);
+    if (Zep::ZepFileSystem::Exists(testPath)) {
+        testPath = Zep::ZepFileSystem::Canonical(testPath);
     }
-    if (!editor.fileSystem->Equivalent(testPath, filePath)) {
+    if (!Zep::ZepFileSystem::Equivalent(testPath, filePath)) {
         filePath = testPath;
     }
     editor.SetBufferSyntax(*this);
@@ -844,10 +841,10 @@ bool ZepBuffer::Insert(const GlyphIterator &startIndex, const std::string &str, 
     return true;
 }
 
-bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &endIndex, std::string str, ReplaceRangeMode mode, ChangeRecord &changeRecord) {
+bool ZepBuffer::Replace(const GlyphIterator &startIndex, const GlyphIterator &endIndex, std::string str, ReplaceRangeMode replaceRangeMode, ChangeRecord &changeRecord) {
     if (!startIndex.Valid() || !endIndex.Valid()) return false;
 
-    if (mode == ReplaceRangeMode::Replace) {
+    if (replaceRangeMode == ReplaceRangeMode::Replace) {
         // A replace is really 2 steps; remove the current, insert the new
         Delete(startIndex, endIndex, changeRecord);
 
@@ -983,7 +980,7 @@ bool OverlapInclusive(ByteRange r1, ByteRange r2) {
     return r1.first <= r2.second && r2.first <= r1.second;
 }
 
-void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, std::function<bool(const std::shared_ptr<RangeMarker> &)> fnCB) const {
+void ZepBuffer::ForEachMarker(uint32_t markerType, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, const std::function<bool(const std::shared_ptr<RangeMarker> &)> &fnCB) const {
     ByteRange inclusive = ByteRange(begin.index, end.Peek(-1).index);
     if (dir == Direction::Forward) {
         for (const auto &m_rangeMarker: rangeMarkers) {

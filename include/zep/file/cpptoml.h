@@ -146,9 +146,6 @@ struct offset_datetime : local_datetime, zone_offset {
     }
 };
 
-CPPTOML_DEPRECATED("datetime has been renamed to offset_datetime")
-typedef offset_datetime datetime;
-
 class fill_guard {
 public:
     fill_guard(std::ostream &os) : os_(os), fill_{os.fill()} {

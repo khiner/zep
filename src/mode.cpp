@@ -1689,7 +1689,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
                     marker->description = "This is an example tooltip\nThey can be added to any range of characters";
                     marker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::Indicator | RangeMarkerDisplayType::Background;
                     break;
-                case 3:marker->SetColors(ThemeColor::Background, ThemeColor::Text, editor.theme->GetUniqueColor(unique++));
+                case 3:marker->SetColors(ThemeColor::Background, ThemeColor::Text, ZepTheme::GetUniqueColor(unique++));
                     marker->name = "Underline Marker";
                     marker->description = "This is an example tooltip\nThey can be added to any range of characters";
                     marker->displayType = RangeMarkerDisplayType::Tooltip | RangeMarkerDisplayType::Underline | RangeMarkerDisplayType::CursorTip;

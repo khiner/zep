@@ -125,7 +125,7 @@ struct ZepBuffer : public ZepComponent {
     // Things that change
     bool Delete(const GlyphIterator &startOffset, const GlyphIterator &endOffset, ChangeRecord &changeRecord);
     bool Insert(const GlyphIterator &startOffset, const std::string &str, ChangeRecord &changeRecord);
-    bool Replace(const GlyphIterator &startOffset, const GlyphIterator &endOffset, /*note; not ref*/ std::string str, ReplaceRangeMode mode, ChangeRecord &changeRecord);
+    bool Replace(const GlyphIterator &startOffset, const GlyphIterator &endOffset, /*note; not ref*/ std::string str, ReplaceRangeMode replaceRangeMode, ChangeRecord &changeRecord);
 
     long GetBufferLine(const GlyphIterator &offset) const;
 
@@ -158,7 +158,7 @@ struct ZepBuffer : public ZepComponent {
     void HideMarkers(uint32_t markerType) const;
     void ShowMarkers(uint32_t markerType, uint32_t displayType) const;
 
-    void ForEachMarker(uint32_t types, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, std::function<bool(const std::shared_ptr<RangeMarker> &)> fnCB) const;
+    void ForEachMarker(uint32_t types, Direction dir, const GlyphIterator &begin, const GlyphIterator &end, const std::function<bool(const std::shared_ptr<RangeMarker> &)> &fnCB) const;
     std::shared_ptr<RangeMarker> FindNextMarker(GlyphIterator start, Direction dir, uint32_t markerType) const;
 
     GlyphIterator GetLastEditLocation();

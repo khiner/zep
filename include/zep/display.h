@@ -39,7 +39,6 @@ protected:
     ZepDisplay &m_display;
 };
 
-// Display interface
 struct ZepDisplay {
     virtual ~ZepDisplay() = default;
     ZepDisplay();
