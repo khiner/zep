@@ -82,13 +82,6 @@ target_include_directories(Zep
     $<INSTALL_INTERFACE:include>
     )
 
-if (TARGET_LINUX)
-    target_link_libraries(Zep
-        PUBLIC
-        stdc++fs
-        )
-endif ()
-
 # Set locations for components
 set_target_properties(Zep PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
