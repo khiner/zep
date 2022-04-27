@@ -62,7 +62,7 @@ struct VimTest : public testing::Test {
             continue;                             \
         if (ch == '\n')                           \
         {                                         \
-            mode->AddKeyPress(ExtKeys::RETURN); \
+            mode->AddKeyPress(ImGuiKey_Enter); \
         }                                         \
         else                                      \
         {                                         \
@@ -102,7 +102,7 @@ struct VimTest : public testing::Test {
     {                                                                   \
         pBuffer->SetText(source);                                       \
         mode->AddCommandText(command);                                \
-        mode->AddKeyPress(ExtKeys::RETURN);                           \
+        mode->AddKeyPress(ImGuiKey_Enter);                           \
         ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
@@ -181,9 +181,9 @@ TEST_F(VimTest, DELETE
 {
 pBuffer->SetText("Hello");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -195,7 +195,7 @@ c_str(),
 
 mode->AddCommandText("vll");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -207,9 +207,9 @@ c_str(),
 
 pBuffer->SetText("H");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 }
 
 TEST_F(VimTest, ESCAPE
@@ -218,7 +218,7 @@ TEST_F(VimTest, ESCAPE
 pBuffer->SetText("Hello");
 mode->AddCommandText("iHi, ");
 mode->
-AddKeyPress(ExtKeys::ESCAPE);
+AddKeyPress(ImGuiKey_Escape);
 mode->
 Undo();
 ASSERT_STREQ(pBuffer
@@ -236,7 +236,7 @@ TEST_F(VimTest, RETURN
 {
 pBuffer->SetText("Õne\ntwo");
 mode->
-AddKeyPress(ExtKeys::RETURN);
+AddKeyPress(ImGuiKey_Enter);
 ASSERT_EQ(pWindow
 ->
 BufferToDisplay()
@@ -244,7 +244,7 @@ BufferToDisplay()
 
 mode->AddCommandText("li");
 mode->
-AddKeyPress(ExtKeys::RETURN);
+AddKeyPress(ImGuiKey_Enter);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -261,7 +261,7 @@ TEST_F(VimTest, TAB
 pBuffer->SetText("HellÕ");
 mode->AddCommandText("llllllllli");
 mode->
-AddKeyPress(ExtKeys::TAB);
+AddKeyPress(ImGuiKey_Tab);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -278,9 +278,9 @@ TEST_F(VimTest, BACKSPACE
 pBuffer->SetText("Hello");
 mode->AddCommandText("ll");
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -298,7 +298,7 @@ Index(),
 
 mode->AddCommandText("lli");
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -312,10 +312,10 @@ c_str(),
 // A bug that showed up at some point
 pBuffer->SetText("AB");
 mode->
-AddKeyPress(ExtKeys::ESCAPE);
+AddKeyPress(ImGuiKey_Escape);
 mode->AddCommandText("AC");
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer

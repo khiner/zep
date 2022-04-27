@@ -75,43 +75,43 @@ empty()
             mod_marker = false;                               \
             if (ch == 's')                                    \
             {                                                 \
-                mod |= ModifierKey::Shift;                    \
+                mod |= ImGuiKeyModFlags_Shift;                    \
                 continue;                                     \
             }                                                 \
             else if (ch == 'c')                               \
             {                                                 \
-                mod |= ModifierKey::Ctrl;                     \
+                mod |= ImGuiKeyModFlags_Ctrl;                     \
                 continue;                                     \
             }                                                 \
             else if (ch == 'r')                               \
             {                                                 \
-                mode->AddKeyPress(ExtKeys::RIGHT, mod);     \
+                mode->AddKeyPress(ImGuiKey_RightArrow, mod);     \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'l')                               \
             {                                                 \
-                mode->AddKeyPress(ExtKeys::LEFT, mod);      \
+                mode->AddKeyPress(ImGuiKey_LeftArrow, mod);      \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'u')                               \
             {                                                 \
-                mode->AddKeyPress(ExtKeys::UP, mod);        \
+                mode->AddKeyPress(ImGuiKey_UpArrow, mod);        \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'd')                               \
             {                                                 \
-                mode->AddKeyPress(ExtKeys::DOWN, mod);      \
+                mode->AddKeyPress(ImGuiKey_DownArrow, mod);      \
                 mod = 0;                                      \
             }                                                 \
             else if (ch == 'x')                               \
             {                                                 \
-                mode->AddKeyPress(ExtKeys::BACKSPACE, mod); \
+                mode->AddKeyPress(ImGuiKey_Backspace, mod); \
                 mod = 0;                                      \
             }                                                 \
         }                                                     \
         else if (ch == '\n')                                  \
         {                                                     \
-            mode->AddKeyPress(ExtKeys::RETURN, mod);        \
+            mode->AddKeyPress(ImGuiKey_Enter, mod);        \
             mod = 0;                                          \
         }                                                     \
         else                                                  \
@@ -194,23 +194,23 @@ TEST_F(StandardTest, copy_pasteover_paste
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello Goodbye");
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
-mode->AddKeyPress('c', ModifierKey::Ctrl);
+mode->AddKeyPress('c', ImGuiKeyModFlags_Ctrl);
 
-mode->AddKeyPress('v', ModifierKey::Ctrl);
+mode->AddKeyPress('v', ImGuiKeyModFlags_Ctrl);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -222,7 +222,7 @@ c_str(),
 
 // Note this is incorrect for what we expect, but a side effect of the test: Fix it.
 // The actual behavior in the editor is correct!
-mode->AddKeyPress('v', ModifierKey::Ctrl);
+mode->AddKeyPress('v', ImGuiKeyModFlags_Ctrl);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -246,13 +246,13 @@ TEST_F(StandardTest, BackToInsertIfShiftReleased
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("abc");
 mode->
-AddKeyPress(ExtKeys::RIGHT, ModifierKey::Shift
+AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift
 );
 ASSERT_EQ(mode
 ->currentMode, EditorMode::Visual
 );
 mode->
-AddKeyPress(ExtKeys::RIGHT);
+AddKeyPress(ImGuiKey_RightArrow);
 ASSERT_EQ(mode
 ->currentMode, EditorMode::Insert
 );
@@ -263,15 +263,15 @@ TEST_F(StandardTest, down_a_shorter_line
 // The issue here is that setting the text _should_ update the buffer!
 pBuffer->SetText("Hello Goodbye\nF");
 mode->
-AddKeyPress(ExtKeys::RIGHT);
+AddKeyPress(ImGuiKey_RightArrow);
 mode->
-AddKeyPress(ExtKeys::RIGHT);
+AddKeyPress(ImGuiKey_RightArrow);
 mode->
-AddKeyPress(ExtKeys::RIGHT);
+AddKeyPress(ImGuiKey_RightArrow);
 mode->
-AddKeyPress(ExtKeys::RIGHT);
+AddKeyPress(ImGuiKey_RightArrow);
 mode->
-AddKeyPress(ExtKeys::DOWN);
+AddKeyPress(ImGuiKey_DownArrow);
 mode->AddKeyPress('o');
 ASSERT_STREQ(pBuffer
 ->
@@ -288,9 +288,9 @@ TEST_F(StandardTest, DELETE
 {
 pBuffer->SetText("Hello");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -302,7 +302,7 @@ c_str(),
 
 mode->AddCommandText("vll");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -317,7 +317,7 @@ c_str(),
 // set text end, or reset to 0??
 pBuffer->SetText("H");
 mode->
-AddKeyPress(ExtKeys::DEL);
+AddKeyPress(ImGuiKey_Delete);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -328,7 +328,7 @@ c_str(),
 "H");
 
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -345,9 +345,9 @@ TEST_F(StandardTest, BACKSPACE
 pBuffer->SetText("Hello");
 mode->AddCommandText("ll");
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer
@@ -365,7 +365,7 @@ Index(),
 
 mode->AddCommandText("lli");
 mode->
-AddKeyPress(ExtKeys::BACKSPACE);
+AddKeyPress(ImGuiKey_Backspace);
 ASSERT_STREQ(pBuffer
 ->
 workingBuffer

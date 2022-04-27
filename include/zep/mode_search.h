@@ -14,7 +14,7 @@ struct ZepMode_Search : public ZepMode {
     ZepMode_Search(ZepEditor &editor, ZepWindow &previousWindow, ZepWindow &window, ZepPath startPath);
     ~ZepMode_Search() override;
 
-    void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
+    void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) override;
     void Begin(ZepWindow *pWindow) override;
     void Notify(const std::shared_ptr<ZepMessage> &message) override;
     EditorMode DefaultMode() const override { return EditorMode::Normal; }

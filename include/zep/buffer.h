@@ -86,7 +86,6 @@ struct ChangeRecord {
     }
 };
 
-using fnKeyNotifier = std::function<bool(uint32_t key, uint32_t modifier)>;
 struct ZepBuffer : public ZepComponent {
     ZepBuffer(ZepEditor &editor, std::string strName);
     ZepBuffer(ZepEditor &editor, const ZepPath &path);
@@ -192,7 +191,7 @@ struct ZepBuffer : public ZepComponent {
 
     GlyphRange selection;
 
-    fnKeyNotifier postKeyNotifier;
+    std::function<bool(ImGuiKey, ImGuiModFlags modifier)> postKeyNotifier;
     BufferType type = BufferType::Normal;
 
     uint32_t fileFlags = 0;

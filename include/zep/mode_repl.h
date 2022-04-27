@@ -31,7 +31,7 @@ struct ZepReplExCommand : public ZepExCommand {
     void Run(const std::vector<std::string> &args) override;
     const char *ExCommandName() const override { return "ZRepl"; }
     const KeyMap *GetKeyMappings(ZepMode &) const override { return &m_keymap; }
-    bool AddKeyPress(uint32_t key, uint32_t modifiers);
+    bool AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers);
 
 private:
     void Prompt();

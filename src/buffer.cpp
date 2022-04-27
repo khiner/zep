@@ -182,6 +182,7 @@ GlyphRange ZepBuffer::StandardCtrlMotion(GlyphIterator cursor, Direction searchD
     r.second = current;
 
     if (searchDir == Direction::Forward) {
+        // TODO word-forward not working
         if (Skip(IsWORDChar, current, searchDir)) {
             // Skip space
             Skip(IsSpace, current, searchDir);

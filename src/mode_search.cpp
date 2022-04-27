@@ -19,9 +19,9 @@ ZepMode_Search::~ZepMode_Search() {
     if (m_searchResult.valid()) m_searchResult.wait();
 }
 
-void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
+void ZepMode_Search::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) {
     (void) modifiers;
-    if (key == ExtKeys::ESCAPE) {
+    if (key == ImGuiKey_Escape) {
         // CM TODO:
         // Note that the Repl represents the new way to do these commands; and this mode should be ported
         // to do the same thing.  It should also use the keymapper
@@ -35,33 +35,33 @@ void ZepMode_Search::AddKeyPress(uint32_t key, uint32_t modifiers) {
         editor.activeTabWindow->SetActiveWindow(&m_launchWindow);
         editor.RemoveBuffer(buffer);
         return;
-    } else if (key == ExtKeys::RETURN) {
+    } else if (key == ImGuiKey_Enter) {
         OpenSelection(OpenType::Replace);
         return;
-    } else if (key == ExtKeys::BACKSPACE) {
+    } else if (key == ImGuiKey_Backspace) {
         if (m_searchTerm.length() > 0) {
             m_searchTerm = m_searchTerm.substr(0, m_searchTerm.length() - 1);
             UpdateTree();
         }
     } else {
-        if (modifiers & ModifierKey::Ctrl) {
-            if (key == 'j' || key == ExtKeys::DOWN) m_window.MoveCursorY(1);
-            if (key == 'k' || key == ExtKeys::UP) m_window.MoveCursorY(-1);
-            if (key == 'v') {
+        if (ImGui::GetIO().KeyCtrl) {
+            if (key == ImGuiKey_K || key == ImGuiKey_DownArrow) m_window.MoveCursorY(1);
+            if (key == ImGuiKey_J || key == ImGuiKey_UpArrow) m_window.MoveCursorY(-1);
+            if (key == ImGuiKey_V) {
                 OpenSelection(OpenType::VSplit);
                 return;
             }
-            if (key == 'x') {
+            if (key == ImGuiKey_X) {
                 OpenSelection(OpenType::HSplit);
                 return;
             }
-            if (key == 't') {
+            if (key == ImGuiKey_T) {
                 OpenSelection(OpenType::Tab);
                 return;
             }
-        } else if (key == ExtKeys::DOWN) {
+        } else if (key == ImGuiKey_DownArrow) {
             m_window.MoveCursorY(1);
-        } else if (key == ExtKeys::UP) {
+        } else if (key == ImGuiKey_UpArrow) {
             m_window.MoveCursorY(-1);
         } else if (std::isgraph(key)) {
             // TODO: UTF8

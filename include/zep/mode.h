@@ -8,53 +8,11 @@
 #include "zep/commands.h"
 #include "zep/keymap.h"
 
+#include "../../../lib/imgui/imgui.h"
+
 namespace Zep {
 
 struct ZepEditor;
-
-// NOTE: These are input keys mapped to Zep's internal keymapping; they live below 'space'/32
-// Key mapping needs a rethink for international keyboards.  But for modes, this is the remapped key definitions for anything that isn't
-// basic ascii symbol.  ASCII 0-31 are mostly unused these days anyway.
-struct ExtKeys {
-    enum Key {
-        RETURN = 0, // NOTE: Do not change this value
-        ESCAPE = 1,
-        BACKSPACE = 2,
-        LEFT = 3,
-        RIGHT = 4,
-        UP = 5,
-        DOWN = 6,
-        TAB = 7,
-        DEL = 8,
-        HOME = 9,
-        END = 10,
-        PAGEDOWN = 11,
-        PAGEUP = 12,
-        F1 = 13,
-        F2 = 14,
-        F3 = 15,
-        F4 = 16,
-        F5 = 17,
-        F6 = 18,
-        F7 = 19,
-        F8 = 20,
-        F9 = 21,
-        F10 = 22,
-        F11 = 23,
-        F12 = 24,
-
-        NONE = 32
-    };
-};
-
-struct ModifierKey {
-    enum Key {
-        None = (0),
-        Ctrl = (1 << 0),
-        Alt = (1 << 1),
-        Shift = (1 << 2)
-    };
-}; // ModifierKey
 
 enum class EditorMode {
     None,
@@ -136,7 +94,7 @@ struct ZepMode : public ZepComponent {
     explicit ZepMode(ZepEditor &editor);
 
     virtual void Init() {};
-    virtual void AddKeyPress(uint32_t key, uint32_t modifierKeys = ModifierKey::None);
+    virtual void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys);
     virtual const char *Name() const = 0;
     virtual void Begin(ZepWindow *pWindow);
     void Notify(const std::shared_ptr<ZepMessage> &) override {}
@@ -187,7 +145,7 @@ protected:
 
     void ClampCursorForMode();
     bool HandleExCommand(std::string strCommand);
-    static std::string ConvertInputToMapString(uint32_t key, uint32_t modifierKeys);
+    static std::string ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modifierFlags);
 
     virtual bool HandleIgnoredInput(CommandContext &) { return false; };
 
@@ -213,8 +171,8 @@ protected:
 
     GlyphIterator m_exCommandStartLocation;
     CursorType m_visualCursorType = CursorType::Visual;
-    uint32_t m_modeFlags = ModeFlags::None;
-    uint32_t m_lastKey = 0;
+    ImGuiKeyModFlags m_modeFlags = ModeFlags::None;
+    ImGuiKey m_lastKey = 0;
 
     Timer m_lastKeyPressTimer;
 };

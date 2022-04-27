@@ -7,6 +7,7 @@
 #include "zep/regress.h"
 #include "zep/syntax.h"
 #include "zep/tab_window.h"
+#include "../../imgui/imgui_internal.h"
 
 namespace Zep {
 CommandContext::CommandContext(std::string commandIn, ZepMode &md, EditorMode editorMode)
@@ -117,7 +118,7 @@ void ZepMode::AddCommandText(const std::string &text) {
     if (currentWindow == nullptr) return;
 
     for (auto &ch: text) {
-        AddKeyPress(ch);
+        AddKeyPress(ch, ImGuiKeyModFlags_None);
     }
 }
 
@@ -196,20 +197,19 @@ void ZepMode::SwitchMode(EditorMode editorMode) {
     }
 }
 
-std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys) {
-    std::ostringstream str;
+std::string ZepMode::ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modifierFlags) {
+    std::string str;
     bool closeBracket = false;
-    if (modifierKeys & ModifierKey::Ctrl) {
-        str << "<C-";
-        if (modifierKeys & ModifierKey::Shift) {
+    if (ImGui::GetIO().KeyCtrl) {
+        str += "<C-";
+        if (ImGui::GetIO().KeyShift) {
             // Add the S- modifier for shift enabled special keys
-            // We want to avoid adding S- to capitalized (and already shifted) keys
-            if (key < ' ') str << "S-";
+            str += "S-";
         }
         closeBracket = true;
-    } else if (modifierKeys & ModifierKey::Shift) {
-        if (key < ' ') {
-            str << "<S-";
+    } else if (ImGui::GetIO().KeyShift) {
+        if (key < ImGuiKey_Space) {
+            str += "<S-";
             closeBracket = true;
         }
     }
@@ -217,64 +217,54 @@ std::string ZepMode::ConvertInputToMapString(uint32_t key, uint32_t modifierKeys
     std::string mapped;
 
 #define COMPARE_STR(a, b) \
-    if (key == (b))         \
+    if (key == (b))       \
         mapped = #a;
 
-    COMPARE_STR(Return, ExtKeys::RETURN)
-    COMPARE_STR(Escape, ExtKeys::ESCAPE)
-    COMPARE_STR(Backspace, ExtKeys::BACKSPACE)
-    COMPARE_STR(Left, ExtKeys::LEFT)
-    COMPARE_STR(Right, ExtKeys::RIGHT)
-    COMPARE_STR(Up, ExtKeys::UP)
-    COMPARE_STR(Down, ExtKeys::DOWN)
-    COMPARE_STR(Tab, ExtKeys::TAB)
-    COMPARE_STR(Del, ExtKeys::DEL)
-    COMPARE_STR(Home, ExtKeys::HOME)
-    COMPARE_STR(End, ExtKeys::END)
-    COMPARE_STR(PageDown, ExtKeys::PAGEDOWN)
-    COMPARE_STR(PageUp, ExtKeys::PAGEUP)
-    COMPARE_STR(F1, ExtKeys::F1)
-    COMPARE_STR(F2, ExtKeys::F2)
-    COMPARE_STR(F3, ExtKeys::F3)
-    COMPARE_STR(F4, ExtKeys::F4)
-    COMPARE_STR(F5, ExtKeys::F5)
-    COMPARE_STR(F6, ExtKeys::F6)
-    COMPARE_STR(F7, ExtKeys::F7)
-    COMPARE_STR(F8, ExtKeys::F8)
-    COMPARE_STR(F9, ExtKeys::F9)
-    COMPARE_STR(F10, ExtKeys::F10)
-    COMPARE_STR(F11, ExtKeys::F11)
-    COMPARE_STR(F12, ExtKeys::F12)
+    COMPARE_STR(Return, ImGuiKey_Enter)
+    COMPARE_STR(Escape, ImGuiKey_Escape)
+    COMPARE_STR(Backspace, ImGuiKey_Backspace)
+    COMPARE_STR(Left, ImGuiKey_LeftArrow)
+    COMPARE_STR(Right, ImGuiKey_RightArrow)
+    COMPARE_STR(Up, ImGuiKey_UpArrow)
+    COMPARE_STR(Down, ImGuiKey_DownArrow)
+    COMPARE_STR(Tab, ImGuiKey_Tab)
+    COMPARE_STR(Del, ImGuiKey_Delete)
+    COMPARE_STR(Home, ImGuiKey_Home)
+    COMPARE_STR(End, ImGuiKey_End)
+    COMPARE_STR(PageDown, ImGuiKey_PageDown)
+    COMPARE_STR(PageUp, ImGuiKey_PageUp)
+    COMPARE_STR(F1, ImGuiKey_F1)
+    COMPARE_STR(F2, ImGuiKey_F2)
+    COMPARE_STR(F3, ImGuiKey_F3)
+    COMPARE_STR(F4, ImGuiKey_F4)
+    COMPARE_STR(F5, ImGuiKey_F5)
+    COMPARE_STR(F6, ImGuiKey_F6)
+    COMPARE_STR(F7, ImGuiKey_F7)
+    COMPARE_STR(F8, ImGuiKey_F8)
+    COMPARE_STR(F9, ImGuiKey_F9)
+    COMPARE_STR(F10, ImGuiKey_F10)
+    COMPARE_STR(F11, ImGuiKey_F11)
+    COMPARE_STR(F12, ImGuiKey_F12)
 
     if (!mapped.empty()) {
         if (!closeBracket) {
-            str << "<" << mapped;
+            str += "<" + mapped;
             closeBracket = true;
         } else {
-            str << mapped;
+            str += mapped;
         }
     } else {
-        str << std::string((const char *) &key);
+        str += (char) (key - ImGuiKey_A + 'a');
     }
 
-    if (closeBracket) str << ">";
+    if (closeBracket) str += ">";
 
-    return str.str();
+    return str;
 }
 
 // Handle a key press, convert it to an input command and context, and return it.
-void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
+void ZepMode::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys) {
     if (currentWindow == nullptr) return;
-
-    // Temporarily accept up to 255; this is not fully allowing UTF8 input yet (though display and management of buffers with
-    // utf8 is just fine)
-    key &= 0xFF;
-
-    // Keys in this range converted to UTF8.  I need to figure out how to generically receive UTF8 here, but this
-    // temporary fix enables �-sign and other specials to display and work correctly
-    if (key >= 127 && key <= 255) {
-        key = (0x00C2 | ((key & 0xFF) << 8));
-    }
 
     m_lastKey = key;
 
@@ -282,9 +272,8 @@ void ZepMode::AddKeyPress(uint32_t key, uint32_t modifierKeys) {
     // We convert CTRL + f to a string: "<C-f>"
     HandleMappedInput(ConvertInputToMapString(key, modifierKeys));
 
-    const auto &notifier = currentWindow->buffer->postKeyNotifier;
-    if (notifier != nullptr) {
-        notifier(key, modifierKeys);
+    if (currentWindow->buffer->postKeyNotifier != nullptr) {
+        currentWindow->buffer->postKeyNotifier(key, modifierKeys);
     }
 
     timer_restart(m_lastKeyPressTimer);
@@ -344,7 +333,7 @@ void ZepMode::HandleMappedInput(const std::string &input) {
 
     // Escape Nukes the current command - we handle it in the keyboard mappings after that
     // TODO: This feels awkward
-    if (m_lastKey == ExtKeys::ESCAPE) {
+    if (m_lastKey == ImGuiKey_Escape) {
         m_currentCommand.clear();
     }
 
@@ -1506,7 +1495,7 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         }
     };
 
-    if (m_lastKey == ExtKeys::BACKSPACE) {
+    if (m_lastKey == ImGuiKey_Backspace) {
         eraseExtKey(strCommand);
 
         // Remove the previous character
@@ -1521,12 +1510,12 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
         return false;
     }
 
-    if (m_lastKey == ExtKeys::ESCAPE) {
+    if (m_lastKey == ImGuiKey_Escape) {
         currentWindow->SetBufferCursor(m_exCommandStartLocation);
         return true;
     }
 
-    if (m_lastKey == ExtKeys::RETURN) {
+    if (m_lastKey == ImGuiKey_Enter) {
         assert(currentWindow);
 
         auto *buffer = currentWindow->buffer;
