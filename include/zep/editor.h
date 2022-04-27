@@ -163,7 +163,7 @@ struct TabRegionTab : public Region {
 
 struct ZepEditor {
     // Root path is the path to search for a config file
-    ZepEditor(ZepDisplay *pDisplay, const ZepPath &root, uint32_t flags = 0, ZepFileSystem *pFileSystem = nullptr);
+    ZepEditor(ZepDisplay *display, const ZepPath &root, uint32_t flags = 0, ZepFileSystem *fileSystem = nullptr);
     ~ZepEditor();
 
     void LoadConfig(const ZepPath &config_path);

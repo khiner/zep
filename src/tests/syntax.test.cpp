@@ -1,20 +1,19 @@
-#include "config_app.h"
-
 #include "zep/buffer.h"
-#include "zep/display.h"
 #include "zep/editor.h"
 #include "zep/syntax.h"
+#include "TestDisplay.h"
 
 #include <gtest/gtest.h>
 
 using namespace Zep;
 struct SyntaxTest : public testing::Test {
     SyntaxTest() {
-        editor = std::make_shared<ZepEditor>(new ZepDisplayNull(), ZEP_ROOT, ZepEditorFlags::DisableThreads);
+        editor = std::make_shared<ZepEditor>(&display, "", ZepEditorFlags::DisableThreads, nullptr);
     }
 
-    ~SyntaxTest() {}
+    ~SyntaxTest() override = default;
 
+    TestDisplay display{};
     std::shared_ptr<ZepEditor> editor;
 };
 
@@ -22,9 +21,9 @@ struct SyntaxTest : public testing::Test {
 #define SYNTAX_TEST(name, filename, source, offset, color)         \
     TEST_F(SyntaxTest, name)                                       \
     {                                                              \
-        ZepBuffer *pBuffer = editor->GetEmptyBuffer(filename);   \
+        ZepBuffer *pBuffer = editor->GetEmptyBuffer(filename);     \
         pBuffer->SetText(source);                                  \
-        ASSERT_EQ(pBuffer->GetSyntax()->GetSyntaxAt(GlyphIterator(pBuffer, offset)).foreground, ThemeColor::color); \
+        ASSERT_EQ(pBuffer->syntax->GetSyntaxAt(GlyphIterator(pBuffer, offset)).foreground, ThemeColor::color); \
     };
 
 #define CPP_SYNTAX_TEST(name, source, offset, color) SYNTAX_TEST(name, "test.cpp", source, offset, color)

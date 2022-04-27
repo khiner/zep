@@ -4,7 +4,7 @@ if (BUILD_TESTS)
     project(unittests)
 
     # Evil glob
-    file(GLOB_RECURSE FOUND_TEST_SOURCES "${ZEP_ROOT}/src/*.test.cpp")
+    file(GLOB_RECURSE FOUND_TEST_SOURCES "${ZEP_ROOT}/src/*.cpp")
 
     list(APPEND TEST_SOURCES
         ${FOUND_TEST_SOURCES}

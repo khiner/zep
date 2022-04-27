@@ -94,7 +94,7 @@ struct ZepMode : public ZepComponent {
     explicit ZepMode(ZepEditor &editor);
 
     virtual void Init() {};
-    virtual void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys);
+    virtual void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys = ImGuiKeyModFlags_None);
     virtual const char *Name() const = 0;
     virtual void Begin(ZepWindow *pWindow);
     void Notify(const std::shared_ptr<ZepMessage> &) override {}
