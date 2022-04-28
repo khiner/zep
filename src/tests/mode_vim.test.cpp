@@ -60,8 +60,7 @@ struct VimTest : public testing::Test {
     }
 
 #define CURSOR_TEST(name, source, command, xcoord, ycoord) \
-    TEST_F(VimTest, name)                                  \
-    {                                                      \
+    TEST_F(VimTest, name) {                                \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
         ASSERT_EQ(pWindow->BufferToDisplay().x, xcoord);   \
@@ -69,8 +68,7 @@ struct VimTest : public testing::Test {
     };
 
 #define VISUAL_TEST(name, source, command, start, end) \
-    TEST_F(VimTest, name)                                  \
-    {                                                      \
+    TEST_F(VimTest, name) {                                \
         pBuffer->SetText(source);                          \
         HANDLE_VIM_COMMAND(command);                       \
         ASSERT_EQ(mode->GetInclusiveVisualRange().first.index, start); \
@@ -79,16 +77,14 @@ struct VimTest : public testing::Test {
 
 // Given a sample text, a keystroke list and a target text, check the test returns the right thing
 #define COMMAND_TEST(name, source, command, target)                     \
-    TEST_F(VimTest, name)                                               \
-    {                                                                   \
+    TEST_F(VimTest, name) {                                             \
         pBuffer->SetText(source);                                       \
         mode->AddCommandText(command);                                \
         ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 #define COMMAND_TEST_RET(name, source, command, target)                 \
-    TEST_F(VimTest, name)                                               \
-    {                                                                   \
+    TEST_F(VimTest, name) {                                             \
         pBuffer->SetText(source);                                       \
         mode->AddCommandText(command);                                \
         mode->AddKeyPress(ImGuiKey_Enter);                           \

@@ -1,7 +1,5 @@
 #include "zep/logger.h"
-
 #include "zep/buffer.h"
-#include "zep/display.h"
 #include "zep/editor.h"
 #include <gtest/gtest.h>
 
@@ -28,8 +26,8 @@ TEST_F(BufferTest, CreatedProperly) {
     ASSERT_TRUE(pBuffer->workingBuffer.size() == 1);
 }
 
-//TEST_F(BufferTest, FindFirstOf) {
-//    auto newEditor = std::make_shared<ZepBuffer>(editor.get(), std::string("empty"));
+TEST_F(BufferTest, FindFirstOf) {
+//    auto newEditor = std::make_shared<ZepBuffer>(*editor, std::string("empty"));
 //    newEditor->SetText("Hello");
 //
 //    int32_t char_index;
@@ -46,4 +44,4 @@ TEST_F(BufferTest, CreatedProperly) {
 //    loc = newEditor->Begin() + 4;
 //    loc = newEditor->FindFirstCharOf(loc, "H", char_index, Direction::Backward);
 //    ASSERT_TRUE(char_index == 0 && loc.Index() == 0);
-//}
+}

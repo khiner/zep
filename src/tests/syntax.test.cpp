@@ -19,8 +19,7 @@ struct SyntaxTest : public testing::Test {
 
 // Given a filename and a sample text, check the syntax colouring returns the right thing
 #define SYNTAX_TEST(name, filename, source, offset, color)         \
-    TEST_F(SyntaxTest, name)                                       \
-    {                                                              \
+    TEST_F(SyntaxTest, name) {                                     \
         ZepBuffer *pBuffer = editor->GetEmptyBuffer(filename);     \
         pBuffer->SetText(source);                                  \
         ASSERT_EQ(pBuffer->syntax->GetSyntaxAt(GlyphIterator(pBuffer, offset)).foreground, ThemeColor::color); \

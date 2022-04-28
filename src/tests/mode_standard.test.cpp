@@ -94,16 +94,14 @@ TEST_F(StandardTest, CheckDisplaySucceeds) {
 // decoded keystrokes
 // Given a sample text, a keystroke list and a target text, check the test returns the right thing
 #define COMMAND_TEST(name, source, command, target)                     \
-    TEST_F(StandardTest, name)                                          \
-    {                                                                   \
+    TEST_F(StandardTest, name) {                                        \
         pBuffer->SetText(source);                                       \
         PARSE_COMMAND(command)                                          \
         ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), target); \
     };
 
 #define CURSOR_TEST(name, source, command, xcoord, ycoord) \
-    TEST_F(StandardTest, name)                             \
-    {                                                      \
+    TEST_F(StandardTest, name) {                           \
         pBuffer->SetText(source);                          \
         PARSE_COMMAND(command);                            \
         ASSERT_EQ(pWindow->BufferToDisplay().x, xcoord);   \
@@ -111,8 +109,7 @@ TEST_F(StandardTest, CheckDisplaySucceeds) {
     }
 
 #define VISUAL_TEST(name, source, command, start, end)                      \
-    TEST_F(StandardTest, name)                                              \
-    {                                                                       \
+    TEST_F(StandardTest, name) {                                            \
         pBuffer->SetText(source);                                           \
         PARSE_COMMAND(command)                                              \
         ASSERT_EQ(mode->GetInclusiveVisualRange().first.index, start); \
@@ -174,8 +171,7 @@ TEST_F(StandardTest, down_a_shorter_line) {
     ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hello Goodbye\nFo");
 }
 
-TEST_F(StandardTest, DELETE
-) {
+TEST_F(StandardTest, DELETE) {
     pBuffer->SetText("Hello");
     mode->AddKeyPress(ImGuiKey_Delete);
     mode->AddKeyPress(ImGuiKey_Delete);
