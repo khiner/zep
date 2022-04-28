@@ -56,8 +56,8 @@ void ZepEditor::RegisterSyntaxProviders() {
         {"markdown", ([](auto *buffer) { return std::make_shared<ZepSyntax_Markdown>(*buffer, ZepSyntaxFlags::CaseInsensitive); })});
 }
 
-ZepEditor::ZepEditor(ZepDisplay *display, const ZepPath &configRoot, uint32_t flags, ZepFileSystem *fileSystem)
-    : display(display), fileSystem(fileSystem), flags(flags) {
+ZepEditor::ZepEditor(ZepDisplay *display, const ZepPath &configRoot, uint32_t flags, ZepFileSystem *_fileSystem)
+    : display(display), fileSystem(_fileSystem), flags(flags) {
 
     if (fileSystem == nullptr) fileSystem = new ZepFileSystem(configRoot);
 

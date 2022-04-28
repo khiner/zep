@@ -635,9 +635,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
     } else if (mappedCommand == id_MotionRightSplit) {
         currentWindow->tabWindow.DoMotion(WindowMotion::Right);
         return true;
-    }
-        // global search
-    else if (mappedCommand == id_QuickSearch) {
+    } else if (mappedCommand == id_QuickSearch) { // global search
         editor.AddSearch();
         return true;
     } else if (mappedCommand == id_Redo) {
@@ -667,9 +665,7 @@ bool ZepMode::GetCommand(CommandContext &context) {
         }
         currentWindow->SetBufferCursor(newCursorPos);
         return true;
-    }
-        // Moving between tabs
-    else if (mappedCommand == id_PreviousTabWindow) {
+    } else if (mappedCommand == id_PreviousTabWindow) { // Moving between tabs
         editor.PreviousTabWindow();
         return true;
     } else if (mappedCommand == id_NextTabWindow) {
@@ -1411,20 +1407,18 @@ void ZepMode::ResetCommand() {
     m_currentCommand.clear();
 }
 
-bool ZepMode::GetOperationRange(const std::string &op, EditorMode currentMode, GlyphIterator &beginRange, GlyphIterator &endRange) const {
+bool ZepMode::GetOperationRange(const std::string &op, EditorMode mode, GlyphIterator &beginRange, GlyphIterator &endRange) const {
     auto *buffer = currentWindow->buffer;
     const auto bufferCursor = currentWindow->GetBufferCursor();
 
     beginRange = GlyphIterator();
     if (op == "visual") {
-        if (currentMode == EditorMode::Visual) {
+        if (mode == EditorMode::Visual) {
             auto range = GetInclusiveVisualRange();
             beginRange = range.first;
             endRange = range.second.Peek(1);
         }
-    }
-        // Whole line
-    else if (op == "line") {
+    } else if (op == "line") { // Whole line
         beginRange = buffer->GetLinePos(bufferCursor, LineLocation::LineBegin);
         endRange = buffer->GetLinePos(bufferCursor, LineLocation::BeyondLineEnd);
 
