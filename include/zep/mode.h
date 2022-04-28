@@ -8,8 +8,6 @@
 #include "zep/commands.h"
 #include "zep/keymap.h"
 
-#include "../../../lib/imgui/imgui.h"
-
 namespace Zep {
 
 struct ZepEditor;

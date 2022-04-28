@@ -13,6 +13,8 @@
 #include "zep/editor.h"
 #include "zep/range_markers.h"
 
+#include "../../../lib/imgui/imgui.h"
+
 namespace Zep {
 
 struct ZepSyntax;
@@ -191,7 +193,7 @@ struct ZepBuffer : public ZepComponent {
 
     GlyphRange selection;
 
-    std::function<bool(ImGuiKey, ImGuiModFlags modifier)> postKeyNotifier;
+    std::function<bool(ImGuiKey, ImGuiModFlags)> postKeyNotifier;
     BufferType type = BufferType::Normal;
 
     uint32_t fileFlags = 0;
