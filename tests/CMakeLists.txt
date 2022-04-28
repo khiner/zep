@@ -1,9 +1,7 @@
 SET(TEST_ROOT ${CMAKE_CURRENT_LIST_DIR})
 if (BUILD_TESTS)
-
     project(unittests)
 
-    # Evil glob
     file(GLOB_RECURSE FOUND_TEST_SOURCES "${ZEP_ROOT}/src/*.cpp")
 
     list(APPEND TEST_SOURCES

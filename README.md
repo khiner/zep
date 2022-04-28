@@ -145,63 +145,9 @@ cut/copy/paste, etc.
 See [Vim Mode](https://github.com/Rezonality/zep/wiki/Vim-Mode), or the top of the mode_vim.cpp file for a list of
 supported operations in Vim
 
-# Building
-
-You can follow the build buttons above to see the build process or look in the travis or appveyor scripts.
-
-## 1. Get the Source
-
-git clone https://github.com/Rezonality/zep zep  
-cd zep
-
-## 2. Add extra packages
-
-If you don't have them already, the following packages are required, depending on your system. Note, that SDL is part of
-the build,
-and not installed seperately. It is only used for the demo, not the core editor library or unit tests. Qt is required to
-build the Qt demo on linux.
-If you have compilation problems, you might need to investigate the compiler you are using.
-Ubuntu 16 & 17 both have a recent enough version for it to work. On Ubuntu 14 I tend to upgrade to g++6
-The Qt app builds on linux, but is not part of the travis setup yet.
-
-## Linux
-
-```
-sudo apt install cmake  
-sudo apt install git  
-```
-
-## Mac
-
-```
-brew install cmake
-brew install git
-```
-
-# 3 Install the Zep library as a package
-
-Here is a typical build instruction for windows, assuming you have just synced this repo:
-
-```
-mkdir build
-cd build
-cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_TESTS=0 ..
-cmake --build . --target install
-```
-
-At this point your system will have installed the zep library. You can add its paths and library to your project like
-this:
-
-```
-find_package(Zep REQUIRED)
-target_link_libraries(MYPROJECT PRIVATE Zep::Zep)
-```
-
-# 4. (Alternative) Use zep as a single header library
+# Usage
 
 _This branch gets rid of the `zep.h` header in favor of including the files you need directly._
-
-A typical example of including Zep as a single header library (see the sister integration project for an example):
 
 ```shell
 git submodule add zep https://github.com/Rezonality/zep
@@ -219,70 +165,9 @@ Include what you need:
 #include "zep\editor.h"
 ```
 
-# Windows
-
-```
-# MUtils
-git clone https://github.com/Rezonality/mutils
-cd mutils
-prebuild.bat
-config.bat
-build.bat
-
-# Zep
-git clone https://github.com/Rezonality/zep
-cd zep
-set QT_INSTALL_LOCATION=C:\Qt\5.10.0\msvc2017_64 (for example - required for building QT)
-config.bat OR config_qt.bat or config_imgui.bat (for qt and imgui respectively)
-build.bat
-```
-
-# GNU/Linux
-
-## Install dependencies
-
-```bash
-sudo apt install cmake git
-```
-
-## MUtils
-
-```bash
-git clone https://github.com/Rezonality/mutils
-cd mutils
-chmod +x prebuild.sh
-chmod +x config.sh
-chmod +x build.sh
-./config.sh
-./build.sh
-```
-
-## Qt (required is using build_qt.sh)
-
-```bash
-# for Qt/Demo support
-sudo apt install qt5-default 
-# Adapt to your installation path
-set QT_INSTALL_LOCATION="/usr/include/x86_64-linux-gnu/qt5"
-```
-
-## Zep
-
-```bash
-git clone https://github.com/Rezonality/zep
-cd zep
-# Optional argument are qt and imgui 
-./config.sh ( qt | imgui )
-./build.sh
-```
-
-# Mac
-
-Build instructions and testing on mac needs an update; consult the travis build to see examples
-
 ## Tests
 
-Type `CTest --verbose` in the build folder to run unit tests.
+Type `ctest --verbose` in the build folder to run unit tests.
 
 Libraries
 -----------
