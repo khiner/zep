@@ -36,9 +36,6 @@ include(GNUInstallDirs)
 # Set all compiler flags 
 include(cmake/all.cmake)
 
-# Functions for file copying
-include(m3rdparty/cmake/copy_files.cmake)
-
 enable_testing()
 
 # The main library
