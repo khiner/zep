@@ -35,10 +35,12 @@ void ZepMode_Search::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) {
         editor.activeTabWindow->SetActiveWindow(&m_launchWindow);
         editor.RemoveBuffer(buffer);
         return;
-    } else if (key == ImGuiKey_Enter) {
+    }
+    if (key == ImGuiKey_Enter) {
         OpenSelection(OpenType::Replace);
         return;
-    } else if (key == ImGuiKey_Backspace) {
+    }
+    if (key == ImGuiKey_Backspace) {
         if (m_searchTerm.length() > 0) {
             m_searchTerm = m_searchTerm.substr(0, m_searchTerm.length() - 1);
             UpdateTree();
@@ -235,14 +237,7 @@ void ZepMode_Search::UpdateTree() {
                         // this approach 'clumps things together'
                         // It rewards more for strings of subsequent characters
                         uint32_t newDist = ((uint32_t) pos - loc);
-                        if (dist == 0) {
-                            newDist = 1;
-                        } else if (newDist == 1) {
-                            newDist = dist;
-                        } else {
-                            newDist = dist + 1;
-                        }
-
+                        newDist = dist == 0 ? 1 : newDist == 1 ? dist : dist + 1;
                         result->insert(std::make_pair(newDist, SearchResult{index, (uint32_t) pos}));
                     }
                 }

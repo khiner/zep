@@ -9,9 +9,8 @@
 
 namespace Zep {
 
+// TODO just use `std::filesystem::path`
 struct ZepPath {
-    using const_iterator = std::vector<std::string>::const_iterator;
-
     ZepPath(std::string strPath = {}) : path(std::move(strPath)) {}
     ZepPath(const char *pszZepPath) : path(pszZepPath) {}
 

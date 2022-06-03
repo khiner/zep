@@ -176,11 +176,7 @@ void ZepMode_Vim::PreDisplay(ZepWindow &window) {
     if (timer_get_elapsed_seconds(m_lastKeyPressTimer) > .25f &&
         currentMode == EditorMode::Insert &&
         m_currentCommand == "j") {
-        auto cmd = std::make_shared<ZepCommand_Insert>(
-            *window.buffer,
-            window.GetBufferCursor(),
-            m_currentCommand);
-        AddCommand(cmd);
+        AddCommand(std::make_shared<ZepCommand_Insert>(*window.buffer, window.GetBufferCursor(), m_currentCommand));
 
         m_currentCommand = "";
     }

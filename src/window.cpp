@@ -1514,26 +1514,3 @@ NVec2i ZepWindow::BufferToDisplay(const GlyphIterator &loc) {
 }
 
 } // namespace Zep
-
-#if 0
-// Ensure we can see the cursor
-NVec2i cursor(0, 0);
-cursor.x = m_pBuffer->GetBufferColumn(m_bufferCursor);
-cursor.y = m_pBuffer->GetBufferLine(m_bufferCursor) - m_pBuffer->GetBufferLine(m_dvisibleLineRange.x);
-
-// Handle the case where there is no need to scroll, since the visible lines are inside
-// The current screen rectangle.
-if (cursor.y >= m_nvisibleLineRange.y && m_linesFillScreen)
-{
-    m_visibleLineRange.x = cursor.y - (m_nvisibleLineRange.y - m_vnisibleLineRange.x) + 1;
-    m_linesChanged = true;
-}
-else if (cursor.y < m_nvisibleLineRange.x)
-{
-    m_nvisibleLineRange.x = cursor.y;
-    m_linesChanged = true;
-}
-
-// Clamp
-m_nvisibleLineRange.x = std::max(0l, (long)m_nvisibleLineRange.x);
-#endif

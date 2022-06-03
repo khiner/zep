@@ -10,57 +10,44 @@ namespace Zep {
 
 // Splitting the input into groups of <> or ch
 std::string NextToken(std::string::const_iterator &itrChar, std::string::const_iterator itrEnd) {
-    std::ostringstream str;
-
-    // Find a group
+    std::ostringstream ostream;
     if (*itrChar == '<') {
         itrChar++;
-        auto itrStart = itrChar;
+        const auto itrStart = itrChar;
 
         // Walk the group, ensuring we consistently output (C-)(S-)foo
-        while (itrChar != itrEnd && *itrChar != '>') {
-            itrChar++;
-        }
+        while (itrChar != itrEnd && *itrChar != '>') itrChar++;
 
-        // Ensure <C-S- or variants, ie. capitalize for consistency if the mapping
-        // was badly supplied
-        auto strGroup = std::string(itrStart, itrChar);
-        string_replace_in_place(strGroup, "c-", "C-");
-        string_replace_in_place(strGroup, "s-", "S-");
+        // Handle lower-case
+        auto group = std::string(itrStart, itrChar);
+        string_replace_in_place(group, "c-", "C-");
+        string_replace_in_place(group, "s-", "S-");
 
-        // Skip to the next
-        if (itrChar != itrEnd)
-            itrChar++;
+        if (itrChar != itrEnd) itrChar++; // Skip to the next
 
-        str << "<" << strGroup << ">";
+        ostream << '<' << group << '>';
     } else {
-        str << *itrChar++;
+        ostream << *itrChar++;
     }
 
-    return str.str();
+    return ostream.str();
 }
 
 // Add a collection of commands to a collection of mappings
-bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &commandId, KeyMapAdd option) {
-    bool ret = true;
+void keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &commandId, KeyMapAdd option) {
     for (auto &map: maps) {
         for (auto &cmd: commands) {
-            if (!keymap_add(*map, cmd, commandId, option))
-                ret = false;
+            keymap_add(*map, cmd, commandId, option);
         }
     }
-    return ret;
 }
 
-bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &commandId, KeyMapAdd option) {
+void keymap_add(KeyMap &map, const std::string &command, const StringId &commandId, KeyMapAdd option) {
     auto current = map.root;
-
-    std::ostringstream str;
-    auto itrChar = strCommand.begin();
-    while (itrChar != strCommand.end()) {
-        auto search = NextToken(itrChar, strCommand.end());
-
-        auto itrRoot = current->children.find(search);
+    auto itrChar = command.begin();
+    while (itrChar != command.end()) {
+        const auto search = NextToken(itrChar, command.end());
+        const auto itrRoot = current->children.find(search);
         if (itrRoot == current->children.end()) {
             auto node = std::make_shared<CommandNode>();
             node->token = search;
@@ -71,21 +58,15 @@ bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &comm
         }
     }
 
-    if (current->commandId != 0 && option == KeyMapAdd::New) {
-        assert(!"Adding twice?");
-        return false;
-    }
+    if (current->commandId != 0 && option == KeyMapAdd::New) assert(!"Adding twice?");
 
     current->commandId = commandId;
-    return true;
 }
 
 void keymap_dump(const KeyMap &map, std::ostringstream &str) {
     std::function<void(std::shared_ptr<CommandNode>, int)> fnDump;
     fnDump = [&](const std::shared_ptr<CommandNode> &node, int depth) {
-        for (int i = 0; i < depth; i++) {
-            str << " ";
-        }
+        for (int i = 0; i < depth; i++) str << " ";
         str << node->token;
         if (node->commandId != 0) str << " : " << node->commandId.ToString();
         str << std::endl;
@@ -108,9 +89,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
         if (node->token == "<D>") {
             // Walk along grabbing digits
             auto itrStart = itrChar;
-            while (itrChar != itrEnd && isDigit(*itrChar)) {
-                itrChar++;
-            }
+            while (itrChar != itrEnd && isDigit(*itrChar)) itrChar++;
 
             if (itrStart != itrChar) {
                 auto token = std::string(itrStart, itrChar);
@@ -118,8 +97,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
                     // Grab the data, but continue to search for the next token
                     result.push_back(std::stoi(token));
                     str << "(D:" << token << ")";
-                }
-                catch (std::exception &ex) {
+                } catch (std::exception &ex) {
                     ZEP_UNUSED(ex);
                     ZLOG(DBG, ex.what());
                 }
@@ -169,10 +147,8 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
         for (auto &child: node->children) {
             auto childNode = child.second;
             std::string::const_iterator itr = itrChar;
-
             Captures nodeCaptures;
             std::ostringstream strCaptures;
-
             std::string token;
 
             // Consume wildcards
@@ -230,8 +206,7 @@ void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult 
             }
         };
 
-        // Searched and found nothing in this level
-        return false;
+        return false; // Searched and found nothing in this level
 
     }; // fnSearch
 

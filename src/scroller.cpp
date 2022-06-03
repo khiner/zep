@@ -7,8 +7,7 @@
 
 namespace Zep {
 
-Scroller::Scroller(ZepEditor &editor, Region &parent)
-    : ZepComponent(editor) {
+Scroller::Scroller(ZepEditor &editor, Region &parent) : ZepComponent(editor) {
     m_region = std::make_shared<Region>();
     m_topButtonRegion = std::make_shared<Region>();
     m_bottomButtonRegion = std::make_shared<Region>();

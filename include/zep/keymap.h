@@ -208,8 +208,8 @@ enum class KeyMapAdd {
     Replace
 };
 
-bool keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &strCommand, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
-bool keymap_add(KeyMap &map, const std::string &strCommand, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
+void keymap_add(const std::vector<KeyMap *> &maps, const std::vector<std::string> &strCommand, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
+void keymap_add(KeyMap &map, const std::string &command, const StringId &commandId, KeyMapAdd opt = KeyMapAdd::Replace);
 void keymap_find(const KeyMap &map, const std::string &strCommand, KeyMapResult &result);
 void keymap_dump(const KeyMap &map, std::ostringstream &str);
 

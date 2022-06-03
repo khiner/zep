@@ -141,7 +141,7 @@ protected:
     void AddSearchKeyMaps();
     static void AddKeyMapWithCountRegisters(const std::vector<KeyMap *> &maps, const std::vector<std::string> &commands, const StringId &id);
 
-    void ClampCursorForMode();
+    void ClampCursorForMode() const;
     bool HandleExCommand(std::string strCommand);
     static std::string ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modifierFlags);
 

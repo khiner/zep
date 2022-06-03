@@ -13,17 +13,6 @@
 #include <sstream>
 #include <thread>
 
-#ifdef WIN32
-// A reference to the debug API on windows, to help the logger output in VC.  This is better
-// than out to the console sometimes, and as long as you are building on Windows, you are referencing the necessary
-// kernel32.dll....
-extern "C" {
-__declspec(dllimport) void __stdcall OutputDebugStringA(_In_opt_ const char* pszChar);
-}
-#endif
-
-#undef ERROR
-
 namespace Zep {
 
 enum class ZLT {
@@ -53,14 +42,11 @@ struct ZLog {
     ~ZLog() {
         if (opened) {
             out << std::endl;
-#ifdef WIN32
-            OutputDebugStringA(out.str().c_str());
-#else
             std::cout << out.str();
-#endif
         }
         opened = false;
     }
+
     template<class T>
     ZLog &operator<<(const T &msg) {
         if (disabled || msglevel < logger.level)

@@ -209,43 +209,13 @@ void ZepTabWindow::CloseActiveWindow() {
     }
 }
 
-/*
-void ZepTabWindow::WalkRegions()
-{
-    // Not currently used
-    for (auto& winRegion : m_windowRegions)
-    {
-        assert(std::find(m_windows.begin(), m_windows.end(), winRegion.first) != m_windows.end());
-
-        using fnCb = std::function<void(std::shared_ptr<Region>)>;
-        using fnWalk = std::function<void(std::shared_ptr<Region>, fnCb)>;
-        fnWalk walk = [&](std::shared_ptr<Region> region, fnCb cb) {
-            cb(region);
-            for (auto& child : region->children)
-            {
-                walk(child, cb);
-            }
-        };
-
-        walk(m_rootRegion, [&](std::shared_ptr<Region> region) {
-            assert(!region->children.empty());
-        });
-    }
-}
-*/
-
 // See AddWindow for comments..
 void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
-    assert(pWindow);
-    if (!pWindow) {
-        assert(!"No window?");
-    }
+    if (!pWindow) assert(!"No window?");
 
     // Find the window
     auto itrFound = std::find(m_windows.begin(), m_windows.end(), pWindow);
-    if (itrFound == m_windows.end()) {
-        assert(!"Not found?");
-    }
+    if (itrFound == m_windows.end()) assert(!"Not found?");
 
     // Find its region
     auto pRegion = m_windowRegions[pWindow];
@@ -283,7 +253,6 @@ void ZepTabWindow::RemoveWindow(ZepWindow *pWindow) {
                     if (itrFoundChild != pOwnerRegion->children.end()) {
                         pOwnerRegion->children.erase(itrFoundChild);
                     }
-
                     // Walk up
                     fnRemoveEmptyParent(pOwnerRegion);
                 }

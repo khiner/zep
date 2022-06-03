@@ -122,7 +122,7 @@ void ZepMode::AddCommandText(const std::string &text) {
     }
 }
 
-void ZepMode::ClampCursorForMode() {
+void ZepMode::ClampCursorForMode() const {
     if (currentWindow == nullptr) return;
 
     // Normal mode cursor is never on a CR/0
@@ -173,24 +173,18 @@ void ZepMode::SwitchMode(EditorMode editorMode) {
     currentMode = editorMode;
 
     switch (currentMode) {
-        case EditorMode::Normal: {
-            buffer->ClearSelection();
+        case EditorMode::Normal:buffer->ClearSelection();
             ClampCursorForMode();
             ResetCommand();
-        }
             break;
         case EditorMode::Insert:buffer->ClearSelection();
             ResetCommand();
             break;
-        case EditorMode::Visual: {
-            ResetCommand();
-        }
+        case EditorMode::Visual:ResetCommand();
             break;
-        case EditorMode::Ex: {
-            m_exCommandStartLocation = cursor;
+        case EditorMode::Ex:m_exCommandStartLocation = cursor;
             // Ensure we show the command at the bottom
             editor.SetCommandText(m_currentCommand);
-        }
             break;
         default:
         case EditorMode::None:break;
@@ -216,9 +210,7 @@ std::string ZepMode::ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modi
 
     std::string mapped;
 
-#define COMPARE_STR(a, b) \
-    if (key == (b))       \
-        mapped = #a;
+#define COMPARE_STR(a, b) if (key == (b)) mapped = #a;
 
     COMPARE_STR(Return, ImGuiKey_Enter)
     COMPARE_STR(Escape, ImGuiKey_Escape)
@@ -1744,8 +1736,8 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
     } else if (!m_currentCommand.empty() && (m_currentCommand[0] == '/' || m_currentCommand[0] == '?')) {
         // TODO: Busy editing the search string; do the search
         if (m_currentCommand.length() > 0) {
-            auto pWindow = currentWindow;
-            auto *buffer = pWindow->buffer;
+            auto window = currentWindow;
+            auto *buffer = window->buffer;
             auto searchString = m_currentCommand.substr(1);
 
             buffer->ClearRangeMarkers(RangeMarkerType::Search);
@@ -1781,10 +1773,10 @@ bool ZepMode::HandleExCommand(std::string strCommand) {
 
             auto pMark = buffer->FindNextMarker(startLocation, dir, RangeMarkerType::Search);
             if (pMark) {
-                pWindow->SetBufferCursor(GlyphIterator(buffer, pMark->range.first));
+                window->SetBufferCursor(GlyphIterator(buffer, pMark->range.first));
                 pMark->SetBackgroundColor(ThemeColor::Info);
             } else {
-                pWindow->SetBufferCursor(m_exCommandStartLocation);
+                window->SetBufferCursor(m_exCommandStartLocation);
             }
         }
     }

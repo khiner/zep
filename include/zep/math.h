@@ -200,27 +200,22 @@ inline NVec4<float> HSVToRGB(float h, float s, float v) {
                 g = t;
                 b = p;
                 break;
-
             case 1:r = q;
                 g = v;
                 b = p;
                 break;
-
             case 2:r = p;
                 g = v;
                 b = t;
                 break;
-
             case 3:r = p;
                 g = q;
                 b = v;
                 break;
-
             case 4:r = t;
                 g = p;
                 b = v;
                 break;
-
             default:r = v;
                 g = p;
                 b = q;

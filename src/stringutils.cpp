@@ -65,7 +65,6 @@ uint32_t murmur_hash(const void *key, int len, uint32_t seed) {
     }
 
     // Handle the last few bytes of the input array
-
     switch (len) {
         case 3:h ^= data[2] << 16;
         case 2:h ^= data[1] << 8;
@@ -133,9 +132,7 @@ std::string string_slurp_if(std::string::const_iterator &itr, std::string::const
 
     auto itrCurrent = itr;
     if (*itrCurrent == first) {
-        while ((itrCurrent != itrEnd) && *itrCurrent != last) {
-            itrCurrent++;
-        }
+        while ((itrCurrent != itrEnd) && *itrCurrent != last) itrCurrent++;
 
         if ((itrCurrent != itrEnd) && *itrCurrent == last) {
             itrCurrent++;

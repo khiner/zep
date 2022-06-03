@@ -10,20 +10,15 @@
 
 namespace Zep {
 
-ZepSyntax::ZepSyntax(ZepBuffer &buffer,
-                     std::unordered_set<std::string> keywords,
-                     std::unordered_set<std::string> identifiers,
-                     uint32_t flags) : ZepComponent(buffer.editor),
-                                       m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_flags(flags) {
+ZepSyntax::ZepSyntax(ZepBuffer &buffer, std::unordered_set<std::string> keywords, std::unordered_set<std::string> identifiers, uint32_t flags)
+    : ZepComponent(buffer.editor), m_buffer(buffer), m_keywords(std::move(keywords)), m_identifiers(std::move(identifiers)), m_flags(flags) {
     m_syntax.resize(m_buffer.workingBuffer.size());
     m_adornments.push_back(std::make_shared<ZepSyntaxAdorn_RainbowBrackets>(*this, m_buffer));
 }
 
 ZepSyntax::ZepSyntax(ZepBuffer &buffer, uint32_t flags) : ZepSyntax(buffer, {}, {}, flags) {}
 
-ZepSyntax::~ZepSyntax() {
-    Interrupt();
-}
+ZepSyntax::~ZepSyntax() { Interrupt(); }
 
 SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
     SyntaxResult result;
@@ -39,10 +34,7 @@ SyntaxResult ZepSyntax::GetSyntaxAt(const GlyphIterator &offset) const {
     bool found = false;
     for (auto &adorn: m_adornments) {
         auto adornResult = adorn->GetSyntaxAt(offset, found);
-        if (found) {
-            result = adornResult;
-            break;
-        }
+        if (found) return adornResult;
     }
 
     return result;
@@ -60,10 +52,9 @@ void ZepSyntax::Interrupt() {
 void ZepSyntax::QueueUpdateSyntax(const GlyphIterator &startLocation, const GlyphIterator &endLocation) {
     assert(startLocation.Valid());
     assert(endLocation >= startLocation);
-    // Record the max location the syntax is valid up to.  This will
-    // ensure that multiple calls to restart the thread keep track of where to start
-    // This means a small edit at the end of a big file, followed by a small edit at the top
-    // is the worst case scenario, because
+    // Record the max location the syntax is valid up to.
+    // This will ensure that multiple calls to restart the thread keep track of where to start.
+    // This means a small edit at the end of a big file, followed by a small edit at the top is the worst case scenario.
     m_processedChar = std::min(startLocation.index, long(m_processedChar));
     m_targetChar = std::max(endLocation.index, long(m_targetChar));
 
