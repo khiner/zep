@@ -102,31 +102,6 @@ void string_split(const std::string &text, const char *delims, std::vector<std::
         tokens.push_back(text.substr(start));
 }
 
-size_t string_first_not_of(const char *text, size_t start, size_t end, const char *delims) {
-    for (auto index = start; index < end; index++) {
-        bool found = false;
-        auto pDelim = delims;
-        while (*pDelim != 0) {
-            if (text[index] == *pDelim++) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) return index;
-    }
-    return std::string::npos;
-}
-
-size_t string_first_of(const char *text, size_t start, size_t end, const char *delims) {
-    for (auto index = start; index < end; index++) {
-        auto pDelim = delims;
-        while (*pDelim != 0) {
-            if (text[index] == *pDelim++) return index;
-        }
-    }
-    return std::string::npos;
-}
-
 std::string string_slurp_if(std::string::const_iterator &itr, std::string::const_iterator itrEnd, char first, char last) {
     if (itr == itrEnd) return "";
 
