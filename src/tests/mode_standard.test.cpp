@@ -58,10 +58,10 @@ TEST_F(StandardTest, CheckDisplaySucceeds) {
         if (mod_marker) {                                     \
             mod_marker = false;                               \
             if (ch == 's') {                                  \
-                mod |= ImGuiKeyModFlags_Shift;                \
+                mod |= ImGuiModFlags_Shift;                \
                 continue;                                     \
             } else if (ch == 'c') {                           \
-                mod |= ImGuiKeyModFlags_Ctrl;                 \
+                mod |= ImGuiModFlags_Ctrl;                 \
                 continue;                                     \
             } else if (ch == 'r') {                           \
                 mode->AddKeyPress(ImGuiKey_RightArrow, mod);  \
@@ -134,19 +134,19 @@ TEST_F(StandardTest, UndoRedo) {
 TEST_F(StandardTest, copy_pasteover_paste) {
     // The issue here is that setting the text _should_ update the buffer!
     pBuffer->SetText("Hello Goodbye");
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
-    mode->AddKeyPress('c', ImGuiKeyModFlags_Ctrl);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
+    mode->AddKeyPress('c', ImGuiModFlags_Ctrl);
 
-    mode->AddKeyPress('v', ImGuiKeyModFlags_Ctrl);
+    mode->AddKeyPress('v', ImGuiModFlags_Ctrl);
     ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "Hello Goodbye");
 
     // Note this is incorrect for what we expect, but a side effect of the test: Fix it.
     // The actual behavior in the editor is correct!
-    mode->AddKeyPress('v', ImGuiKeyModFlags_Ctrl);
+    mode->AddKeyPress('v', ImGuiModFlags_Ctrl);
     ASSERT_STREQ(pBuffer->workingBuffer.string().c_str(), "HelloHello Goodbye");
     ASSERT_EQ(pWindow->GetBufferCursor().index, 10);
 }
@@ -154,7 +154,7 @@ TEST_F(StandardTest, copy_pasteover_paste) {
 TEST_F(StandardTest, BackToInsertIfShiftReleased) {
     // The issue here is that setting the text _should_ update the buffer!
     pBuffer->SetText("abc");
-    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiKeyModFlags_Shift);
+    mode->AddKeyPress(ImGuiKey_RightArrow, ImGuiModFlags_Shift);
     ASSERT_EQ(mode->currentMode, EditorMode::Visual);
     mode->AddKeyPress(ImGuiKey_RightArrow);
     ASSERT_EQ(mode->currentMode, EditorMode::Insert);

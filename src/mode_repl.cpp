@@ -84,7 +84,7 @@ void ZepReplExCommand::Run(const std::vector<std::string> &tokens) {
     m_pReplBuffer = editor.GetEmptyBuffer("Repl.cpp"); // , FileFlags::ReadOnly);
     m_pReplBuffer->type = BufferType::Repl;
     m_pReplBuffer->syntax->IgnoreLineHighlight();
-    m_pReplBuffer->postKeyNotifier = [&](ImGuiKey key, ImGuiKeyModFlags modifier) { return AddKeyPress(key, modifier); };
+    m_pReplBuffer->postKeyNotifier = [&](ImGuiKey key, ImGuiModFlags modifier) { return AddKeyPress(key, modifier); };
 
     // Adding the window will make it active and begin the mode
     m_pReplWindow = editor.activeTabWindow->AddWindow(m_pReplBuffer, nullptr, RegionLayoutType::VBox);
@@ -103,7 +103,7 @@ void ZepReplExCommand::MoveToEnd() {
     m_startLocation = m_pReplWindow->GetBufferCursor();
 }
 
-bool ZepReplExCommand::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) {
+bool ZepReplExCommand::AddKeyPress(ImGuiKey key, ImGuiModFlags modifiers) {
     (void) &modifiers;
     if (key == ImGuiKey_Enter) {
         ChangeRecord record;

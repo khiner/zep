@@ -92,7 +92,7 @@ struct ZepMode : public ZepComponent {
     explicit ZepMode(ZepEditor &editor);
 
     virtual void Init() {};
-    virtual void AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys = ImGuiKeyModFlags_None);
+    virtual void AddKeyPress(ImGuiKey key, ImGuiModFlags modifierKeys = ImGuiModFlags_None);
     virtual const char *Name() const = 0;
     virtual void Begin(ZepWindow *pWindow);
     void Notify(const std::shared_ptr<ZepMessage> &) override {}
@@ -143,7 +143,7 @@ protected:
 
     void ClampCursorForMode() const;
     bool HandleExCommand(std::string strCommand);
-    static std::string ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modifierFlags);
+    static std::string ConvertInputToMapString(ImGuiKey key, ImGuiModFlags modifierFlags);
 
     virtual bool HandleIgnoredInput(CommandContext &) { return false; };
 
@@ -169,8 +169,8 @@ protected:
 
     GlyphIterator m_exCommandStartLocation;
     CursorType m_visualCursorType = CursorType::Visual;
-    ImGuiKeyModFlags m_modeFlags = ModeFlags::None;
-    ImGuiKey m_lastKey = 0;
+    ImGuiModFlags m_modeFlags = ModeFlags::None;
+    ImGuiKey m_lastKey = ImGuiKey_None;
 
     Timer m_lastKeyPressTimer;
 };

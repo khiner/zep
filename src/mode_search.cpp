@@ -19,7 +19,7 @@ ZepMode_Search::~ZepMode_Search() {
     if (m_searchResult.valid()) m_searchResult.wait();
 }
 
-void ZepMode_Search::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifiers) {
+void ZepMode_Search::AddKeyPress(ImGuiKey key, ImGuiModFlags modifiers) {
     (void) modifiers;
     if (key == ImGuiKey_Escape) {
         // CM TODO:

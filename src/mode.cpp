@@ -118,7 +118,7 @@ void ZepMode::AddCommandText(const std::string &text) {
     if (currentWindow == nullptr) return;
 
     for (auto &ch: text) {
-        AddKeyPress(ch, ImGuiKeyModFlags_None);
+        AddKeyPress(ImGuiKey(ch), ImGuiModFlags_None);
     }
 }
 
@@ -191,7 +191,7 @@ void ZepMode::SwitchMode(EditorMode editorMode) {
     }
 }
 
-std::string ZepMode::ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modifierFlags) {
+std::string ZepMode::ConvertInputToMapString(ImGuiKey key, ImGuiModFlags modifierFlags) {
     std::string str;
     bool closeBracket = false;
     if (ImGui::GetIO().KeyCtrl) {
@@ -255,7 +255,7 @@ std::string ZepMode::ConvertInputToMapString(ImGuiKey key, ImGuiKeyModFlags modi
 }
 
 // Handle a key press, convert it to an input command and context, and return it.
-void ZepMode::AddKeyPress(ImGuiKey key, ImGuiKeyModFlags modifierKeys) {
+void ZepMode::AddKeyPress(ImGuiKey key, ImGuiModFlags modifierKeys) {
     if (currentWindow == nullptr) return;
 
     m_lastKey = key;
