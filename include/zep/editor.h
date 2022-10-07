@@ -165,7 +165,7 @@ struct TabRegionTab : public Region {
 struct ZepEditor {
     // Root path is the path to search for a config file
     ZepEditor(ZepDisplay *display, const ZepPath &root, uint32_t flags = 0, ZepFileSystem *fileSystem = nullptr);
-    ~ZepEditor();
+    virtual ~ZepEditor();
 
     void LoadConfig(const ZepPath &config_path);
     void LoadConfig(const std::shared_ptr<cpptoml::table> &newConfig);
